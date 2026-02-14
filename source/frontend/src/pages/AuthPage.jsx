@@ -1,270 +1,261 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import './AuthPage.css';
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
-  const { login, register, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  if (isAuthenticated) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreeTerms: false,
+  });
+
+  const validateLogin = () => {
+    const newErrors = {};
+    if (!loginForm.email || !loginForm.email.includes('@')) {
+      newErrors.loginEmail = 'Please enter a valid email';
+    }
+    if (!loginForm.password) {
+      newErrors.loginPassword = 'Password is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateRegister = () => {
+    const newErrors = {};
+    if (!registerForm.username || registerForm.username.length < 3) {
+      newErrors.registerUsername = 'Username must be at least 3 characters';
+    }
+    if (!registerForm.email || !registerForm.email.includes('@')) {
+      newErrors.registerEmail = 'Please enter a valid email';
+    }
+    if (!registerForm.password || registerForm.password.length < 8) {
+      newErrors.registerPassword = 'Password must be at least 8 characters';
+    }
+    if (registerForm.password !== registerForm.confirmPassword) {
+      newErrors.registerConfirm = 'Passwords do not match';
+    }
+    if (!registerForm.agreeTerms) {
+      newErrors.registerTerms = 'You must agree to the Terms & Conditions';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    if (!validateLogin()) return;
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setLoginSuccess(true);
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
+  const handleRegisterSubmit = (e) => {
+    e.preventDefault();
+    if (!validateRegister()) return;
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setRegisterSuccess(true);
+      setIsSubmitting(false);
+      setTimeout(() => {
+        setRegisterForm({ username: '', email: '', password: '', confirmPassword: '', agreeTerms: false });
+        setRegisterSuccess(false);
+      }, 3000);
+    }, 1000);
+  };
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setErrors({});
+    setLoginSuccess(false);
+    setRegisterSuccess(false);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden animate-slide-up">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-primary-500 to-primary-700 px-8 py-8 text-center text-white">
-          <Link to="/" className="no-underline">
-            <h1 className="font-display text-3xl font-extrabold mb-2">🎓 EduCycle</h1>
-          </Link>
-          <p className="text-primary-100 text-sm">Your marketplace for educational excellence</p>
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-header">
+          <div className="auth-logo">🎓 EduCycle</div>
+          <div className="auth-tagline">Your marketplace for educational excellence</div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b-2 border-gray-200">
+        <div className="auth-tabs">
           <button
-            onClick={() => setActiveTab('login')}
-            className={`flex-1 py-4 text-base font-semibold transition-colors relative cursor-pointer ${
-              activeTab === 'login' ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`auth-tab-btn ${activeTab === 'login' ? 'active' : ''}`}
+            onClick={() => switchTab('login')}
           >
             Login
-            {activeTab === 'login' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600" />
-            )}
           </button>
           <button
-            onClick={() => setActiveTab('register')}
-            className={`flex-1 py-4 text-base font-semibold transition-colors relative cursor-pointer ${
-              activeTab === 'register' ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`auth-tab-btn ${activeTab === 'register' ? 'active' : ''}`}
+            onClick={() => switchTab('register')}
           >
             Register
-            {activeTab === 'register' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary-600" />
-            )}
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-8">
-          {activeTab === 'login' ? (
-            <LoginForm onLogin={login} navigate={navigate} />
-          ) : (
-            <RegisterForm onRegister={register} navigate={navigate} setActiveTab={setActiveTab} />
+        <div className="auth-content">
+          {activeTab === 'login' && (
+            <form className="auth-form" onSubmit={handleLoginSubmit}>
+              <div className={`auth-success ${loginSuccess ? 'show' : ''}`}>
+                ✓ Login successful! Redirecting...
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="login-email">Email</label>
+                <input
+                  type="email"
+                  id="login-email"
+                  className={`auth-input ${errors.loginEmail ? 'error' : ''}`}
+                  placeholder="your@email.com"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                />
+                <div className={`auth-error ${errors.loginEmail ? 'show' : ''}`}>
+                  {errors.loginEmail}
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="login-password">Password</label>
+                <input
+                  type="password"
+                  id="login-password"
+                  className={`auth-input ${errors.loginPassword ? 'error' : ''}`}
+                  placeholder="••••••••"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                />
+                <div className={`auth-error ${errors.loginPassword ? 'show' : ''}`}>
+                  {errors.loginPassword}
+                </div>
+              </div>
+
+              <div className="auth-checkbox-group">
+                <input type="checkbox" id="remember-me" />
+                <label htmlFor="remember-me">Remember me</label>
+              </div>
+
+              <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+              </button>
+
+              <div className="auth-divider">or continue with</div>
+
+              <div className="auth-social-login">
+                <button type="button" className="auth-social-btn">Google</button>
+                <button type="button" className="auth-social-btn">Facebook</button>
+              </div>
+
+              <div className="auth-footer">
+                <a href="#">Forgot password?</a>
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'register' && (
+            <form className="auth-form" onSubmit={handleRegisterSubmit}>
+              <div className={`auth-success ${registerSuccess ? 'show' : ''}`}>
+                ✓ Registration successful! Please check your email to verify your account.
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="register-username">Username</label>
+                <input
+                  type="text"
+                  id="register-username"
+                  className={`auth-input ${errors.registerUsername ? 'error' : ''}`}
+                  placeholder="johndoe"
+                  value={registerForm.username}
+                  onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+                />
+                <div className={`auth-error ${errors.registerUsername ? 'show' : ''}`}>
+                  {errors.registerUsername}
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="register-email">Email</label>
+                <input
+                  type="email"
+                  id="register-email"
+                  className={`auth-input ${errors.registerEmail ? 'error' : ''}`}
+                  placeholder="your@email.com"
+                  value={registerForm.email}
+                  onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                />
+                <div className={`auth-error ${errors.registerEmail ? 'show' : ''}`}>
+                  {errors.registerEmail}
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="register-password">Password</label>
+                <input
+                  type="password"
+                  id="register-password"
+                  className={`auth-input ${errors.registerPassword ? 'error' : ''}`}
+                  placeholder="••••••••"
+                  value={registerForm.password}
+                  onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                />
+                <div className={`auth-error ${errors.registerPassword ? 'show' : ''}`}>
+                  {errors.registerPassword}
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="register-confirm">Confirm Password</label>
+                <input
+                  type="password"
+                  id="register-confirm"
+                  className={`auth-input ${errors.registerConfirm ? 'error' : ''}`}
+                  placeholder="••••••••"
+                  value={registerForm.confirmPassword}
+                  onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+                />
+                <div className={`auth-error ${errors.registerConfirm ? 'show' : ''}`}>
+                  {errors.registerConfirm}
+                </div>
+              </div>
+
+              <div className="auth-checkbox-group">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={registerForm.agreeTerms}
+                  onChange={(e) => setRegisterForm({ ...registerForm, agreeTerms: e.target.checked })}
+                />
+                <label htmlFor="terms">I agree to the Terms & Conditions</label>
+              </div>
+              <div className={`auth-error ${errors.registerTerms ? 'show' : ''}`} style={{ marginTop: '-1rem', marginBottom: '1rem' }}>
+                {errors.registerTerms}
+              </div>
+
+              <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating account...' : 'Create Account'}
+              </button>
+
+              <div className="auth-footer" style={{ marginTop: 'var(--space-6)' }}>
+                Already have an account?{' '}
+                <button type="button" onClick={() => switchTab('login')}>
+                  Sign in
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function LoginForm({ onLogin, navigate }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const validate = () => {
-    const newErrors = {};
-    if (!email || !email.includes('@')) newErrors.email = 'Please enter a valid email';
-    if (!password) newErrors.password = 'Password is required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      await onLogin(email, password);
-      toast.success('Login successful!');
-      navigate('/');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="animate-fade-in">
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.email ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.password ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password}</p>}
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-3.5 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-base"
-      >
-        {loading ? 'Signing in...' : 'Sign In'}
-      </button>
-
-      <div className="flex items-center gap-4 my-6 text-gray-400 text-sm">
-        <span className="flex-1 h-px bg-gray-200" />
-        or continue with
-        <span className="flex-1 h-px bg-gray-200" />
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          type="button"
-          className="flex-1 py-3 border-2 border-gray-200 rounded-lg font-semibold hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer"
-        >
-          Google
-        </button>
-        <button
-          type="button"
-          className="flex-1 py-3 border-2 border-gray-200 rounded-lg font-semibold hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer"
-        >
-          Facebook
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function RegisterForm({ onRegister, navigate, setActiveTab }) {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const validate = () => {
-    const newErrors = {};
-    if (!username || username.length < 3) newErrors.username = 'Username must be at least 3 characters';
-    if (!email || !email.includes('@')) newErrors.email = 'Please enter a valid email';
-    if (!password || password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      await onRegister(username, email, password);
-      toast.success('Registration successful!');
-      navigate('/');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="animate-fade-in">
-      <div className="mb-5">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Username</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="johndoe"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.username ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.username && <p className="mt-2 text-sm text-red-500">{errors.username}</p>}
-      </div>
-
-      <div className="mb-5">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.email ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email}</p>}
-      </div>
-
-      <div className="mb-5">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.password ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password}</p>}
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-900 mb-2">Confirm Password</label>
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••"
-          className={`w-full px-4 py-3 border-2 rounded-lg text-base transition-colors focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 ${
-            errors.confirmPassword ? 'border-red-400' : 'border-gray-200'
-          }`}
-        />
-        {errors.confirmPassword && (
-          <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
-        )}
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-3.5 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all hover:-translate-y-0.5 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-base"
-      >
-        {loading ? 'Creating account...' : 'Create Account'}
-      </button>
-
-      <p className="text-center mt-6 text-sm text-gray-500">
-        Already have an account?{' '}
-        <button
-          type="button"
-          onClick={() => setActiveTab('login')}
-          className="text-primary-600 font-semibold hover:underline cursor-pointer"
-        >
-          Sign in
-        </button>
-      </p>
-    </form>
   );
 }

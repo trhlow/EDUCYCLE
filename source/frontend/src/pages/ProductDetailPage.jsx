@@ -1,181 +1,353 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { FiShoppingCart, FiArrowLeft, FiStar } from 'react-icons/fi';
-import { productsApi, reviewsApi, categoriesApi } from '../api/endpoints';
-import { useCart } from '../contexts/CartContext';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import './ProductDetailPage.css';
+
+const PRODUCTS_DB = {
+  '1': {
+    id: '1',
+    name: 'Advanced Python Programming Course',
+    description: 'Master Python with real-world projects and advanced concepts',
+    fullDescription: 'This comprehensive Python course takes you from intermediate to advanced level. You\'ll learn design patterns, async programming, testing, web scraping, data processing, and building production-ready applications. Each module includes hands-on projects that mirror real-world scenarios.',
+    price: 49.99,
+    category: 'Programming',
+    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=450&fit=crop',
+    rating: 4.8,
+    reviews: 342,
+    seller: 'CodeMaster Pro',
+    sellerCourses: 15,
+    sellerRating: 4.9,
+    learningPoints: [
+      'Advanced Python patterns and best practices',
+      'Asynchronous programming with asyncio',
+      'Unit testing and test-driven development',
+      'Web scraping and data pipeline automation',
+      'Building REST APIs with FastAPI',
+      'Database integration with SQLAlchemy',
+    ],
+    requirements: [
+      'Basic Python knowledge (variables, loops, functions)',
+      'A computer with Python 3.8+ installed',
+      'Willingness to practice with real projects',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Sarah M.', rating: 5, date: 'Feb 10, 2024', text: 'Excellent course! The projects were incredibly practical and helped me land a new job.' },
+      { id: 'r2', user: 'James L.', rating: 5, date: 'Feb 8, 2024', text: 'Best Python course I\'ve taken. The async programming section was exactly what I needed.' },
+      { id: 'r3', user: 'Maria G.', rating: 4, date: 'Feb 5, 2024', text: 'Very thorough content. Would have liked more exercises in the testing module.' },
+    ],
+  },
+  '2': {
+    id: '2',
+    name: 'Complete Web Development Bootcamp',
+    description: 'Learn HTML, CSS, JavaScript, React, and Node.js from scratch',
+    fullDescription: 'A full-stack web development bootcamp covering everything from HTML basics to deploying production React + Node.js applications. Includes 40+ hours of video content with real-world projects including an e-commerce site, social media app, and portfolio website.',
+    price: 89.99,
+    category: 'Web Development',
+    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop',
+    rating: 4.9,
+    reviews: 1205,
+    seller: 'WebDev Academy',
+    sellerCourses: 22,
+    sellerRating: 4.8,
+    learningPoints: [
+      'HTML5, CSS3, and modern JavaScript (ES6+)',
+      'React with hooks, context, and state management',
+      'Node.js and Express.js backend development',
+      'MongoDB and PostgreSQL databases',
+      'Authentication and authorization patterns',
+      'Deployment to cloud platforms',
+    ],
+    requirements: [
+      'No prior programming experience needed',
+      'A computer with internet access',
+      'Dedication to complete all projects',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Alex K.', rating: 5, date: 'Feb 12, 2024', text: 'Completely transformed my career. Went from zero to full-stack developer.' },
+      { id: 'r2', user: 'Emily R.', rating: 5, date: 'Feb 10, 2024', text: 'The best bootcamp-style course online. Worth every penny!' },
+      { id: 'r3', user: 'David P.', rating: 4, date: 'Feb 7, 2024', text: 'Great content. The React section is particularly well done.' },
+    ],
+  },
+  '3': {
+    id: '3',
+    name: 'Data Science Fundamentals',
+    description: 'Introduction to data analysis, statistics, and machine learning',
+    fullDescription: 'Start your data science journey with this comprehensive course. Learn to analyze data, create visualizations, apply statistical methods, and build your first machine learning models using Python, Pandas, and Scikit-learn.',
+    price: 69.99,
+    category: 'Data Science',
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop',
+    rating: 4.7,
+    reviews: 567,
+    seller: 'DataPro Institute',
+    sellerCourses: 8,
+    sellerRating: 4.7,
+    learningPoints: [
+      'Data analysis with Pandas and NumPy',
+      'Data visualization with Matplotlib and Seaborn',
+      'Statistical analysis and hypothesis testing',
+      'Introduction to machine learning with Scikit-learn',
+      'Real-world datasets and case studies',
+    ],
+    requirements: [
+      'Basic Python knowledge recommended',
+      'Understanding of basic math concepts',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Tom W.', rating: 5, date: 'Feb 8, 2024', text: 'Perfect introduction to data science. Very clear explanations.' },
+      { id: 'r2', user: 'Lisa N.', rating: 4, date: 'Feb 5, 2024', text: 'Good fundamentals course with practical examples.' },
+    ],
+  },
+  '4': {
+    id: '4',
+    name: 'UI/UX Design Masterclass',
+    description: 'Create stunning user interfaces and exceptional user experiences',
+    fullDescription: 'Learn the complete UI/UX design process from user research to high-fidelity prototypes. This course covers design thinking, wireframing, visual design principles, and prototyping with Figma.',
+    price: 59.99,
+    category: 'Design',
+    imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=450&fit=crop',
+    rating: 4.6,
+    reviews: 423,
+    seller: 'Design Guru',
+    sellerCourses: 12,
+    sellerRating: 4.8,
+    learningPoints: [
+      'Design thinking methodology',
+      'User research and persona creation',
+      'Wireframing and prototyping with Figma',
+      'Visual design principles and color theory',
+      'Responsive design and accessibility',
+    ],
+    requirements: [
+      'No prior design experience needed',
+      'Figma account (free version works)',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Anna S.', rating: 5, date: 'Feb 11, 2024', text: 'Amazing course! Helped me build my design portfolio.' },
+      { id: 'r2', user: 'Chris B.', rating: 4, date: 'Feb 7, 2024', text: 'Very comprehensive design course covering all the essentials.' },
+    ],
+  },
+  '5': {
+    id: '5',
+    name: 'Digital Marketing Essentials',
+    description: 'SEO, social media marketing, and content strategy',
+    fullDescription: 'Master digital marketing with hands-on projects covering SEO, social media marketing, email campaigns, content strategy, and Google Analytics. Learn to create and execute effective marketing campaigns.',
+    price: 39.99,
+    category: 'Marketing',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop',
+    rating: 4.5,
+    reviews: 289,
+    seller: 'Marketing Experts',
+    sellerCourses: 6,
+    sellerRating: 4.6,
+    learningPoints: [
+      'Search engine optimization (SEO) strategies',
+      'Social media marketing and advertising',
+      'Email marketing and automation',
+      'Content strategy and copywriting',
+      'Google Analytics and data-driven decisions',
+    ],
+    requirements: [
+      'No prior marketing experience needed',
+      'Access to social media accounts for practice',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Mike T.', rating: 5, date: 'Feb 9, 2024', text: 'Practical and actionable. Already seeing results from the SEO tips.' },
+      { id: 'r2', user: 'Rachel H.', rating: 4, date: 'Feb 6, 2024', text: 'Good overview of all major digital marketing channels.' },
+    ],
+  },
+  '6': {
+    id: '6',
+    name: 'Mobile App Development with React Native',
+    description: 'Build iOS and Android apps with a single codebase',
+    fullDescription: 'Learn to build cross-platform mobile applications using React Native. This course covers navigation, state management, native APIs, push notifications, and publishing to app stores.',
+    price: 79.99,
+    category: 'Mobile Development',
+    imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=450&fit=crop',
+    rating: 4.7,
+    reviews: 456,
+    seller: 'AppDev Masters',
+    sellerCourses: 10,
+    sellerRating: 4.7,
+    learningPoints: [
+      'React Native core components and APIs',
+      'Navigation with React Navigation',
+      'State management with Redux and Context',
+      'Native device features (camera, location, etc.)',
+      'Push notifications and background tasks',
+      'App store submission process',
+    ],
+    requirements: [
+      'JavaScript and React knowledge required',
+      'Mac recommended for iOS development',
+      'Node.js installed on your machine',
+    ],
+    reviewList: [
+      { id: 'r1', user: 'Kevin L.', rating: 5, date: 'Feb 13, 2024', text: 'Published my first app thanks to this course!' },
+      { id: 'r2', user: 'Sophie M.', rating: 4, date: 'Feb 10, 2024', text: 'Very practical. Love the real-world project approach.' },
+    ],
+  },
+};
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const { addItem } = useCart();
+  const [activeTab, setActiveTab] = useState('description');
+  const [selectedThumb, setSelectedThumb] = useState(0);
 
-  const { data: product, isLoading } = useQuery({
-    queryKey: ['product', id],
-    queryFn: async () => {
-      const { data } = await productsApi.getById(id);
-      return data;
-    },
-  });
+  const product = id ? PRODUCTS_DB[id] : null;
 
-  const { data: reviews = [] } = useQuery({
-    queryKey: ['reviews'],
-    queryFn: async () => {
-      const { data } = await reviewsApi.getAll();
-      return data;
-    },
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data } = await categoriesApi.getAll();
-      return data;
-    },
-  });
-
-  if (isLoading) return <LoadingSpinner />;
   if (!product) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h2>
-        <Link to="/products" className="text-primary-600 font-semibold hover:underline">
-          Back to products
+      <div className="pdp-container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+        <h2>Product not found</h2>
+        <p style={{ color: 'var(--text-secondary)', margin: '1rem 0' }}>
+          The product you're looking for doesn't exist or has been removed.
+        </p>
+        <Link to="/products" className="plp-reset-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
+          Browse Products
         </Link>
       </div>
     );
   }
 
-  const productReviews = reviews.filter((r) => r.productId === id);
-  const categoryName = categories.find((c) => c.id === product.categoryId)?.name || 'General';
-  const avgRating =
-    productReviews.length > 0
-      ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1)
-      : 'N/A';
+  const thumbImages = [
+    product.imageUrl,
+    product.imageUrl.replace('w=800', 'w=400'),
+    product.imageUrl.replace('w=800', 'w=600'),
+    product.imageUrl.replace('w=800', 'w=500'),
+  ];
 
   return (
-    <div className="animate-fade-in">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link to="/products" className="hover:text-primary-600 transition-colors no-underline flex items-center gap-1">
-            <FiArrowLeft size={14} /> Products
-          </Link>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">{product.name}</span>
-        </div>
+    <div className="pdp-container">
+      <div className="pdp-breadcrumb">
+        <Link to="/">Home</Link>
+        <span>/</span>
+        <Link to="/products">Products</Link>
+        <span>/</span>
+        <span>{product.name}</span>
       </div>
 
-      {/* Product Detail */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-          {/* Left: Image & Description */}
-          <div>
-            {/* Image */}
-            <div className="bg-gray-100 rounded-xl overflow-hidden aspect-video mb-8">
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-8xl">📚</div>
-              )}
-            </div>
+      <div className="pdp-layout">
+        {/* Image Gallery */}
+        <div className="pdp-gallery">
+          <div className="pdp-main-image">
+            <img src={thumbImages[selectedThumb]} alt={product.name} />
+          </div>
+          <div className="pdp-thumbnails">
+            {thumbImages.map((thumb, index) => (
+              <button
+                key={index}
+                className={`pdp-thumb ${selectedThumb === index ? 'active' : ''}`}
+                onClick={() => setSelectedThumb(index)}
+              >
+                <img src={thumb} alt={`${product.name} thumbnail ${index + 1}`} />
+              </button>
+            ))}
+          </div>
+        </div>
 
-            {/* Description */}
-            <div className="bg-white rounded-xl p-6 shadow-md mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {product.description || 'No description available for this course.'}
-              </p>
-            </div>
-
-            {/* Reviews */}
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Reviews ({productReviews.length})
-              </h2>
-              {productReviews.length === 0 ? (
-                <p className="text-gray-500">No reviews yet. Be the first to review!</p>
-              ) : (
-                <div className="space-y-4">
-                  {productReviews.map((review) => (
-                    <div key={review.id} className="border-b border-gray-100 pb-4 last:border-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex text-accent-500">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <FiStar
-                              key={i}
-                              size={14}
-                              fill={i < review.rating ? 'currentColor' : 'none'}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-500">{review.rating}/5</span>
-                      </div>
-                      <p className="text-gray-700 text-sm">{review.content}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Purchase Panel */}
+        <div className="pdp-purchase-panel">
+          <h1 className="pdp-title">{product.name}</h1>
+          <div className="pdp-seller-row">
+            by <span className="pdp-seller-name">{product.seller}</span>
+          </div>
+          <div className="pdp-rating-row">
+            <span className="pdp-stars">★ {product.rating}</span>
+            <span className="pdp-rating-text">({product.reviews} reviews)</span>
+          </div>
+          <span className="pdp-category-badge">{product.category}</span>
+          <div className="pdp-price">${product.price}</div>
+          <div className="pdp-actions">
+            <button className="pdp-btn-cart">Add to Cart</button>
+            <button className="pdp-btn-buy">Buy Now</button>
           </div>
 
-          {/* Right: Purchase Panel */}
-          <div className="lg:sticky lg:top-20 h-fit">
-            <div className="bg-white rounded-xl p-6 shadow-xl">
-              <span className="inline-block px-3 py-1 bg-primary-50 text-primary-600 text-sm font-semibold rounded-full mb-4">
-                {categoryName}
-              </span>
-              <h1 className="font-display text-2xl font-bold text-gray-900 mb-2">
-                {product.name}
-              </h1>
-
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex text-accent-500">
-                  <FiStar size={16} fill="currentColor" />
-                </div>
-                <span className="font-semibold text-gray-900">{avgRating}</span>
-                <span className="text-gray-500 text-sm">({productReviews.length} reviews)</span>
-              </div>
-
-              <div className="text-4xl font-bold text-primary-600 mb-6">
-                ${product.price.toFixed(2)}
-              </div>
-
-              <button
-                onClick={() => addItem(product)}
-                className="w-full py-3.5 bg-accent-500 text-white font-semibold rounded-lg hover:bg-accent-600 transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg cursor-pointer text-lg flex items-center justify-center gap-2 mb-3"
-              >
-                <FiShoppingCart size={20} />
-                Add to Cart
-              </button>
-
-              <Link
-                to="/cart"
-                onClick={() => addItem(product)}
-                className="block w-full py-3.5 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-all text-center no-underline text-lg"
-              >
-                Buy Now
-              </Link>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">This course includes:</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">📖 Full course content</li>
-                  <li className="flex items-center gap-2">🔒 Lifetime access</li>
-                  <li className="flex items-center gap-2">📱 Mobile friendly</li>
-                  <li className="flex items-center gap-2">📜 Certificate of completion</li>
-                </ul>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-xs text-gray-400 text-center">
-                  Created: {new Date(product.createdAt).toLocaleDateString()}
-                </p>
+          <div className="pdp-seller-card">
+            <div className="pdp-seller-avatar">👤</div>
+            <div className="pdp-seller-info">
+              <div className="pdp-seller-info-name">{product.seller}</div>
+              <div className="pdp-seller-info-meta">
+                ★ {product.sellerRating} &middot; {product.sellerCourses} courses
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Detail Tabs */}
+        <div className="pdp-details">
+          <div className="pdp-tabs">
+            {['description', 'reviews', 'info'].map((tab) => (
+              <button
+                key={tab}
+                className={`pdp-tab ${activeTab === tab ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'description' ? 'Description' : tab === 'reviews' ? 'Reviews' : 'Course Info'}
+              </button>
+            ))}
+          </div>
+
+          <div className="pdp-tab-content">
+            {activeTab === 'description' && (
+              <div>
+                <p className="pdp-description">{product.fullDescription}</p>
+
+                <h3 className="pdp-section-title">What you'll learn</h3>
+                <ul className="pdp-learn-list">
+                  {product.learningPoints.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
+
+                <h3 className="pdp-section-title">Requirements</h3>
+                <ul className="pdp-requirements-list">
+                  {product.requirements.map((req, i) => (
+                    <li key={i}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div>
+                <h3 className="pdp-section-title">Student Reviews ({product.reviews})</h3>
+                {product.reviewList.map((review) => (
+                  <div key={review.id} className="pdp-review-card">
+                    <div className="pdp-review-header">
+                      <span className="pdp-review-user">{review.user}</span>
+                      <span className="pdp-review-date">{review.date}</span>
+                    </div>
+                    <div className="pdp-review-stars">
+                      {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                    </div>
+                    <p className="pdp-review-text">{review.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'info' && (
+              <div>
+                <h3 className="pdp-section-title">Course Information</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Category:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.category}</p>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Price:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>${product.price}</p>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Rating:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.rating} / 5 ({product.reviews} reviews)</p>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Instructor:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.seller}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
