@@ -5,11 +5,11 @@ import './ProductDetailPage.css';
 const PRODUCTS_DB = {
   '1': {
     id: '1',
-    name: 'Advanced Python Programming Course',
-    description: 'Master Python with real-world projects and advanced concepts',
-    fullDescription: 'This comprehensive Python course takes you from intermediate to advanced level. You\'ll learn design patterns, async programming, testing, web scraping, data processing, and building production-ready applications. Each module includes hands-on projects that mirror real-world scenarios.',
+    name: 'Khóa Học Lập Trình Python Nâng Cao',
+    description: 'Làm chủ Python với các dự án thực tế và khái niệm nâng cao',
+    fullDescription: 'Khóa học Python toàn diện này đưa bạn từ trình độ trung cấp lên nâng cao. Bạn sẽ học các mẫu thiết kế, lập trình bất đồng bộ, kiểm thử, thu thập dữ liệu web, xử lý dữ liệu và xây dựng ứng dụng sẵn sàng triển khai. Mỗi mô-đun bao gồm các dự án thực hành mô phỏng tình huống thực tế.',
     price: 49.99,
-    category: 'Programming',
+    category: 'Lập Trình',
     imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=450&fit=crop',
     rating: 4.8,
     reviews: 342,
@@ -17,31 +17,31 @@ const PRODUCTS_DB = {
     sellerCourses: 15,
     sellerRating: 4.9,
     learningPoints: [
-      'Advanced Python patterns and best practices',
-      'Asynchronous programming with asyncio',
-      'Unit testing and test-driven development',
-      'Web scraping and data pipeline automation',
-      'Building REST APIs with FastAPI',
-      'Database integration with SQLAlchemy',
+      'Các mẫu Python nâng cao và phương pháp tốt nhất',
+      'Lập trình bất đồng bộ với asyncio',
+      'Kiểm thử đơn vị và phát triển hướng kiểm thử',
+      'Thu thập dữ liệu web và tự động hóa pipeline dữ liệu',
+      'Xây dựng REST API với FastAPI',
+      'Tích hợp cơ sở dữ liệu với SQLAlchemy',
     ],
     requirements: [
-      'Basic Python knowledge (variables, loops, functions)',
-      'A computer with Python 3.8+ installed',
-      'Willingness to practice with real projects',
+      'Kiến thức Python cơ bản (biến, vòng lặp, hàm)',
+      'Máy tính đã cài đặt Python 3.8+',
+      'Sẵn sàng thực hành với các dự án thực tế',
     ],
     reviewList: [
-      { id: 'r1', user: 'Sarah M.', rating: 5, date: 'Feb 10, 2024', text: 'Excellent course! The projects were incredibly practical and helped me land a new job.' },
-      { id: 'r2', user: 'James L.', rating: 5, date: 'Feb 8, 2024', text: 'Best Python course I\'ve taken. The async programming section was exactly what I needed.' },
-      { id: 'r3', user: 'Maria G.', rating: 4, date: 'Feb 5, 2024', text: 'Very thorough content. Would have liked more exercises in the testing module.' },
+      { id: 'r1', user: 'Sarah M.', rating: 5, date: 'Feb 10, 2024', text: 'Khóa học tuyệt vời! Các dự án thực tế giúp tôi tìm được công việc mới.' },
+      { id: 'r2', user: 'James L.', rating: 5, date: 'Feb 8, 2024', text: 'Khóa học Python tốt nhất tôi từng học. Phần lập trình bất đồng bộ chính xác là những gì tôi cần.' },
+      { id: 'r3', user: 'Maria G.', rating: 4, date: 'Feb 5, 2024', text: 'Nội dung rất kỹ lưỡng. Mong có thêm bài tập trong phần kiểm thử.' },
     ],
   },
   '2': {
     id: '2',
-    name: 'Complete Web Development Bootcamp',
-    description: 'Learn HTML, CSS, JavaScript, React, and Node.js from scratch',
-    fullDescription: 'A full-stack web development bootcamp covering everything from HTML basics to deploying production React + Node.js applications. Includes 40+ hours of video content with real-world projects including an e-commerce site, social media app, and portfolio website.',
+    name: 'Khóa Học Phát Triển Web Toàn Diện',
+    description: 'Học HTML, CSS, JavaScript, React và Node.js từ đầu',
+    fullDescription: 'Khóa học phát triển web full-stack bao gồm mọi thứ từ HTML cơ bản đến triển khai ứng dụng React + Node.js. Bao gồm hơn 40 giờ nội dung video với các dự án thực tế bao gồm trang thương mại điện tử, ứng dụng mạng xã hội và website portfolio.',
     price: 89.99,
-    category: 'Web Development',
+    category: 'Phát Triển Web',
     imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop',
     rating: 4.9,
     reviews: 1205,
@@ -49,31 +49,31 @@ const PRODUCTS_DB = {
     sellerCourses: 22,
     sellerRating: 4.8,
     learningPoints: [
-      'HTML5, CSS3, and modern JavaScript (ES6+)',
-      'React with hooks, context, and state management',
-      'Node.js and Express.js backend development',
-      'MongoDB and PostgreSQL databases',
-      'Authentication and authorization patterns',
-      'Deployment to cloud platforms',
+      'HTML5, CSS3 và JavaScript hiện đại (ES6+)',
+      'React với hooks, context và quản lý trạng thái',
+      'Phát triển backend với Node.js và Express.js',
+      'Cơ sở dữ liệu MongoDB và PostgreSQL',
+      'Mẫu xác thực và phân quyền',
+      'Triển khai lên nền tảng đám mây',
     ],
     requirements: [
-      'No prior programming experience needed',
-      'A computer with internet access',
-      'Dedication to complete all projects',
+      'Không cần kinh nghiệm lập trình trước',
+      'Máy tính có kết nối internet',
+      'Cam kết hoàn thành tất cả dự án',
     ],
     reviewList: [
-      { id: 'r1', user: 'Alex K.', rating: 5, date: 'Feb 12, 2024', text: 'Completely transformed my career. Went from zero to full-stack developer.' },
-      { id: 'r2', user: 'Emily R.', rating: 5, date: 'Feb 10, 2024', text: 'The best bootcamp-style course online. Worth every penny!' },
-      { id: 'r3', user: 'David P.', rating: 4, date: 'Feb 7, 2024', text: 'Great content. The React section is particularly well done.' },
+      { id: 'r1', user: 'Alex K.', rating: 5, date: 'Feb 12, 2024', text: 'Hoàn toàn thay đổi sự nghiệp của tôi. Từ con số không trở thành lập trình viên full-stack.' },
+      { id: 'r2', user: 'Emily R.', rating: 5, date: 'Feb 10, 2024', text: 'Khóa học bootcamp tốt nhất trực tuyến. Đáng từng xu!' },
+      { id: 'r3', user: 'David P.', rating: 4, date: 'Feb 7, 2024', text: 'Nội dung tuyệt vời. Phần React được làm đặc biệt tốt.' },
     ],
   },
   '3': {
     id: '3',
-    name: 'Data Science Fundamentals',
-    description: 'Introduction to data analysis, statistics, and machine learning',
-    fullDescription: 'Start your data science journey with this comprehensive course. Learn to analyze data, create visualizations, apply statistical methods, and build your first machine learning models using Python, Pandas, and Scikit-learn.',
+    name: 'Cơ Bản Khoa Học Dữ Liệu',
+    description: 'Giới thiệu về phân tích dữ liệu, thống kê và học máy',
+    fullDescription: 'Bắt đầu hành trình khoa học dữ liệu của bạn với khóa học toàn diện này. Học cách phân tích dữ liệu, tạo trực quan hóa, áp dụng phương pháp thống kê và xây dựng mô hình học máy đầu tiên bằng Python, Pandas và Scikit-learn.',
     price: 69.99,
-    category: 'Data Science',
+    category: 'Khoa Học Dữ Liệu',
     imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop',
     rating: 4.7,
     reviews: 567,
@@ -81,28 +81,28 @@ const PRODUCTS_DB = {
     sellerCourses: 8,
     sellerRating: 4.7,
     learningPoints: [
-      'Data analysis with Pandas and NumPy',
-      'Data visualization with Matplotlib and Seaborn',
-      'Statistical analysis and hypothesis testing',
-      'Introduction to machine learning with Scikit-learn',
-      'Real-world datasets and case studies',
+      'Phân tích dữ liệu với Pandas và NumPy',
+      'Trực quan hóa dữ liệu với Matplotlib và Seaborn',
+      'Phân tích thống kê và kiểm định giả thuyết',
+      'Giới thiệu học máy với Scikit-learn',
+      'Bộ dữ liệu thực tế và nghiên cứu tình huống',
     ],
     requirements: [
-      'Basic Python knowledge recommended',
-      'Understanding of basic math concepts',
+      'Nên có kiến thức Python cơ bản',
+      'Hiểu các khái niệm toán học cơ bản',
     ],
     reviewList: [
-      { id: 'r1', user: 'Tom W.', rating: 5, date: 'Feb 8, 2024', text: 'Perfect introduction to data science. Very clear explanations.' },
-      { id: 'r2', user: 'Lisa N.', rating: 4, date: 'Feb 5, 2024', text: 'Good fundamentals course with practical examples.' },
+      { id: 'r1', user: 'Tom W.', rating: 5, date: 'Feb 8, 2024', text: 'Giới thiệu hoàn hảo về khoa học dữ liệu. Giải thích rất rõ ràng.' },
+      { id: 'r2', user: 'Lisa N.', rating: 4, date: 'Feb 5, 2024', text: 'Khóa học nền tảng tốt với các ví dụ thực tế.' },
     ],
   },
   '4': {
     id: '4',
-    name: 'UI/UX Design Masterclass',
-    description: 'Create stunning user interfaces and exceptional user experiences',
-    fullDescription: 'Learn the complete UI/UX design process from user research to high-fidelity prototypes. This course covers design thinking, wireframing, visual design principles, and prototyping with Figma.',
+    name: 'Khóa Học Thiết Kế UI/UX',
+    description: 'Tạo giao diện người dùng đẹp mắt và trải nghiệm người dùng xuất sắc',
+    fullDescription: 'Học quy trình thiết kế UI/UX hoàn chỉnh từ nghiên cứu người dùng đến nguyên mẫu chi tiết. Khóa học bao gồm tư duy thiết kế, wireframing, nguyên tắc thiết kế trực quan và tạo nguyên mẫu với Figma.',
     price: 59.99,
-    category: 'Design',
+    category: 'Thiết Kế',
     imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=450&fit=crop',
     rating: 4.6,
     reviews: 423,
@@ -110,28 +110,28 @@ const PRODUCTS_DB = {
     sellerCourses: 12,
     sellerRating: 4.8,
     learningPoints: [
-      'Design thinking methodology',
-      'User research and persona creation',
-      'Wireframing and prototyping with Figma',
-      'Visual design principles and color theory',
-      'Responsive design and accessibility',
+      'Phương pháp tư duy thiết kế',
+      'Nghiên cứu người dùng và tạo persona',
+      'Wireframing và tạo nguyên mẫu với Figma',
+      'Nguyên tắc thiết kế trực quan và lý thuyết màu sắc',
+      'Thiết kế đáp ứng và khả năng tiếp cận',
     ],
     requirements: [
-      'No prior design experience needed',
-      'Figma account (free version works)',
+      'Không cần kinh nghiệm thiết kế trước',
+      'Tài khoản Figma (phiên bản miễn phí vẫn dùng được)',
     ],
     reviewList: [
-      { id: 'r1', user: 'Anna S.', rating: 5, date: 'Feb 11, 2024', text: 'Amazing course! Helped me build my design portfolio.' },
-      { id: 'r2', user: 'Chris B.', rating: 4, date: 'Feb 7, 2024', text: 'Very comprehensive design course covering all the essentials.' },
+      { id: 'r1', user: 'Anna S.', rating: 5, date: 'Feb 11, 2024', text: 'Khóa học tuyệt vời! Giúp tôi xây dựng portfolio thiết kế.' },
+      { id: 'r2', user: 'Chris B.', rating: 4, date: 'Feb 7, 2024', text: 'Khóa học thiết kế rất toàn diện, bao gồm tất cả kiến thức cần thiết.' },
     ],
   },
   '5': {
     id: '5',
-    name: 'Digital Marketing Essentials',
-    description: 'SEO, social media marketing, and content strategy',
-    fullDescription: 'Master digital marketing with hands-on projects covering SEO, social media marketing, email campaigns, content strategy, and Google Analytics. Learn to create and execute effective marketing campaigns.',
+    name: 'Tiếp Thị Kỹ Thuật Số Cơ Bản',
+    description: 'SEO, tiếp thị mạng xã hội và chiến lược nội dung',
+    fullDescription: 'Làm chủ tiếp thị kỹ thuật số với các dự án thực hành bao gồm SEO, tiếp thị mạng xã hội, chiến dịch email, chiến lược nội dung và Google Analytics. Học cách tạo và thực hiện các chiến dịch tiếp thị hiệu quả.',
     price: 39.99,
-    category: 'Marketing',
+    category: 'Tiếp Thị',
     imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop',
     rating: 4.5,
     reviews: 289,
@@ -139,28 +139,28 @@ const PRODUCTS_DB = {
     sellerCourses: 6,
     sellerRating: 4.6,
     learningPoints: [
-      'Search engine optimization (SEO) strategies',
-      'Social media marketing and advertising',
-      'Email marketing and automation',
-      'Content strategy and copywriting',
-      'Google Analytics and data-driven decisions',
+      'Chiến lược tối ưu hóa công cụ tìm kiếm (SEO)',
+      'Tiếp thị và quảng cáo mạng xã hội',
+      'Tiếp thị email và tự động hóa',
+      'Chiến lược nội dung và viết quảng cáo',
+      'Google Analytics và quyết định dựa trên dữ liệu',
     ],
     requirements: [
-      'No prior marketing experience needed',
-      'Access to social media accounts for practice',
+      'Không cần kinh nghiệm tiếp thị trước',
+      'Có tài khoản mạng xã hội để thực hành',
     ],
     reviewList: [
-      { id: 'r1', user: 'Mike T.', rating: 5, date: 'Feb 9, 2024', text: 'Practical and actionable. Already seeing results from the SEO tips.' },
-      { id: 'r2', user: 'Rachel H.', rating: 4, date: 'Feb 6, 2024', text: 'Good overview of all major digital marketing channels.' },
+      { id: 'r1', user: 'Mike T.', rating: 5, date: 'Feb 9, 2024', text: 'Thực tế và có thể áp dụng ngay. Đã thấy kết quả từ các mẹo SEO.' },
+      { id: 'r2', user: 'Rachel H.', rating: 4, date: 'Feb 6, 2024', text: 'Tổng quan tốt về tất cả các kênh tiếp thị kỹ thuật số chính.' },
     ],
   },
   '6': {
     id: '6',
-    name: 'Mobile App Development with React Native',
-    description: 'Build iOS and Android apps with a single codebase',
-    fullDescription: 'Learn to build cross-platform mobile applications using React Native. This course covers navigation, state management, native APIs, push notifications, and publishing to app stores.',
+    name: 'Phát Triển Ứng Dụng Di Động với React Native',
+    description: 'Xây dựng ứng dụng iOS và Android với một mã nguồn duy nhất',
+    fullDescription: 'Học cách xây dựng ứng dụng di động đa nền tảng bằng React Native. Khóa học bao gồm điều hướng, quản lý trạng thái, API gốc, thông báo đẩy và xuất bản lên cửa hàng ứng dụng.',
     price: 79.99,
-    category: 'Mobile Development',
+    category: 'Phát Triển Di Động',
     imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=450&fit=crop',
     rating: 4.7,
     reviews: 456,
@@ -168,21 +168,21 @@ const PRODUCTS_DB = {
     sellerCourses: 10,
     sellerRating: 4.7,
     learningPoints: [
-      'React Native core components and APIs',
-      'Navigation with React Navigation',
-      'State management with Redux and Context',
-      'Native device features (camera, location, etc.)',
-      'Push notifications and background tasks',
-      'App store submission process',
+      'Các thành phần và API cốt lõi của React Native',
+      'Điều hướng với React Navigation',
+      'Quản lý trạng thái với Redux và Context',
+      'Tính năng thiết bị gốc (camera, vị trí, v.v.)',
+      'Thông báo đẩy và tác vụ nền',
+      'Quy trình gửi lên cửa hàng ứng dụng',
     ],
     requirements: [
-      'JavaScript and React knowledge required',
-      'Mac recommended for iOS development',
-      'Node.js installed on your machine',
+      'Yêu cầu kiến thức JavaScript và React',
+      'Khuyến nghị Mac cho phát triển iOS',
+      'Đã cài đặt Node.js trên máy',
     ],
     reviewList: [
-      { id: 'r1', user: 'Kevin L.', rating: 5, date: 'Feb 13, 2024', text: 'Published my first app thanks to this course!' },
-      { id: 'r2', user: 'Sophie M.', rating: 4, date: 'Feb 10, 2024', text: 'Very practical. Love the real-world project approach.' },
+      { id: 'r1', user: 'Kevin L.', rating: 5, date: 'Feb 13, 2024', text: 'Đã xuất bản ứng dụng đầu tiên nhờ khóa học này!' },
+      { id: 'r2', user: 'Sophie M.', rating: 4, date: 'Feb 10, 2024', text: 'Rất thực tế. Thích cách tiếp cận dự án thực tế.' },
     ],
   },
 };
@@ -197,12 +197,12 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="pdp-container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
-        <h2>Product not found</h2>
+        <h2>Không tìm thấy sản phẩm</h2>
         <p style={{ color: 'var(--text-secondary)', margin: '1rem 0' }}>
-          The product you're looking for doesn't exist or has been removed.
+          Sản phẩm bạn tìm kiếm không tồn tại hoặc đã bị xóa.
         </p>
         <Link to="/products" className="plp-reset-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
-          Browse Products
+          Duyệt Sản Phẩm
         </Link>
       </div>
     );
@@ -218,9 +218,9 @@ export default function ProductDetailPage() {
   return (
     <div className="pdp-container">
       <div className="pdp-breadcrumb">
-        <Link to="/">Home</Link>
+        <Link to="/">Trang Chủ</Link>
         <span>/</span>
-        <Link to="/products">Products</Link>
+        <Link to="/products">Sản Phẩm</Link>
         <span>/</span>
         <span>{product.name}</span>
       </div>
@@ -248,17 +248,17 @@ export default function ProductDetailPage() {
         <div className="pdp-purchase-panel">
           <h1 className="pdp-title">{product.name}</h1>
           <div className="pdp-seller-row">
-            by <span className="pdp-seller-name">{product.seller}</span>
+            bởi <span className="pdp-seller-name">{product.seller}</span>
           </div>
           <div className="pdp-rating-row">
             <span className="pdp-stars">★ {product.rating}</span>
-            <span className="pdp-rating-text">({product.reviews} reviews)</span>
+            <span className="pdp-rating-text">({product.reviews} đánh giá)</span>
           </div>
           <span className="pdp-category-badge">{product.category}</span>
           <div className="pdp-price">${product.price}</div>
           <div className="pdp-actions">
-            <button className="pdp-btn-cart">Add to Cart</button>
-            <button className="pdp-btn-buy">Buy Now</button>
+            <button className="pdp-btn-cart">Thêm Vào Giỏ</button>
+            <button className="pdp-btn-buy">Mua Ngay</button>
           </div>
 
           <div className="pdp-seller-card">
@@ -266,7 +266,7 @@ export default function ProductDetailPage() {
             <div className="pdp-seller-info">
               <div className="pdp-seller-info-name">{product.seller}</div>
               <div className="pdp-seller-info-meta">
-                ★ {product.sellerRating} &middot; {product.sellerCourses} courses
+                ★ {product.sellerRating} &middot; {product.sellerCourses} khóa học
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
                 className={`pdp-tab ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab === 'description' ? 'Description' : tab === 'reviews' ? 'Reviews' : 'Course Info'}
+                {tab === 'description' ? 'Mô Tả' : tab === 'reviews' ? 'Đánh Giá' : 'Thông Tin Khóa Học'}
               </button>
             ))}
           </div>
@@ -291,14 +291,14 @@ export default function ProductDetailPage() {
               <div>
                 <p className="pdp-description">{product.fullDescription}</p>
 
-                <h3 className="pdp-section-title">What you'll learn</h3>
+                <h3 className="pdp-section-title">Bạn sẽ học được gì</h3>
                 <ul className="pdp-learn-list">
                   {product.learningPoints.map((point, i) => (
                     <li key={i}>{point}</li>
                   ))}
                 </ul>
 
-                <h3 className="pdp-section-title">Requirements</h3>
+                <h3 className="pdp-section-title">Yêu Cầu</h3>
                 <ul className="pdp-requirements-list">
                   {product.requirements.map((req, i) => (
                     <li key={i}>{req}</li>
@@ -309,7 +309,7 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                <h3 className="pdp-section-title">Student Reviews ({product.reviews})</h3>
+                <h3 className="pdp-section-title">Đánh Giá Học Viên ({product.reviews})</h3>
                 {product.reviewList.map((review) => (
                   <div key={review.id} className="pdp-review-card">
                     <div className="pdp-review-header">
@@ -327,22 +327,22 @@ export default function ProductDetailPage() {
 
             {activeTab === 'info' && (
               <div>
-                <h3 className="pdp-section-title">Course Information</h3>
+                <h3 className="pdp-section-title">Thông Tin Khóa Học</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Category:</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>Danh mục:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.category}</p>
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Price:</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>Giá:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>${product.price}</p>
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Rating:</strong>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.rating} / 5 ({product.reviews} reviews)</p>
+                    <strong style={{ color: 'var(--text-primary)' }}>Đánh giá:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.rating} / 5 ({product.reviews} đánh giá)</p>
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Instructor:</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>Giảng viên:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.seller}</p>
                   </div>
                 </div>

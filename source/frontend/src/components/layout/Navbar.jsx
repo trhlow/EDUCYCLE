@@ -15,27 +15,27 @@ export default function Navbar() {
         <button
           className="navbar-hamburger"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
+          aria-label="Mở menu"
         >
           {menuOpen ? '✕' : '☰'}
         </button>
 
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
           <NavLink to="/products" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            Browse
+            Duyệt
           </NavLink>
           <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            Dashboard
+            Bảng điều khiển
           </NavLink>
         </div>
 
         <div className="navbar-actions">
-          <Link to="/cart" className="navbar-icon-btn" aria-label="Shopping cart">
+          <Link to="/cart" className="navbar-icon-btn" aria-label="Giỏ hàng">
             🛒
             <span className="navbar-cart-badge">0</span>
           </Link>
           <Link to="/auth">
-            <button className="navbar-auth-btn">Sign In</button>
+            <button className="navbar-auth-btn">Đăng nhập</button>
           </Link>
         </div>
       </div>

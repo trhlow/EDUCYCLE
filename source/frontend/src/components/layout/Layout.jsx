@@ -12,8 +12,8 @@ export default function Layout() {
       <footer className="app-footer">
         <div className="footer-container">
           <div className="footer-brand">🎓 EduCycle</div>
-          <p className="footer-text">Your marketplace for educational excellence</p>
-          <p className="footer-copyright">&copy; 2026 EduCycle. All rights reserved.</p>
+          <p className="footer-text">Sàn giao dịch tài liệu giáo dục chất lượng</p>
+          <p className="footer-copyright">&copy; 2026 EduCycle. Bảo lưu mọi quyền.</p>
         </div>
       </footer>
     </div>

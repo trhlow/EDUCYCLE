@@ -20,10 +20,10 @@ export default function AuthPage() {
   const validateLogin = () => {
     const newErrors = {};
     if (!loginForm.email || !loginForm.email.includes('@')) {
-      newErrors.loginEmail = 'Please enter a valid email';
+      newErrors.loginEmail = 'Vui lòng nhập email hợp lệ';
     }
     if (!loginForm.password) {
-      newErrors.loginPassword = 'Password is required';
+      newErrors.loginPassword = 'Mật khẩu là bắt buộc';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -32,19 +32,19 @@ export default function AuthPage() {
   const validateRegister = () => {
     const newErrors = {};
     if (!registerForm.username || registerForm.username.length < 3) {
-      newErrors.registerUsername = 'Username must be at least 3 characters';
+      newErrors.registerUsername = 'Tên người dùng phải có ít nhất 3 ký tự';
     }
     if (!registerForm.email || !registerForm.email.includes('@')) {
-      newErrors.registerEmail = 'Please enter a valid email';
+      newErrors.registerEmail = 'Vui lòng nhập email hợp lệ';
     }
     if (!registerForm.password || registerForm.password.length < 8) {
-      newErrors.registerPassword = 'Password must be at least 8 characters';
+      newErrors.registerPassword = 'Mật khẩu phải có ít nhất 8 ký tự';
     }
     if (registerForm.password !== registerForm.confirmPassword) {
-      newErrors.registerConfirm = 'Passwords do not match';
+      newErrors.registerConfirm = 'Mật khẩu không khớp';
     }
     if (!registerForm.agreeTerms) {
-      newErrors.registerTerms = 'You must agree to the Terms & Conditions';
+      newErrors.registerTerms = 'Bạn phải đồng ý với Điều khoản & Điều kiện';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -86,7 +86,7 @@ export default function AuthPage() {
       <div className="auth-container">
         <div className="auth-header">
           <div className="auth-logo">🎓 EduCycle</div>
-          <div className="auth-tagline">Your marketplace for educational excellence</div>
+          <div className="auth-tagline">Sàn giao dịch tài liệu giáo dục chất lượng</div>
         </div>
 
         <div className="auth-tabs">
@@ -94,13 +94,13 @@ export default function AuthPage() {
             className={`auth-tab-btn ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => switchTab('login')}
           >
-            Login
+            Đăng nhập
           </button>
           <button
             className={`auth-tab-btn ${activeTab === 'register' ? 'active' : ''}`}
             onClick={() => switchTab('register')}
           >
-            Register
+            Đăng ký
           </button>
         </div>
 
@@ -108,7 +108,7 @@ export default function AuthPage() {
           {activeTab === 'login' && (
             <form className="auth-form" onSubmit={handleLoginSubmit}>
               <div className={`auth-success ${loginSuccess ? 'show' : ''}`}>
-                ✓ Login successful! Redirecting...
+                ✓ Đăng nhập thành công! Đang chuyển hướng...
               </div>
 
               <div className="auth-form-group">
@@ -127,7 +127,7 @@ export default function AuthPage() {
               </div>
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="login-password">Password</label>
+                <label className="auth-label" htmlFor="login-password">Mật khẩu</label>
                 <input
                   type="password"
                   id="login-password"
@@ -143,14 +143,14 @@ export default function AuthPage() {
 
               <div className="auth-checkbox-group">
                 <input type="checkbox" id="remember-me" />
-                <label htmlFor="remember-me">Remember me</label>
+                <label htmlFor="remember-me">Ghi nhớ tôi</label>
               </div>
 
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
+                {isSubmitting ? 'Đang đăng nhập...' : 'Đăng Nhập'}
               </button>
 
-              <div className="auth-divider">or continue with</div>
+              <div className="auth-divider">hoặc tiếp tục với</div>
 
               <div className="auth-social-login">
                 <button type="button" className="auth-social-btn">Google</button>
@@ -158,7 +158,7 @@ export default function AuthPage() {
               </div>
 
               <div className="auth-footer">
-                <a href="#">Forgot password?</a>
+                <a href="#">Quên mật khẩu?</a>
               </div>
             </form>
           )}
@@ -166,11 +166,11 @@ export default function AuthPage() {
           {activeTab === 'register' && (
             <form className="auth-form" onSubmit={handleRegisterSubmit}>
               <div className={`auth-success ${registerSuccess ? 'show' : ''}`}>
-                ✓ Registration successful! Please check your email to verify your account.
+                ✓ Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.
               </div>
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="register-username">Username</label>
+                <label className="auth-label" htmlFor="register-username">Tên người dùng</label>
                 <input
                   type="text"
                   id="register-username"
@@ -200,7 +200,7 @@ export default function AuthPage() {
               </div>
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="register-password">Password</label>
+                <label className="auth-label" htmlFor="register-password">Mật khẩu</label>
                 <input
                   type="password"
                   id="register-password"
@@ -215,7 +215,7 @@ export default function AuthPage() {
               </div>
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="register-confirm">Confirm Password</label>
+                <label className="auth-label" htmlFor="register-confirm">Xác nhận mật khẩu</label>
                 <input
                   type="password"
                   id="register-confirm"
@@ -236,20 +236,20 @@ export default function AuthPage() {
                   checked={registerForm.agreeTerms}
                   onChange={(e) => setRegisterForm({ ...registerForm, agreeTerms: e.target.checked })}
                 />
-                <label htmlFor="terms">I agree to the Terms & Conditions</label>
+                <label htmlFor="terms">Tôi đồng ý với Điều khoản & Điều kiện</label>
               </div>
               <div className={`auth-error ${errors.registerTerms ? 'show' : ''}`} style={{ marginTop: '-1rem', marginBottom: '1rem' }}>
                 {errors.registerTerms}
               </div>
 
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating account...' : 'Create Account'}
+                {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo Tài Khoản'}
               </button>
 
               <div className="auth-footer" style={{ marginTop: 'var(--space-6)' }}>
-                Already have an account?{' '}
+                Đã có tài khoản?{' '}
                 <button type="button" onClick={() => switchTab('login')}>
-                  Sign in
+                  Đăng nhập
                 </button>
               </div>
             </form>

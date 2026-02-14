@@ -5,24 +5,24 @@ import './CartPage.css';
 const INITIAL_CART = [
   {
     id: '1',
-    name: 'Advanced Python Programming Course',
-    category: 'Programming',
+    name: 'Khóa Học Lập Trình Python Nâng Cao',
+    category: 'Lập Trình',
     seller: 'CodeMaster Pro',
     price: 49.99,
     imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop',
   },
   {
     id: '2',
-    name: 'Complete Web Development Bootcamp',
-    category: 'Web Development',
+    name: 'Khóa Học Phát Triển Web Toàn Diện',
+    category: 'Phát Triển Web',
     seller: 'WebDev Academy',
     price: 89.99,
     imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=225&fit=crop',
   },
   {
     id: '3',
-    name: 'Data Science Fundamentals',
-    category: 'Data Science',
+    name: 'Cơ Bản Khoa Học Dữ Liệu',
+    category: 'Khoa Học Dữ Liệu',
     seller: 'DataPro Institute',
     price: 69.99,
     imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop',
@@ -47,12 +47,12 @@ export default function CartPage() {
       <div className="cart-container">
         <div className="checkout-success">
           <div className="checkout-success-icon">✅</div>
-          <h2 className="checkout-success-title">Payment Successful!</h2>
+          <h2 className="checkout-success-title">Thanh Toán Thành Công!</h2>
           <p className="checkout-success-text">
-            Your courses are now available in your dashboard. Happy learning!
+            Các khóa học đã có trong bảng điều khiển của bạn. Chúc học tốt!
           </p>
           <Link to="/products" className="cart-browse-btn">
-            Browse More Courses
+            Duyệt Thêm Khóa Học
           </Link>
         </div>
       </div>
@@ -62,13 +62,13 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className="cart-container">
-        <h1 className="cart-title">Shopping Cart</h1>
+        <h1 className="cart-title">Giỏ Hàng</h1>
         <div className="cart-empty">
           <div className="cart-empty-icon">🛒</div>
-          <h2 className="cart-empty-title">Your cart is empty</h2>
-          <p className="cart-empty-text">Looks like you haven't added any courses yet.</p>
+          <h2 className="cart-empty-title">Giỏ hàng trống</h2>
+          <p className="cart-empty-text">Có vẻ như bạn chưa thêm khóa học nào.</p>
           <Link to="/products" className="cart-browse-btn">
-            Browse Courses
+            Duyệt Khóa Học
           </Link>
         </div>
       </div>
@@ -78,24 +78,24 @@ export default function CartPage() {
   return (
     <div className="cart-container">
       <h1 className="cart-title">
-        {step === 'cart' ? `Shopping Cart (${cartItems.length} items)` : 'Checkout'}
+        {step === 'cart' ? `Giỏ Hàng (${cartItems.length} sản phẩm)` : 'Thanh Toán'}
       </h1>
 
       {/* Steps */}
       <div className="checkout-steps">
         <div className={`checkout-step ${step === 'cart' ? 'active' : 'completed'}`}>
           <span className="checkout-step-num">{step === 'cart' ? '1' : '✓'}</span>
-          Cart Review
+          Xem Lại Giỏ Hàng
         </div>
         <div className="checkout-step-line" />
         <div className={`checkout-step ${step === 'payment' ? 'active' : ''}`}>
           <span className="checkout-step-num">2</span>
-          Payment
+          Thanh Toán
         </div>
         <div className="checkout-step-line" />
         <div className="checkout-step">
           <span className="checkout-step-num">3</span>
-          Confirmation
+          Xác Nhận
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export default function CartPage() {
                     {item.name}
                   </Link>
                   <span className="cart-item-category">{item.category}</span>
-                  <span className="cart-item-seller">by {item.seller}</span>
+                  <span className="cart-item-seller">bởi {item.seller}</span>
                 </div>
                 <div className="cart-item-actions">
                   <span className="cart-item-price">${item.price}</span>
@@ -120,7 +120,7 @@ export default function CartPage() {
                     className="cart-item-remove"
                     onClick={() => removeItem(item.id)}
                   >
-                    ✕ Remove
+                    ✕ Xóa
                   </button>
                 </div>
               </div>
@@ -128,9 +128,9 @@ export default function CartPage() {
           </div>
 
           <div className="cart-summary">
-            <h3 className="cart-summary-title">Order Summary</h3>
+            <h3 className="cart-summary-title">Tóm Tắt Đơn Hàng</h3>
             <div className="cart-summary-row">
-              <span>Subtotal ({cartItems.length} items)</span>
+              <span>Tạm tính ({cartItems.length} sản phẩm)</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="cart-summary-row">
@@ -142,10 +142,10 @@ export default function CartPage() {
               <span>${total.toFixed(2)}</span>
             </div>
             <button className="cart-checkout-btn" onClick={() => setStep('payment')}>
-              Proceed to Checkout
+              Tiến Hành Thanh Toán
             </button>
             <Link to="/products" className="cart-continue-link">
-              Continue Shopping
+              Tiếp Tục Mua Sắm
             </Link>
           </div>
         </div>
@@ -154,36 +154,36 @@ export default function CartPage() {
       {step === 'payment' && (
         <div className="cart-layout">
           <div className="checkout-form">
-            <h3 className="checkout-section-title">Billing Address</h3>
+            <h3 className="checkout-section-title">Địa Chỉ Thanh Toán</h3>
             <div className="checkout-form-group">
-              <label className="checkout-label">Full Name</label>
-              <input className="checkout-input" type="text" placeholder="John Doe" />
+              <label className="checkout-label">Họ Và Tên</label>
+              <input className="checkout-input" type="text" placeholder="Nguyễn Văn A" />
             </div>
             <div className="checkout-form-group">
-              <label className="checkout-label">Address</label>
-              <input className="checkout-input" type="text" placeholder="123 Main Street" />
+              <label className="checkout-label">Địa Chỉ</label>
+              <input className="checkout-input" type="text" placeholder="123 Đường Chính" />
             </div>
             <div className="checkout-form-row">
               <div className="checkout-form-group">
-                <label className="checkout-label">City</label>
-                <input className="checkout-input" type="text" placeholder="City" />
+                <label className="checkout-label">Thành Phố</label>
+                <input className="checkout-input" type="text" placeholder="Thành phố" />
               </div>
               <div className="checkout-form-group">
-                <label className="checkout-label">State</label>
-                <input className="checkout-input" type="text" placeholder="State" />
+                <label className="checkout-label">Tỉnh</label>
+                <input className="checkout-input" type="text" placeholder="Tỉnh" />
               </div>
               <div className="checkout-form-group">
-                <label className="checkout-label">ZIP</label>
+                <label className="checkout-label">Mã Bưu Điện</label>
                 <input className="checkout-input" type="text" placeholder="12345" />
               </div>
             </div>
 
-            <h3 className="checkout-section-title" style={{ marginTop: 'var(--space-8)' }}>Payment Method</h3>
+            <h3 className="checkout-section-title" style={{ marginTop: 'var(--space-8)' }}>Phương Thức Thanh Toán</h3>
             <div className="checkout-radio-group">
               {[
-                { value: 'credit-card', label: '💳 Credit Card' },
+                { value: 'credit-card', label: '💳 Thẻ Tín Dụng' },
                 { value: 'paypal', label: '🅿️ PayPal' },
-                { value: 'bank', label: '🏦 Bank Transfer' },
+                { value: 'bank', label: '🏦 Chuyển Khoản' },
               ].map((method) => (
                 <label
                   key={method.value}
@@ -204,12 +204,12 @@ export default function CartPage() {
             {paymentMethod === 'credit-card' && (
               <>
                 <div className="checkout-form-group">
-                  <label className="checkout-label">Card Number</label>
+                  <label className="checkout-label">Số Thẻ</label>
                   <input className="checkout-input" type="text" placeholder="1234 5678 9012 3456" />
                 </div>
                 <div className="checkout-form-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
                   <div className="checkout-form-group">
-                    <label className="checkout-label">Expiry Date</label>
+                    <label className="checkout-label">Ngày Hết Hạn</label>
                     <input className="checkout-input" type="text" placeholder="MM/YY" />
                   </div>
                   <div className="checkout-form-group">
@@ -221,19 +221,19 @@ export default function CartPage() {
             )}
 
             <button className="checkout-complete-btn" onClick={() => setStep('confirmation')}>
-              Complete Purchase — ${total.toFixed(2)}
+              Hoàn Tất Mua Hàng — ${total.toFixed(2)}
             </button>
             <button
               className="cart-continue-link"
               onClick={() => setStep('cart')}
               style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', marginTop: 'var(--space-4)' }}
             >
-              ← Back to Cart
+              ← Quay Lại Giỏ Hàng
             </button>
           </div>
 
           <div className="cart-summary">
-            <h3 className="cart-summary-title">Order Summary</h3>
+            <h3 className="cart-summary-title">Tóm Tắt Đơn Hàng</h3>
             {cartItems.map((item) => (
               <div key={item.id} className="cart-summary-row">
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -243,11 +243,11 @@ export default function CartPage() {
               </div>
             ))}
             <div className="cart-summary-row" style={{ marginTop: 'var(--space-2)' }}>
-              <span>Tax (10%)</span>
+              <span>Thuế (10%)</span>
               <span>${tax.toFixed(2)}</span>
             </div>
             <div className="cart-summary-total">
-              <span>Total</span>
+              <span>Tổng Cộng</span>
               <span>${total.toFixed(2)}</span>
             </div>
           </div>

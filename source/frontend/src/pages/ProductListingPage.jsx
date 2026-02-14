@@ -5,10 +5,10 @@ import './ProductListingPage.css';
 const MOCK_PRODUCTS = [
   {
     id: '1',
-    name: 'Advanced Python Programming Course',
-    description: 'Master Python with real-world projects and advanced concepts',
+    name: 'Khóa Học Lập Trình Python Nâng Cao',
+    description: 'Làm chủ Python với các dự án thực tế và khái niệm nâng cao',
     price: 49.99,
-    category: 'Programming',
+    category: 'Lập Trình',
     imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop',
     rating: 4.8,
     reviews: 342,
@@ -17,10 +17,10 @@ const MOCK_PRODUCTS = [
   },
   {
     id: '2',
-    name: 'Complete Web Development Bootcamp',
-    description: 'Learn HTML, CSS, JavaScript, React, and Node.js from scratch',
+    name: 'Khóa Học Phát Triển Web Toàn Diện',
+    description: 'Học HTML, CSS, JavaScript, React và Node.js từ đầu',
     price: 89.99,
-    category: 'Web Development',
+    category: 'Phát Triển Web',
     imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=225&fit=crop',
     rating: 4.9,
     reviews: 1205,
@@ -29,10 +29,10 @@ const MOCK_PRODUCTS = [
   },
   {
     id: '3',
-    name: 'Data Science Fundamentals',
-    description: 'Introduction to data analysis, statistics, and machine learning',
+    name: 'Cơ Bản Khoa Học Dữ Liệu',
+    description: 'Giới thiệu về phân tích dữ liệu, thống kê và học máy',
     price: 69.99,
-    category: 'Data Science',
+    category: 'Khoa Học Dữ Liệu',
     imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop',
     rating: 4.7,
     reviews: 567,
@@ -41,10 +41,10 @@ const MOCK_PRODUCTS = [
   },
   {
     id: '4',
-    name: 'UI/UX Design Masterclass',
-    description: 'Create stunning user interfaces and exceptional user experiences',
+    name: 'Khóa Học Thiết Kế UI/UX',
+    description: 'Tạo giao diện người dùng đẹp mắt và trải nghiệm người dùng xuất sắc',
     price: 59.99,
-    category: 'Design',
+    category: 'Thiết Kế',
     imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=225&fit=crop',
     rating: 4.6,
     reviews: 423,
@@ -53,10 +53,10 @@ const MOCK_PRODUCTS = [
   },
   {
     id: '5',
-    name: 'Digital Marketing Essentials',
-    description: 'SEO, social media marketing, and content strategy',
+    name: 'Tiếp Thị Kỹ Thuật Số Cơ Bản',
+    description: 'SEO, tiếp thị mạng xã hội và chiến lược nội dung',
     price: 39.99,
-    category: 'Marketing',
+    category: 'Tiếp Thị',
     imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=225&fit=crop',
     rating: 4.5,
     reviews: 289,
@@ -65,10 +65,10 @@ const MOCK_PRODUCTS = [
   },
   {
     id: '6',
-    name: 'Mobile App Development with React Native',
-    description: 'Build iOS and Android apps with a single codebase',
+    name: 'Phát Triển Ứng Dụng Di Động với React Native',
+    description: 'Xây dựng ứng dụng iOS và Android với một mã nguồn duy nhất',
     price: 79.99,
-    category: 'Mobile Development',
+    category: 'Phát Triển Di Động',
     imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=225&fit=crop',
     rating: 4.7,
     reviews: 456,
@@ -79,12 +79,12 @@ const MOCK_PRODUCTS = [
 
 const CATEGORIES = [
   'all',
-  'Programming',
-  'Web Development',
-  'Data Science',
-  'Design',
-  'Marketing',
-  'Mobile Development',
+  'Lập Trình',
+  'Phát Triển Web',
+  'Khoa Học Dữ Liệu',
+  'Thiết Kế',
+  'Tiếp Thị',
+  'Phát Triển Di Động',
 ];
 
 export default function ProductListingPage() {
@@ -129,9 +129,9 @@ export default function ProductListingPage() {
   return (
     <div>
       <section className="plp-hero">
-        <h1 className="plp-hero-title">Discover Your Next Learning Adventure</h1>
+        <h1 className="plp-hero-title">Khám Phá Hành Trình Học Tập Tiếp Theo</h1>
         <p className="plp-hero-subtitle">
-          Access thousands of courses from expert educators worldwide
+          Truy cập hàng nghìn khóa học từ các giảng viên chuyên gia trên toàn thế giới
         </p>
       </section>
 
@@ -140,10 +140,10 @@ export default function ProductListingPage() {
           {/* Sidebar Filters */}
           <aside className={`plp-sidebar ${sidebarOpen ? 'open' : ''}`}>
             <div className="plp-filter-section">
-              <h3 className="plp-filter-title">Filters</h3>
+              <h3 className="plp-filter-title">Bộ Lọc</h3>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Category</label>
+                <label className="plp-filter-label">Danh Mục</label>
                 <select
                   className="plp-select"
                   value={selectedCategory}
@@ -151,20 +151,20 @@ export default function ProductListingPage() {
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat === 'all' ? 'All Categories' : cat}
+                      {cat === 'all' ? 'Tất Cả Danh Mục' : cat}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Price Range</label>
+                <label className="plp-filter-label">Khoảng Giá</label>
                 <div className="plp-radio-group">
                   {[
-                    { value: 'all', label: 'All Prices' },
-                    { value: 'under50', label: 'Under $50' },
+                    { value: 'all', label: 'Tất Cả Mức Giá' },
+                    { value: 'under50', label: 'Dưới $50' },
                     { value: '50to75', label: '$50 - $75' },
-                    { value: 'over75', label: 'Over $75' },
+                    { value: 'over75', label: 'Trên $75' },
                   ].map((opt) => (
                     <label key={opt.value} className="plp-radio-label">
                       <input
@@ -181,7 +181,7 @@ export default function ProductListingPage() {
               </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Minimum Rating</label>
+                <label className="plp-filter-label">Đánh Giá Tối Thiểu</label>
                 <div className="plp-rating-options">
                   {[4.5, 4.0, 3.5, 3.0].map((rating) => (
                     <button
@@ -196,7 +196,7 @@ export default function ProductListingPage() {
               </div>
 
               <button className="plp-clear-filters" onClick={clearFilters}>
-                Clear All Filters
+                Xóa Tất Cả Bộ Lọc
               </button>
 
               {sidebarOpen && (
@@ -205,7 +205,7 @@ export default function ProductListingPage() {
                   onClick={() => setSidebarOpen(false)}
                   style={{ marginTop: '0.5rem' }}
                 >
-                  Close Filters
+                  Đóng Bộ Lọc
                 </button>
               )}
             </div>
@@ -218,14 +218,14 @@ export default function ProductListingPage() {
                 className="plp-mobile-filter-btn"
                 onClick={() => setSidebarOpen(true)}
               >
-                🔧 Filters
+                🔧 Bộ Lọc
               </button>
               <div className="plp-search-container">
                 <span className="plp-search-icon">🔍</span>
                 <input
                   type="text"
                   className="plp-search-input"
-                  placeholder="Search courses..."
+                  placeholder="Tìm kiếm khóa học..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -236,10 +236,10 @@ export default function ProductListingPage() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
-                  <option value="newest">Newest</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
+                  <option value="newest">Mới Nhất</option>
+                  <option value="rating">Đánh Giá Cao Nhất</option>
+                  <option value="price-low">Giá: Thấp đến Cao</option>
+                  <option value="price-high">Giá: Cao đến Thấp</option>
                 </select>
                 <div className="plp-view-toggle">
                   <button
@@ -261,7 +261,7 @@ export default function ProductListingPage() {
             </div>
 
             <div className="plp-results-count">
-              Showing {filteredProducts.length} of {MOCK_PRODUCTS.length} courses
+              Hiển thị {filteredProducts.length} trong {MOCK_PRODUCTS.length} khóa học
             </div>
 
             {filteredProducts.length > 0 ? (
@@ -285,7 +285,7 @@ export default function ProductListingPage() {
                           <span className="plp-rating-stars">★ {product.rating}</span>
                           <span className="plp-rating-count">({product.reviews})</span>
                         </div>
-                        <div className="plp-card-seller">by {product.seller}</div>
+                        <div className="plp-card-seller">bởi {product.seller}</div>
                       </div>
                       <div className="plp-card-footer">
                         <div className="plp-card-price">${product.price}</div>
@@ -296,7 +296,7 @@ export default function ProductListingPage() {
                             e.stopPropagation();
                           }}
                         >
-                          Add to Cart
+                          Thêm Vào Giỏ
                         </button>
                       </div>
                     </div>
@@ -306,12 +306,12 @@ export default function ProductListingPage() {
             ) : (
               <div className="plp-empty">
                 <div className="plp-empty-icon">📚</div>
-                <h3 className="plp-empty-title">No courses found</h3>
+                <h3 className="plp-empty-title">Không tìm thấy khóa học</h3>
                 <p className="plp-empty-text">
-                  Try adjusting your filters or search query
+                  Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
                 </p>
                 <button className="plp-reset-btn" onClick={clearFilters}>
-                  Reset Filters
+                  Đặt Lại Bộ Lọc
                 </button>
               </div>
             )}

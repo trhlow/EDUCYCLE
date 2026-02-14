@@ -2,11 +2,11 @@ import { useState } from 'react';
 import './AdminPage.css';
 
 const ADMIN_MENU = [
-  { icon: '📊', label: 'Dashboard', view: 'overview' },
-  { icon: '👥', label: 'Users', view: 'users' },
-  { icon: '📚', label: 'Products', view: 'products' },
-  { icon: '💳', label: 'Transactions', view: 'orders' },
-  { icon: '🔍', label: 'Moderation', view: 'moderation' },
+  { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview' },
+  { icon: '👥', label: 'Người Dùng', view: 'users' },
+  { icon: '📚', label: 'Sản Phẩm', view: 'products' },
+  { icon: '💳', label: 'Giao Dịch', view: 'orders' },
+  { icon: '🔍', label: 'Kiểm Duyệt', view: 'moderation' },
 ];
 
 export default function AdminPage() {
@@ -21,10 +21,10 @@ export default function AdminPage() {
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-brand">🎓 EduCycle Admin</div>
+        <div className="admin-sidebar-brand">🎓 Quản Trị EduCycle</div>
 
         <div className="admin-sidebar-section">
-          <div className="admin-sidebar-section-title">Management</div>
+          <div className="admin-sidebar-section-title">Quản Lý</div>
           {ADMIN_MENU.map((item) => (
             <button
               key={item.view}
@@ -40,14 +40,14 @@ export default function AdminPage() {
         {sidebarOpen && (
           <button className="admin-sidebar-link" onClick={() => setSidebarOpen(false)}>
             <span className="admin-sidebar-link-icon">✕</span>
-            Close Menu
+            Đóng Menu
           </button>
         )}
       </aside>
 
       <div className="admin-main">
         <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-          ☰ Admin Menu
+          ☰ Menu Quản Trị
         </button>
 
         {currentView === 'overview' && <AdminOverview />}
@@ -63,43 +63,43 @@ export default function AdminPage() {
 function AdminOverview() {
   return (
     <>
-      <h1 className="admin-page-title">Admin Dashboard</h1>
+      <h1 className="admin-page-title">Bảng Điều Khiển Quản Trị</h1>
 
       <div className="admin-stats">
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Total Users</div>
+          <div className="admin-stat-label">Tổng Người Dùng</div>
           <div className="admin-stat-value">2,450</div>
-          <div className="admin-stat-change positive">+12% this month</div>
+          <div className="admin-stat-change positive">+12% tháng này</div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Products</div>
+          <div className="admin-stat-label">Sản Phẩm</div>
           <div className="admin-stat-value">890</div>
-          <div className="admin-stat-change positive">+5% this month</div>
+          <div className="admin-stat-change positive">+5% tháng này</div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Revenue</div>
+          <div className="admin-stat-label">Doanh Thu</div>
           <div className="admin-stat-value">$45.2K</div>
-          <div className="admin-stat-change positive">+18% this month</div>
+          <div className="admin-stat-change positive">+18% tháng này</div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-label">Avg. Rating</div>
+          <div className="admin-stat-label">Đánh Giá TB</div>
           <div className="admin-stat-value">4.7</div>
-          <div className="admin-stat-change positive">+0.2 this month</div>
+          <div className="admin-stat-change positive">+0.2 tháng này</div>
         </div>
       </div>
 
       <div className="admin-section">
         <div className="admin-section-header">
-          <h2 className="admin-section-title">Recent Activity</h2>
+          <h2 className="admin-section-title">Hoạt Động Gần Đây</h2>
         </div>
         <div className="admin-activity">
           {[
-            { dot: 'green', text: 'New user registered: alice@example.com', time: '2 min ago' },
-            { dot: 'blue', text: 'New product submitted: Advanced React Patterns', time: '15 min ago' },
-            { dot: 'yellow', text: 'Review flagged: Course #234', time: '1 hour ago' },
-            { dot: 'green', text: 'Payment processed: Order #1234 - $89.99', time: '2 hours ago' },
-            { dot: 'red', text: 'Failed payment: Order #1235 - $49.99', time: '3 hours ago' },
-            { dot: 'blue', text: 'Product approved: Data Science Fundamentals', time: '4 hours ago' },
+            { dot: 'green', text: 'Người dùng mới đăng ký: alice@example.com', time: '2 phút trước' },
+            { dot: 'blue', text: 'Sản phẩm mới gửi: Advanced React Patterns', time: '15 phút trước' },
+            { dot: 'yellow', text: 'Đánh giá bị ghi cờ: Khóa học #234', time: '1 giờ trước' },
+            { dot: 'green', text: 'Thanh toán đã xử lý: Đơn #1234 - $89.99', time: '2 giờ trước' },
+            { dot: 'red', text: 'Thanh toán thất bại: Đơn #1235 - $49.99', time: '3 giờ trước' },
+            { dot: 'blue', text: 'Sản phẩm đã duyệt: Cơ Bản Khoa Học Dữ Liệu', time: '4 giờ trước' },
           ].map((item, i) => (
             <div key={i} className="admin-activity-item">
               <span className={`admin-activity-dot ${item.dot}`} />
@@ -116,33 +116,33 @@ function AdminOverview() {
 function AdminUsers() {
   return (
     <>
-      <h1 className="admin-page-title">User Management</h1>
+      <h1 className="admin-page-title">Quản Lý Người Dùng</h1>
 
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input className="admin-search" type="text" placeholder="Search users..." />
+            <input className="admin-search" type="text" placeholder="Tìm người dùng..." />
           </div>
-          <button className="admin-btn admin-btn-primary">+ Add User</button>
+          <button className="admin-btn admin-btn-primary">+ Thêm Người Dùng</button>
         </div>
         <table className="admin-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
+              <th>Tên</th>
               <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Vai Trò</th>
+              <th>Trạng Thái</th>
+              <th>Hành Động</th>
             </tr>
           </thead>
           <tbody>
             {[
-              { id: '#001', name: 'John Doe', email: 'john@example.com', role: 'User', status: 'active' },
-              { id: '#002', name: 'Jane Smith', email: 'jane@example.com', role: 'Seller', status: 'active' },
-              { id: '#003', name: 'Bob Johnson', email: 'bob@example.com', role: 'Admin', status: 'active' },
-              { id: '#004', name: 'Alice Lee', email: 'alice@example.com', role: 'User', status: 'banned' },
-              { id: '#005', name: 'Charlie Brown', email: 'charlie@example.com', role: 'Seller', status: 'active' },
+              { id: '#001', name: 'John Doe', email: 'john@example.com', role: 'Người dùng', status: 'active' },
+              { id: '#002', name: 'Jane Smith', email: 'jane@example.com', role: 'Người bán', status: 'active' },
+              { id: '#003', name: 'Bob Johnson', email: 'bob@example.com', role: 'Quản trị', status: 'active' },
+              { id: '#004', name: 'Alice Lee', email: 'alice@example.com', role: 'Người dùng', status: 'banned' },
+              { id: '#005', name: 'Charlie Brown', email: 'charlie@example.com', role: 'Người bán', status: 'active' },
             ].map((user) => (
               <tr key={user.id}>
                 <td style={{ fontWeight: 500 }}>{user.id}</td>
@@ -151,12 +151,12 @@ function AdminUsers() {
                 <td>{user.role}</td>
                 <td>
                   <span className={`admin-status ${user.status === 'active' ? 'admin-status-active' : 'admin-status-banned'}`}>
-                    {user.status === 'active' ? 'Active' : 'Banned'}
+                    {user.status === 'active' ? 'Đang Hoạt Động' : 'Bị Cấm'}
                   </span>
                 </td>
                 <td>
                   <button className="admin-btn admin-btn-outline" style={{ fontSize: 'var(--text-xs)', padding: '0.25rem 0.75rem' }}>
-                    Edit
+                    Sửa
                   </button>
                 </td>
               </tr>
@@ -171,31 +171,31 @@ function AdminUsers() {
 function AdminProducts() {
   return (
     <>
-      <h1 className="admin-page-title">Product Management</h1>
+      <h1 className="admin-page-title">Quản Lý Sản Phẩm</h1>
 
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input className="admin-search" type="text" placeholder="Search products..." />
+            <input className="admin-search" type="text" placeholder="Tìm sản phẩm..." />
           </div>
         </div>
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Seller</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Sản Phẩm</th>
+              <th>Người Bán</th>
+              <th>Danh Mục</th>
+              <th>Giá</th>
+              <th>Trạng Thái</th>
+              <th>Hành Động</th>
             </tr>
           </thead>
           <tbody>
             {[
-              { name: 'Advanced Python', seller: 'CodeMaster Pro', category: 'Programming', price: '$49.99', status: 'active' },
-              { name: 'Web Dev Bootcamp', seller: 'WebDev Academy', category: 'Web Development', price: '$89.99', status: 'active' },
-              { name: 'Data Science 101', seller: 'DataPro Institute', category: 'Data Science', price: '$69.99', status: 'pending' },
-              { name: 'UI Design Course', seller: 'Design Guru', category: 'Design', price: '$59.99', status: 'active' },
+              { name: 'Python Nâng Cao', seller: 'CodeMaster Pro', category: 'Lập Trình', price: '$49.99', status: 'active' },
+              { name: 'Bootcamp Phát Triển Web', seller: 'WebDev Academy', category: 'Phát Triển Web', price: '$89.99', status: 'active' },
+              { name: 'Khoa Học Dữ Liệu 101', seller: 'DataPro Institute', category: 'Khoa Học Dữ Liệu', price: '$69.99', status: 'pending' },
+              { name: 'Khóa Thiết Kế UI', seller: 'Design Guru', category: 'Thiết Kế', price: '$59.99', status: 'active' },
             ].map((product, i) => (
               <tr key={i}>
                 <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{product.name}</td>
@@ -204,16 +204,16 @@ function AdminProducts() {
                 <td>{product.price}</td>
                 <td>
                   <span className={`admin-status ${product.status === 'active' ? 'admin-status-active' : 'admin-status-pending'}`}>
-                    {product.status === 'active' ? 'Active' : 'Pending'}
+                    {product.status === 'active' ? 'Đang Hoạt Động' : 'Đang Chờ'}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button className="admin-btn admin-btn-outline" style={{ fontSize: 'var(--text-xs)', padding: '0.25rem 0.75rem' }}>
-                      View
+                      Xem
                     </button>
                     <button className="admin-btn admin-btn-outline" style={{ fontSize: 'var(--text-xs)', padding: '0.25rem 0.75rem', color: 'var(--error)' }}>
-                      Remove
+                      Xóa
                     </button>
                   </div>
                 </td>
@@ -229,35 +229,35 @@ function AdminProducts() {
 function AdminOrders() {
   return (
     <>
-      <h1 className="admin-page-title">Transactions</h1>
+      <h1 className="admin-page-title">Giao Dịch</h1>
 
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input className="admin-search" type="text" placeholder="Search transactions..." />
-            <button className="admin-btn admin-btn-outline">Filter</button>
-            <button className="admin-btn admin-btn-outline">Export</button>
+            <input className="admin-search" type="text" placeholder="Tìm giao dịch..." />
+            <button className="admin-btn admin-btn-outline">Lọc</button>
+            <button className="admin-btn admin-btn-outline">Xuất</button>
           </div>
         </div>
         <table className="admin-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Date</th>
-              <th>Buyer</th>
-              <th>Product</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>Ngày</th>
+              <th>Người Mua</th>
+              <th>Sản Phẩm</th>
+              <th>Số Tiền</th>
+              <th>Trạng Thái</th>
+              <th>Hành Động</th>
             </tr>
           </thead>
           <tbody>
             {[
-              { id: '#1230', date: 'Feb 14', buyer: 'John D.', product: 'Python Course', amount: '$49.99', status: 'complete' },
-              { id: '#1231', date: 'Feb 14', buyer: 'Jane S.', product: 'React Bootcamp', amount: '$89.99', status: 'pending' },
-              { id: '#1232', date: 'Feb 13', buyer: 'Bob J.', product: 'Design Course', amount: '$59.99', status: 'failed' },
-              { id: '#1233', date: 'Feb 13', buyer: 'Alice L.', product: 'Marketing 101', amount: '$39.99', status: 'complete' },
-              { id: '#1234', date: 'Feb 12', buyer: 'Charlie B.', product: 'Data Science', amount: '$69.99', status: 'complete' },
+              { id: '#1230', date: '14 Tháng 2', buyer: 'John D.', product: 'Khóa Python', amount: '$49.99', status: 'complete' },
+              { id: '#1231', date: '14 Tháng 2', buyer: 'Jane S.', product: 'Bootcamp React', amount: '$89.99', status: 'pending' },
+              { id: '#1232', date: '13 Tháng 2', buyer: 'Bob J.', product: 'Khóa Thiết Kế', amount: '$59.99', status: 'failed' },
+              { id: '#1233', date: '13 Tháng 2', buyer: 'Alice L.', product: 'Tiếp Thị 101', amount: '$39.99', status: 'complete' },
+              { id: '#1234', date: '12 Tháng 2', buyer: 'Charlie B.', product: 'Khoa Học Dữ Liệu', amount: '$69.99', status: 'complete' },
             ].map((tx) => (
               <tr key={tx.id}>
                 <td style={{ fontWeight: 500 }}>{tx.id}</td>
@@ -272,7 +272,7 @@ function AdminOrders() {
                 </td>
                 <td>
                   <button className="admin-btn admin-btn-outline" style={{ fontSize: 'var(--text-xs)', padding: '0.25rem 0.75rem' }}>
-                    View
+                    Xem
                   </button>
                 </td>
               </tr>
@@ -287,29 +287,29 @@ function AdminOrders() {
 function AdminModeration() {
   return (
     <>
-      <h1 className="admin-page-title">Content Moderation</h1>
+      <h1 className="admin-page-title">Kiểm Duyệt Nội Dung</h1>
 
       <div className="admin-section">
         <div className="admin-section-header">
-          <h2 className="admin-section-title">Pending Approvals (3)</h2>
+          <h2 className="admin-section-title">Đang Chờ Duyệt (3)</h2>
         </div>
         {[
-          { title: 'Advanced React Patterns', seller: 'John Doe', category: 'Web Development', price: '$79.99', time: '2 hours ago' },
-          { title: 'Machine Learning A-Z', seller: 'DataPro Institute', category: 'Data Science', price: '$99.99', time: '5 hours ago' },
-          { title: 'DevOps Fundamentals', seller: 'CloudOps Expert', category: 'DevOps', price: '$69.99', time: '1 day ago' },
+          { title: 'Advanced React Patterns', seller: 'John Doe', category: 'Phát Triển Web', price: '$79.99', time: '2 giờ trước' },
+          { title: 'Machine Learning A-Z', seller: 'DataPro Institute', category: 'Khoa Học Dữ Liệu', price: '$99.99', time: '5 giờ trước' },
+          { title: 'DevOps Fundamentals', seller: 'CloudOps Expert', category: 'DevOps', price: '$69.99', time: '1 ngày trước' },
         ].map((item, i) => (
           <div key={i} className="admin-mod-card">
             <div className="admin-mod-title">{item.title}</div>
             <div className="admin-mod-meta">
-              <span>Seller: {item.seller}</span>
-              <span>Category: {item.category} &middot; Price: {item.price}</span>
-              <span>Submitted: {item.time}</span>
+              <span>Người bán: {item.seller}</span>
+              <span>Danh mục: {item.category} &middot; Giá: {item.price}</span>
+              <span>Đã gửi: {item.time}</span>
             </div>
             <div className="admin-mod-actions">
-              <button className="admin-btn admin-btn-outline">Preview</button>
-              <button className="admin-btn admin-btn-success">Approve</button>
-              <button className="admin-btn admin-btn-danger">Reject</button>
-              <button className="admin-btn admin-btn-warning">Request Changes</button>
+              <button className="admin-btn admin-btn-outline">Xem Trước</button>
+              <button className="admin-btn admin-btn-success">Duyệt</button>
+              <button className="admin-btn admin-btn-danger">Từ Chối</button>
+              <button className="admin-btn admin-btn-warning">Yêu Cầu Sửa Đổi</button>
             </div>
           </div>
         ))}
