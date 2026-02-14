@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/endpoints';
 
 const AuthContext = createContext(null);
 
@@ -7,6 +8,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore session from localStorage on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
@@ -22,47 +24,85 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
+  /**
+   * Login via real backend API
+   * POST /api/auth/login  { email, password }
+   * Expected response: { token, user } or { token, ...userData }
+   */
   const login = async (email, password) => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
 
-    const isAdmin = email === 'admin@educycle.com';
-    const mockUser = {
-      id: isAdmin ? 'admin-1' : 'user-' + Date.now(),
-      username: isAdmin ? 'Admin' : email.split('@')[0],
-      email,
-      role: isAdmin ? 'Admin' : 'User',
-      avatar: null,
-      bio: '',
-      joinDate: new Date().toISOString(),
-    };
-    const mockToken = 'mock-jwt-' + Date.now();
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setToken(mockToken);
-    setUser(mockUser);
-    return mockUser;
+    try {
+      const res = await authApi.login({ email, password });
+      const data = res.data;
+
+      // Backend may return { token, user } or { token, ...fields }
+      const jwt = data.token;
+      const userData = data.user || {
+        id: data.id || data.userId,
+        username: data.username || data.userName || email.split('@')[0],
+        email: data.email || email,
+        role: data.role || 'User',
+        avatar: data.avatar || null,
+        bio: data.bio || '',
+      };
+
+      localStorage.setItem('token', jwt);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(jwt);
+      setUser(userData);
+      return userData;
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.title ||
+        err.response?.data ||
+        'Đăng nhập thất bại. Kiểm tra lại email và mật khẩu.';
+      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+    }
   };
 
+  /**
+   * Register via real backend API
+   * POST /api/auth/register  { username, email, password }
+   */
   const register = async (username, email, password) => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
 
-    const mockUser = {
-      id: 'user-' + Date.now(),
-      username,
-      email,
-      role: 'User',
-      avatar: null,
-      bio: '',
-      joinDate: new Date().toISOString(),
-    };
-    const mockToken = 'mock-jwt-' + Date.now();
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setToken(mockToken);
-    setUser(mockUser);
-    return mockUser;
+    try {
+      const res = await authApi.register({ username, email, password });
+      const data = res.data;
+
+      // If backend returns token after register → auto-login
+      if (data.token) {
+        const jwt = data.token;
+        const userData = data.user || {
+          id: data.id || data.userId,
+          username: data.username || data.userName || username,
+          email: data.email || email,
+          role: data.role || 'User',
+          avatar: null,
+          bio: '',
+        };
+
+        localStorage.setItem('token', jwt);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setToken(jwt);
+        setUser(userData);
+        return userData;
+      }
+
+      // If no token returned, backend may require separate login
+      // Auto-login after registration
+      return await login(email, password);
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.title ||
+        err.response?.data ||
+        'Đăng ký thất bại. Vui lòng thử lại.';
+      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+    }
   };
 
   const logout = () => {

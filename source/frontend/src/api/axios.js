@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - attach token
+// Request interceptor - attach JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,14 +21,18 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle 401
+// Response interceptor - handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Token expired or invalid — clear and redirect
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/auth';
+      // Only redirect if not already on auth page
+      if (!window.location.pathname.startsWith('/auth')) {
+        window.location.href = '/auth';
+      }
     }
     return Promise.reject(error);
   }
