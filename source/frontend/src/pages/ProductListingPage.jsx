@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useToast } from '../components/Toast';
 import './ProductListingPage.css';
 
 const MOCK_PRODUCTS = [
@@ -95,6 +98,9 @@ export default function ProductListingPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const toast = useToast();
 
   const filteredProducts = MOCK_PRODUCTS.filter((product) => {
     const matchesSearch =
@@ -276,6 +282,18 @@ export default function ProductListingPage() {
                     <div className="plp-card-image">
                       <img src={product.imageUrl} alt={product.name} />
                       <div className="plp-card-badge">{product.category}</div>
+                      <button
+                        className={`plp-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleWishlist(product);
+                          toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                        }}
+                        title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                      >
+                        {isInWishlist(product.id) ? '❤️' : '🤍'}
+                      </button>
                     </div>
                     <div className="plp-card-content">
                       <h3 className="plp-card-title">{product.name}</h3>
@@ -294,6 +312,8 @@ export default function ProductListingPage() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
+                            addItem(product);
+                            toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
                           }}
                         >
                           Thêm Vào Giỏ

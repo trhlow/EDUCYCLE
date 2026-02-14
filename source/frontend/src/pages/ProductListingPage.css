@@ -321,6 +321,26 @@
   color: var(--primary-600);
 }
 
+.plp-wishlist-btn {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: transform 0.2s, background 0.2s;
+  z-index: 2;
+}
+.plp-wishlist-btn:hover { transform: scale(1.15); background: white; }
+.plp-wishlist-btn.active { background: white; }
+
 .plp-card-content {
   padding: var(--space-5);
   display: flex;

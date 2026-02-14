@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
+import { useWishlist } from '../contexts/WishlistContext';
+import { useToast } from '../components/Toast';
 import './ProductDetailPage.css';
 
 const PRODUCTS_DB = {
@@ -191,8 +194,15 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('description');
   const [selectedThumb, setSelectedThumb] = useState(0);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
+  const [reviews, setReviews] = useState([]);
+  const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const product = id ? PRODUCTS_DB[id] : null;
+  const allReviews = [...(product?.reviewList || []), ...reviews];
 
   if (!product) {
     return (
@@ -257,8 +267,24 @@ export default function ProductDetailPage() {
           <span className="pdp-category-badge">{product.category}</span>
           <div className="pdp-price">${product.price}</div>
           <div className="pdp-actions">
-            <button className="pdp-btn-cart">Thêm Vào Giỏ</button>
-            <button className="pdp-btn-buy">Mua Ngay</button>
+            <button className="pdp-btn-cart" onClick={() => {
+              addItem(product);
+              toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
+            }}>Thêm Vào Giỏ</button>
+            <button className="pdp-btn-buy" onClick={() => {
+              addItem(product);
+              navigate('/cart');
+            }}>Mua Ngay</button>
+            <button
+              className={`pdp-btn-wishlist ${isInWishlist(product.id) ? 'active' : ''}`}
+              onClick={() => {
+                toggleWishlist(product);
+                toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+              }}
+              title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+            >
+              {isInWishlist(product.id) ? '❤️' : '🤍'}
+            </button>
           </div>
 
           <div className="pdp-seller-card">
@@ -309,8 +335,56 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                <h3 className="pdp-section-title">Đánh Giá Học Viên ({product.reviews})</h3>
-                {product.reviewList.map((review) => (
+                <h3 className="pdp-section-title">Đánh Giá Học Viên ({allReviews.length})</h3>
+
+                {/* Review submission form */}
+                <div className="pdp-review-form">
+                  <h4 className="pdp-review-form-title">Viết đánh giá</h4>
+                  <div className="pdp-review-rating-select">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className={`pdp-review-star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
+                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="pdp-review-rating-text">{reviewForm.rating}/5</span>
+                  </div>
+                  <textarea
+                    className="pdp-review-textarea"
+                    rows={3}
+                    placeholder="Chia sẻ trải nghiệm của bạn..."
+                    value={reviewForm.text}
+                    onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
+                  />
+                  <button
+                    className="pdp-review-submit-btn"
+                    onClick={() => {
+                      if (!reviewForm.text.trim()) {
+                        toast.error('Vui lòng nhập nội dung đánh giá');
+                        return;
+                      }
+                      setReviews((prev) => [
+                        ...prev,
+                        {
+                          id: 'new-' + Date.now(),
+                          user: 'Bạn',
+                          rating: reviewForm.rating,
+                          date: new Date().toLocaleDateString('vi-VN'),
+                          text: reviewForm.text,
+                        },
+                      ]);
+                      setReviewForm({ rating: 5, text: '' });
+                      toast.success('Đánh giá đã được gửi!');
+                    }}
+                  >
+                    Gửi Đánh Giá
+                  </button>
+                </div>
+
+                {allReviews.map((review) => (
                   <div key={review.id} className="pdp-review-card">
                     <div className="pdp-review-header">
                       <span className="pdp-review-user">{review.user}</span>

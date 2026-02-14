@@ -1,45 +1,29 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
+import { useToast } from '../components/Toast';
 import './CartPage.css';
 
-const INITIAL_CART = [
-  {
-    id: '1',
-    name: 'Khóa Học Lập Trình Python Nâng Cao',
-    category: 'Lập Trình',
-    seller: 'CodeMaster Pro',
-    price: 49.99,
-    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop',
-  },
-  {
-    id: '2',
-    name: 'Khóa Học Phát Triển Web Toàn Diện',
-    category: 'Phát Triển Web',
-    seller: 'WebDev Academy',
-    price: 89.99,
-    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=225&fit=crop',
-  },
-  {
-    id: '3',
-    name: 'Cơ Bản Khoa Học Dữ Liệu',
-    category: 'Khoa Học Dữ Liệu',
-    seller: 'DataPro Institute',
-    price: 69.99,
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop',
-  },
-];
-
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState(INITIAL_CART);
+  const { items: cartItems, removeItem, clearCart } = useCart();
+  const toast = useToast();
+  const navigate = useNavigate();
   const [step, setStep] = useState('cart');
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   const tax = subtotal * 0.1;
   const total = subtotal + tax;
 
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter((item) => item.id !== id));
+  const handleRemoveItem = (id, name) => {
+    removeItem(id);
+    toast.info(`Đã xóa "${name}" khỏi giỏ hàng`);
+  };
+
+  const handleCheckout = () => {
+    clearCart();
+    setStep('confirmation');
+    toast.success('Thanh toán thành công!');
   };
 
   if (step === 'confirmation') {
@@ -118,7 +102,7 @@ export default function CartPage() {
                   <span className="cart-item-price">${item.price}</span>
                   <button
                     className="cart-item-remove"
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => handleRemoveItem(item.id, item.name)}
                   >
                     ✕ Xóa
                   </button>
@@ -220,7 +204,7 @@ export default function CartPage() {
               </>
             )}
 
-            <button className="checkout-complete-btn" onClick={() => setStep('confirmation')}>
+            <button className="checkout-complete-btn" onClick={handleCheckout}>
               Hoàn Tất Mua Hàng — ${total.toFixed(2)}
             </button>
             <button

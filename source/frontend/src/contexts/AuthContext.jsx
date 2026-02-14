@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/endpoints';
 
 const AuthContext = createContext(null);
 
@@ -12,28 +11,58 @@ export function AuthProvider({ children }) {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await authApi.login({ email, password });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data));
-    setToken(data.token);
-    setUser(data);
-    return data;
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
+
+    const isAdmin = email === 'admin@educycle.com';
+    const mockUser = {
+      id: isAdmin ? 'admin-1' : 'user-' + Date.now(),
+      username: isAdmin ? 'Admin' : email.split('@')[0],
+      email,
+      role: isAdmin ? 'Admin' : 'User',
+      avatar: null,
+      bio: '',
+      joinDate: new Date().toISOString(),
+    };
+    const mockToken = 'mock-jwt-' + Date.now();
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    setToken(mockToken);
+    setUser(mockUser);
+    return mockUser;
   };
 
   const register = async (username, email, password) => {
-    const { data } = await authApi.register({ username, email, password });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data));
-    setToken(data.token);
-    setUser(data);
-    return data;
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
+
+    const mockUser = {
+      id: 'user-' + Date.now(),
+      username,
+      email,
+      role: 'User',
+      avatar: null,
+      bio: '',
+      joinDate: new Date().toISOString(),
+    };
+    const mockToken = 'mock-jwt-' + Date.now();
+    localStorage.setItem('token', mockToken);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    setToken(mockToken);
+    setUser(mockUser);
+    return mockUser;
   };
 
   const logout = () => {
@@ -43,12 +72,18 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateProfile = (updates) => {
+    const updated = { ...user, ...updates };
+    setUser(updated);
+    localStorage.setItem('user', JSON.stringify(updated));
+  };
+
   const isAdmin = user?.role === 'Admin';
   const isAuthenticated = !!token;
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, isAdmin, isAuthenticated }}
+      value={{ user, token, loading, login, register, logout, updateProfile, isAdmin, isAuthenticated }}
     >
       {children}
     </AuthContext.Provider>

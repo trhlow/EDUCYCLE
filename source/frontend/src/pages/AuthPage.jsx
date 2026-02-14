@@ -1,12 +1,17 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../components/Toast';
 import './AuthPage.css';
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [registerSuccess, setRegisterSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const { login, register } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
@@ -50,35 +55,38 @@ export default function AuthPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!validateLogin()) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setLoginSuccess(true);
+    try {
+      await login(loginForm.email, loginForm.password);
+      toast.success('Đăng nhập thành công!');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message || 'Đăng nhập thất bại');
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!validateRegister()) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setRegisterSuccess(true);
+    try {
+      await register(registerForm.username, registerForm.email, registerForm.password);
+      toast.success('Đăng ký thành công! Chào mừng bạn!');
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      toast.error(err.message || 'Đăng ký thất bại');
       setIsSubmitting(false);
-      setTimeout(() => {
-        setRegisterForm({ username: '', email: '', password: '', confirmPassword: '', agreeTerms: false });
-        setRegisterSuccess(false);
-      }, 3000);
-    }, 1000);
+    }
   };
 
   const switchTab = (tab) => {
     setActiveTab(tab);
     setErrors({});
-    setLoginSuccess(false);
-    setRegisterSuccess(false);
   };
 
   return (
@@ -107,10 +115,6 @@ export default function AuthPage() {
         <div className="auth-content">
           {activeTab === 'login' && (
             <form className="auth-form" onSubmit={handleLoginSubmit}>
-              <div className={`auth-success ${loginSuccess ? 'show' : ''}`}>
-                ✓ Đăng nhập thành công! Đang chuyển hướng...
-              </div>
-
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="login-email">Email</label>
                 <input
@@ -165,10 +169,6 @@ export default function AuthPage() {
 
           {activeTab === 'register' && (
             <form className="auth-form" onSubmit={handleRegisterSubmit}>
-              <div className={`auth-success ${registerSuccess ? 'show' : ''}`}>
-                ✓ Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.
-              </div>
-
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="register-username">Tên người dùng</label>
                 <input

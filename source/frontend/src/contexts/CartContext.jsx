@@ -1,5 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const CartContext = createContext(null);
 
@@ -8,38 +7,57 @@ export function CartProvider({ children }) {
     const saved = localStorage.getItem('cart');
     return saved ? JSON.parse(saved) : [];
   });
+  const [lastAction, setLastAction] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (product) => {
+  const addItem = useCallback((product) => {
     setItems((prev) => {
       const exists = prev.find((item) => item.id === product.id);
       if (exists) {
-        toast.error('Item already in cart');
+        setLastAction({ type: 'error', message: 'Sản phẩm đã có trong giỏ hàng' });
         return prev;
       }
-      toast.success('Added to cart!');
-      return [...prev, { ...product, quantity: 1 }];
+      setLastAction({ type: 'success', message: 'Đã thêm vào giỏ hàng!' });
+      return [...prev, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        category: product.category,
+        seller: product.seller,
+        quantity: 1,
+      }];
     });
-  };
+  }, []);
 
-  const removeItem = (productId) => {
+  const removeItem = useCallback((productId) => {
     setItems((prev) => prev.filter((item) => item.id !== productId));
-    toast.success('Removed from cart');
-  };
+    setLastAction({ type: 'success', message: 'Đã xóa khỏi giỏ hàng' });
+  }, []);
 
-  const clearCart = () => {
+  const updateQuantity = useCallback((productId, quantity) => {
+    if (quantity < 1) return;
+    setItems((prev) =>
+      prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
+    );
+  }, []);
+
+  const clearCart = useCallback(() => {
     setItems([]);
-  };
+    setLastAction({ type: 'success', message: 'Đã xóa giỏ hàng' });
+  }, []);
+
+  const clearLastAction = useCallback(() => setLastAction(null), []);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const itemCount = items.length;
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, clearCart, totalPrice, itemCount }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalPrice, itemCount, lastAction, clearLastAction }}
     >
       {children}
     </CartContext.Provider>

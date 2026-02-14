@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../components/Toast';
 import './DashboardPage.css';
 
 const SIDEBAR_ITEMS = [
@@ -13,10 +15,19 @@ const SIDEBAR_ITEMS = [
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const handleViewChange = (view) => {
     setCurrentView(view);
     setSidebarOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.info('Đã đăng xuất');
+    navigate('/');
   };
 
   return (
@@ -24,10 +35,12 @@ export default function DashboardPage() {
       {/* Sidebar */}
       <aside className={`dash-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="dash-sidebar-user">
-          <div className="dash-sidebar-avatar">👤</div>
+          <div className="dash-sidebar-avatar">
+            {user?.username?.charAt(0)?.toUpperCase() || '👤'}
+          </div>
           <div>
-            <div className="dash-sidebar-name">John Doe</div>
-            <div className="dash-sidebar-email">john@example.com</div>
+            <div className="dash-sidebar-name">{user?.username || 'Người dùng'}</div>
+            <div className="dash-sidebar-email">{user?.email || ''}</div>
           </div>
         </div>
 
@@ -45,7 +58,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <button className="dash-sidebar-link dash-sidebar-logout">
+        <button className="dash-sidebar-link dash-sidebar-logout" onClick={handleLogout}>
           <span className="dash-sidebar-link-icon">🚪</span>
           Đăng Xuất
         </button>
@@ -68,20 +81,20 @@ export default function DashboardPage() {
           ☰ Menu
         </button>
 
-        {currentView === 'overview' && <OverviewView />}
+        {currentView === 'overview' && <OverviewView user={user} />}
         {currentView === 'products' && <ProductsView />}
         {currentView === 'purchases' && <PurchasesView />}
         {currentView === 'sales' && <SalesView />}
-        {currentView === 'settings' && <SettingsView />}
+        {currentView === 'settings' && <SettingsView user={user} />}
       </div>
     </div>
   );
 }
 
-function OverviewView() {
+function OverviewView({ user }) {
   return (
     <>
-      <h1 className="dash-welcome">Chào mừng trở lại, John! 👋</h1>
+      <h1 className="dash-welcome">Chào mừng trở lại, {user?.username || 'bạn'}! 👋</h1>
 
       <div className="dash-stats">
         <div className="dash-stat-card">
@@ -194,14 +207,137 @@ function OverviewView() {
 }
 
 function ProductsView() {
+  const [showForm, setShowForm] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', description: '' });
+  const [products, setProducts] = useState([
+    { icon: '📘', name: 'Python Nâng Cao', status: 'active', price: '$49.99' },
+    { icon: '📗', name: 'React Cơ Bản', status: 'active', price: '$89.99' },
+    { icon: '📙', name: 'Khóa Thiết Kế UI', status: 'draft', price: '$59.99' },
+  ]);
+
+  const handleAddProduct = () => {
+    if (!newProduct.name || !newProduct.price) return;
+    setProducts([...products, {
+      icon: '📕',
+      name: newProduct.name,
+      status: 'draft',
+      price: '$' + newProduct.price,
+    }]);
+    setNewProduct({ name: '', category: '', price: '', description: '' });
+    setShowForm(false);
+  };
+
+  const handleDeleteProduct = (index) => {
+    setProducts(products.filter((_, i) => i !== index));
+  };
+
   return (
     <>
       <h1 className="dash-welcome">Sản Phẩm Của Tôi</h1>
 
+      {showForm && (
+        <div className="dash-section" style={{ padding: 'var(--space-6)', marginBottom: 'var(--space-4)' }}>
+          <h3 className="dash-section-title" style={{ marginBottom: 'var(--space-4)' }}>Thêm Sản Phẩm Mới</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', maxWidth: '600px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
+                Tên khóa học *
+              </label>
+              <input
+                type="text"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                placeholder="Nhập tên khóa học"
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-3) var(--space-4)',
+                  border: '2px solid var(--border-light)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
+                Giá ($) *
+              </label>
+              <input
+                type="number"
+                value={newProduct.price}
+                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                placeholder="0.00"
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-3) var(--space-4)',
+                  border: '2px solid var(--border-light)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
+                Danh mục
+              </label>
+              <select
+                value={newProduct.category}
+                onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-3) var(--space-4)',
+                  border: '2px solid var(--border-light)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                <option value="">Chọn danh mục</option>
+                <option value="programming">Lập Trình</option>
+                <option value="webdev">Phát Triển Web</option>
+                <option value="datascience">Khoa Học Dữ Liệu</option>
+                <option value="design">Thiết Kế</option>
+                <option value="marketing">Tiếp Thị</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
+                Mô tả
+              </label>
+              <input
+                type="text"
+                value={newProduct.description}
+                onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                placeholder="Mô tả ngắn"
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-3) var(--space-4)',
+                  border: '2px solid var(--border-light)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-sm)',
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
+            <button className="dash-section-action" onClick={handleAddProduct}>
+              Tạo Sản Phẩm
+            </button>
+            <button
+              className="dash-section-action"
+              style={{ background: 'var(--neutral-200)', color: 'var(--text-primary)' }}
+              onClick={() => setShowForm(false)}
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="dash-section">
         <div className="dash-section-header">
           <h2 className="dash-section-title">Tất Cả Sản Phẩm</h2>
-          <button className="dash-section-action">+ Thêm Sản Phẩm Mới</button>
+          <button className="dash-section-action" onClick={() => setShowForm(!showForm)}>
+            + Thêm Sản Phẩm Mới
+          </button>
         </div>
         <table className="dash-table">
           <thead>
@@ -213,11 +349,7 @@ function ProductsView() {
             </tr>
           </thead>
           <tbody>
-            {[
-              { icon: '📘', name: 'Python Nâng Cao', status: 'active', price: '$49.99' },
-              { icon: '📗', name: 'React Cơ Bản', status: 'active', price: '$89.99' },
-              { icon: '📙', name: 'Khóa Thiết Kế UI', status: 'draft', price: '$59.99' },
-            ].map((product, i) => (
+            {products.map((product, i) => (
               <tr key={i}>
                 <td>
                   <div className="dash-table-product">
@@ -234,7 +366,7 @@ function ProductsView() {
                 <td>
                   <div className="dash-table-actions">
                     <button className="dash-table-btn">Sửa</button>
-                    <button className="dash-table-btn dash-table-btn-danger">Xóa</button>
+                    <button className="dash-table-btn dash-table-btn-danger" onClick={() => handleDeleteProduct(i)}>Xóa</button>
                   </div>
                 </td>
               </tr>
@@ -339,7 +471,20 @@ function SalesView() {
   );
 }
 
-function SettingsView() {
+function SettingsView({ user }) {
+  const { updateProfile } = useAuth();
+  const toast = useToast();
+  const [form, setForm] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+    bio: user?.bio || '',
+  });
+
+  const handleSave = () => {
+    updateProfile(form);
+    toast.success('Đã lưu thay đổi!');
+  };
+
   return (
     <>
       <h1 className="dash-welcome">Cài Đặt Tài Khoản</h1>
@@ -353,7 +498,8 @@ function SettingsView() {
             </label>
             <input
               type="text"
-              defaultValue="John Doe"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
               style={{
                 width: '100%',
                 padding: 'var(--space-3) var(--space-4)',
@@ -369,7 +515,8 @@ function SettingsView() {
             </label>
             <input
               type="email"
-              defaultValue="john@example.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               style={{
                 width: '100%',
                 padding: 'var(--space-3) var(--space-4)',
@@ -384,8 +531,10 @@ function SettingsView() {
               Tiểu Sử
             </label>
             <textarea
-              defaultValue="Nhà giáo dục đam mê và người học suốt đời."
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
               rows={3}
+              placeholder="Nhà giáo dục đam mê và người học suốt đời."
               style={{
                 width: '100%',
                 padding: 'var(--space-3) var(--space-4)',
@@ -400,6 +549,7 @@ function SettingsView() {
         <button
           className="dash-section-action"
           style={{ marginTop: 'var(--space-6)' }}
+          onClick={handleSave}
         >
           Lưu Thay Đổi
         </button>
