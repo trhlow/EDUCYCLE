@@ -15,6 +15,7 @@ import ContactPage from './pages/ContactPage';
 import TransactionsPage from './pages/TransactionsPage';
 import TransactionDetailPage from './pages/TransactionDetailPage';
 import TransactionGuidePage from './pages/TransactionGuidePage';
+import PostProductPage from './pages/PostProductPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="auth" element={<GuestRoute><AuthPage /></GuestRoute>} />
         <Route path="products" element={<ProductListingPage />} />
         <Route path="products/:id" element={<ProductDetailPage />} />
+        <Route path="products/new" element={<ProtectedRoute><PostProductPage /></ProtectedRoute>} />
         <Route path="cart" element={<CartPage />} />
         <Route path="transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
         <Route path="transactions/guide" element={<TransactionGuidePage />} />

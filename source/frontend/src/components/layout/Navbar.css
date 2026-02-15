@@ -72,6 +72,31 @@
   border-radius: var(--radius-full);
 }
 
+.navbar-link-post {
+  background: var(--primary-500);
+  color: white !important;
+  padding: var(--space-2) var(--space-4) !important;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold) !important;
+  font-size: var(--text-sm) !important;
+  transition: var(--transition);
+}
+
+.navbar-link-post:hover {
+  background: var(--primary-600);
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+.navbar-link-post.active {
+  background: var(--primary-700);
+  color: white !important;
+}
+
+.navbar-link-post.active::after {
+  display: none;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
