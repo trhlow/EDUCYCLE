@@ -206,6 +206,49 @@
 .pdp-btn-wishlist:hover { border-color: var(--primary-300); background: var(--neutral-100); }
 .pdp-btn-wishlist.active { border-color: var(--accent-500); background: var(--accent-50, #fff7ed); }
 
+/* Transaction Request */
+.pdp-btn-request {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  padding: var(--space-5);
+}
+
+.pdp-btn-request:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.pdp-own-product-notice {
+  padding: var(--space-4);
+  background: var(--neutral-100);
+  border: 2px dashed var(--neutral-300);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+}
+
+.pdp-transaction-hint {
+  margin-top: var(--space-3);
+  text-align: center;
+}
+
+.pdp-transaction-hint a {
+  color: var(--primary-500);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.pdp-transaction-hint a:hover {
+  color: var(--primary-600);
+  text-decoration: underline;
+}
+
 /* Content Sections */
 .pdp-details {
   margin-top: var(--space-8);

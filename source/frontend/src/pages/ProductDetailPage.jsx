@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
+import { transactionsApi } from '../api/endpoints';
 import './ProductDetailPage.css';
 
 const PRODUCTS_DB = {
@@ -196,8 +198,10 @@ export default function ProductDetailPage() {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
   const [reviews, setReviews] = useState([]);
+  const [sendingRequest, setSendingRequest] = useState(false);
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -265,16 +269,49 @@ export default function ProductDetailPage() {
             <span className="pdp-rating-text">({product.reviews} đánh giá)</span>
           </div>
           <span className="pdp-category-badge">{product.category}</span>
-          <div className="pdp-price">${product.price}</div>
+          <div className="pdp-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
+
+          {/* Transaction Request Button */}
           <div className="pdp-actions">
-            <button className="pdp-btn-cart" onClick={() => {
-              addItem(product);
-              toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
-            }}>Thêm Vào Giỏ</button>
-            <button className="pdp-btn-buy" onClick={() => {
-              addItem(product);
-              navigate('/cart');
-            }}>Mua Ngay</button>
+            {isAuthenticated && product.sellerId !== user?.id ? (
+              <button 
+                className="pdp-btn-buy pdp-btn-request"
+                disabled={sendingRequest}
+                onClick={async () => {
+                  setSendingRequest(true);
+                  try {
+                    const res = await transactionsApi.create({ productId: product.id });
+                    toast.success('Đã gửi yêu cầu mua! Chờ người bán xác nhận.');
+                    navigate(`/transactions/${res.data.id || res.data.Id}`);
+                  } catch (err) {
+                    const msg = err.response?.data?.message || err.response?.data?.Message;
+                    if (msg) {
+                      toast.error(msg);
+                    } else {
+                      toast.error('Không thể gửi yêu cầu. Vui lòng thử lại.');
+                    }
+                  } finally {
+                    setSendingRequest(false);
+                  }
+                }}
+              >
+                {sendingRequest ? '⏳ Đang gửi...' : '📩 Gửi Yêu Cầu Mua'}
+              </button>
+            ) : !isAuthenticated ? (
+              <button 
+                className="pdp-btn-buy"
+                onClick={() => {
+                  toast.info('Vui lòng đăng nhập để gửi yêu cầu mua');
+                  navigate('/auth');
+                }}
+              >
+                Đăng nhập để mua
+              </button>
+            ) : (
+              <div className="pdp-own-product-notice">
+                📌 Đây là sản phẩm của bạn
+              </div>
+            )}
             <button
               className={`pdp-btn-wishlist ${isInWishlist(product.id) ? 'active' : ''}`}
               onClick={() => {
@@ -285,6 +322,10 @@ export default function ProductDetailPage() {
             >
               {isInWishlist(product.id) ? '❤️' : '🤍'}
             </button>
+          </div>
+
+          <div className="pdp-transaction-hint">
+            <Link to="/transactions/guide">📖 Xem hướng dẫn giao dịch</Link>
           </div>
 
           <div className="pdp-seller-card">
