@@ -32,56 +32,6 @@ const STATUS_FILTERS = [
   { key: 'Cancelled', label: 'Đã hủy' },
 ];
 
-// Mock data - sẽ thay bằng API thật khi backend sẵn sàng
-const MOCK_TRANSACTIONS = [
-  {
-    id: 1,
-    product: { id: 1, name: 'Giáo trình Toán Cao Cấp A1', imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=200&fit=crop', price: 45000 },
-    buyer: { id: 2, username: 'nguyenvana' },
-    seller: { id: 1, username: 'tranthib' },
-    status: 'Pending',
-    createdAt: '2026-02-14T10:30:00',
-    updatedAt: '2026-02-14T10:30:00',
-  },
-  {
-    id: 2,
-    product: { id: 2, name: 'Sách Lập trình C++ Cơ bản', imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=200&h=200&fit=crop', price: 55000 },
-    buyer: { id: 1, username: 'tranthib' },
-    seller: { id: 3, username: 'levanc' },
-    status: 'Accepted',
-    createdAt: '2026-02-13T14:00:00',
-    updatedAt: '2026-02-13T16:00:00',
-  },
-  {
-    id: 3,
-    product: { id: 3, name: 'Đồng phục Đại học Bách Khoa', imageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=200&h=200&fit=crop', price: 120000 },
-    buyer: { id: 4, username: 'phamthid' },
-    seller: { id: 1, username: 'tranthib' },
-    status: 'Completed',
-    createdAt: '2026-02-10T09:00:00',
-    updatedAt: '2026-02-11T15:30:00',
-    rating: 5,
-  },
-  {
-    id: 4,
-    product: { id: 4, name: 'Máy tính Casio fx-580VN X', imageUrl: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=200&h=200&fit=crop', price: 200000 },
-    buyer: { id: 1, username: 'tranthib' },
-    seller: { id: 5, username: 'hoangvane' },
-    status: 'Meeting',
-    createdAt: '2026-02-14T08:00:00',
-    updatedAt: '2026-02-14T12:00:00',
-  },
-  {
-    id: 5,
-    product: { id: 5, name: 'Vở ghi chép Vật lý Đại cương', imageUrl: 'https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=200&h=200&fit=crop', price: 25000 },
-    buyer: { id: 6, username: 'dangthif' },
-    seller: { id: 1, username: 'tranthib' },
-    status: 'Rejected',
-    createdAt: '2026-02-12T11:00:00',
-    updatedAt: '2026-02-12T14:00:00',
-  },
-];
-
 export default function TransactionsPage() {
   const { user } = useAuth();
   const toast = useToast();
@@ -100,8 +50,7 @@ export default function TransactionsPage() {
       const res = await transactionsApi.getMyTransactions();
       setTransactions(res.data);
     } catch {
-      // Fallback to mock data khi chưa có backend
-      setTransactions(MOCK_TRANSACTIONS);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }

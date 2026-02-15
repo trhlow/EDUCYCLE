@@ -23,36 +23,6 @@ const STEPS = [
   { step: 4, label: 'Hoàn thành', icon: '🎉' },
 ];
 
-// ─── Mock Data ──────────────────────────
-const MOCK_TRANSACTION = {
-  id: 1,
-  product: {
-    id: 1,
-    name: 'Giáo trình Toán Cao Cấp A1',
-    description: 'Sách giáo trình Toán Cao Cấp A1 - NXB Giáo Dục, tình trạng 90%',
-    imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=300&fit=crop',
-    price: 45000,
-    category: 'Sách giáo trình',
-  },
-  buyer: { id: 2, username: 'nguyenvana', email: 'nguyenvana@student.edu.vn' },
-  seller: { id: 1, username: 'tranthib', email: 'tranthib@student.edu.vn' },
-  status: 'Accepted',
-  createdAt: '2026-02-14T10:30:00',
-  updatedAt: '2026-02-14T16:00:00',
-  meetingLocation: null,
-  meetingTime: null,
-  otpCode: null,
-  buyerConfirmed: false,
-  sellerConfirmed: false,
-};
-
-const MOCK_MESSAGES = [
-  { id: 1, senderId: 2, senderName: 'nguyenvana', content: 'Chào bạn, mình muốn mua cuốn sách Toán Cao Cấp A1', createdAt: '2026-02-14T10:30:00' },
-  { id: 2, senderId: 1, senderName: 'tranthib', content: 'Chào bạn! Sách vẫn còn nhé. Bạn muốn gặp ở đâu?', createdAt: '2026-02-14T10:35:00' },
-  { id: 3, senderId: 2, senderName: 'nguyenvana', content: 'Mình gặp ở thư viện được không? Chiều mai lúc 3h?', createdAt: '2026-02-14T10:40:00' },
-  { id: 4, senderId: 1, senderName: 'tranthib', content: 'OK bạn, mình sẽ có mặt ở cổng thư viện lúc 3h chiều mai nhé!', createdAt: '2026-02-14T10:45:00' },
-];
-
 export default function TransactionDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -92,7 +62,7 @@ export default function TransactionDetailPage() {
       const res = await transactionsApi.getById(id);
       setTransaction(res.data);
     } catch {
-      setTransaction(MOCK_TRANSACTION);
+      setTransaction(null);
     } finally {
       setLoading(false);
     }
@@ -103,7 +73,7 @@ export default function TransactionDetailPage() {
       const res = await messagesApi.getByTransaction(id);
       setMessages(res.data);
     } catch {
-      setMessages(MOCK_MESSAGES);
+      setMessages([]);
     }
   };
 
