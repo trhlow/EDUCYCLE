@@ -1,83 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
+import { productsApi } from '../api/endpoints';
 import './ProductListingPage.css';
-
-const MOCK_PRODUCTS = [
-  {
-    id: '1',
-    name: 'Giáo Trình Giải Tích 1 – Nguyễn Đình Trí',
-    description: 'Sách giáo trình Toán cao cấp dành cho sinh viên năm nhất các ngành kỹ thuật',
-    price: 45000,
-    category: 'Giáo Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=225&fit=crop',
-    rating: 4.8,
-    reviews: 12,
-    seller: 'Minh Tuấn',
-    createdAt: '2026-01-15',
-  },
-  {
-    id: '2',
-    name: 'Lập Trình C++ Từ Cơ Bản Đến Nâng Cao',
-    description: 'Sách học lập trình C++ kèm bài tập thực hành, phù hợp SV ngành CNTT',
-    price: 85000,
-    category: 'Sách Chuyên Ngành',
-    imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=225&fit=crop',
-    rating: 4.9,
-    reviews: 8,
-    seller: 'Thu Hà',
-    createdAt: '2026-01-20',
-  },
-  {
-    id: '3',
-    name: 'Giáo Trình Vật Lý Đại Cương – Lương Duyên Bình',
-    description: 'Tập 1 & 2 còn mới 90%, có ghi chú tóm tắt bên lề rất hữu ích',
-    price: 60000,
-    category: 'Giáo Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&h=225&fit=crop',
-    rating: 4.7,
-    reviews: 15,
-    seller: 'Hoàng Nam',
-    createdAt: '2026-01-18',
-  },
-  {
-    id: '4',
-    name: 'Nguyên Lý Kế Toán – Phan Đức Dũng',
-    description: 'Giáo trình kế toán cơ bản, phù hợp SV ngành Kinh tế, Quản trị kinh doanh',
-    price: 55000,
-    category: 'Sách Chuyên Ngành',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=225&fit=crop',
-    rating: 4.6,
-    reviews: 6,
-    seller: 'Lan Anh',
-    createdAt: '2026-01-22',
-  },
-  {
-    id: '5',
-    name: 'Bộ Dụng Cụ Vẽ Kỹ Thuật + Compa Staedtler',
-    description: 'Bộ compa, thước kẻ, eke chuyên dụng cho SV ngành Kiến trúc, Xây dựng',
-    price: 120000,
-    category: 'Dụng Cụ Học Tập',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=225&fit=crop',
-    rating: 4.5,
-    reviews: 4,
-    seller: 'Đức Thịnh',
-    createdAt: '2026-02-01',
-  },
-  {
-    id: '6',
-    name: 'Tiếng Anh Chuyên Ngành Công Nghệ Thông Tin',
-    description: 'Giáo trình tiếng Anh IT kèm từ vựng chuyên ngành và bài đọc hiểu',
-    price: 70000,
-    category: 'Ngoại Ngữ',
-    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=225&fit=crop',
-    rating: 4.7,
-    reviews: 10,
-    seller: 'Phương Linh',
-    createdAt: '2026-02-05',
-  },
-];
 
 const CATEGORIES = [
   'all',
@@ -89,6 +15,8 @@ const CATEGORIES = [
 ];
 
 export default function ProductListingPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
@@ -99,7 +27,35 @@ export default function ProductListingPage() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
 
-  const filteredProducts = MOCK_PRODUCTS.filter((product) => {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const res = await productsApi.getAll();
+        const data = res.data;
+        const list = Array.isArray(data) ? data : data.items || data.products || [];
+        setProducts(list.map((p) => ({
+          id: String(p.id || p.Id),
+          name: p.name || p.Name || '',
+          description: p.description || p.Description || '',
+          price: p.price || p.Price || 0,
+          category: p.categoryName || p.CategoryName || p.category || p.Category || '',
+          imageUrl: p.imageUrl || p.ImageUrl || p.imageUrls?.[0] || p.ImageUrls?.[0] || '',
+          rating: p.averageRating || p.AverageRating || p.rating || 0,
+          reviews: p.reviewCount || p.ReviewCount || 0,
+          seller: p.sellerName || p.SellerName || p.seller || '',
+          createdAt: p.createdAt || p.CreatedAt || '',
+        })));
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -264,10 +220,26 @@ export default function ProductListingPage() {
             </div>
 
             <div className="plp-results-count">
-              Hiển thị {filteredProducts.length} trong {MOCK_PRODUCTS.length} sản phẩm
+              Hiển thị {filteredProducts.length} trong {products.length} sản phẩm
             </div>
 
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <div className="plp-empty">
+                <div className="plp-empty-icon">⏳</div>
+                <h3 className="plp-empty-title">Đang tải sản phẩm...</h3>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="plp-empty">
+                <div className="plp-empty-icon">📚</div>
+                <h3 className="plp-empty-title">Chưa có sản phẩm nào</h3>
+                <p className="plp-empty-text">
+                  Hãy là người đầu tiên đăng bán tài liệu trên EduCycle!
+                </p>
+                <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
+                  ➕ Đăng Bán Ngay
+                </Link>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <div className={viewMode === 'grid' ? 'plp-product-grid' : 'plp-product-list'}>
                 {filteredProducts.map((product) => (
                   <Link

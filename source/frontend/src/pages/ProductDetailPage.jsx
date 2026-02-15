@@ -1,191 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi } from '../api/endpoints';
+import { transactionsApi, productsApi } from '../api/endpoints';
 import './ProductDetailPage.css';
-
-const PRODUCTS_DB = {
-  '1': {
-    id: '1',
-    name: 'Giáo Trình Giải Tích 1 – Nguyễn Đình Trí',
-    description: 'Sách giáo trình Toán cao cấp dành cho sinh viên năm nhất các ngành kỹ thuật',
-    fullDescription: 'Giáo trình Giải tích 1 của tác giả Nguyễn Đình Trí là tài liệu bắt buộc cho sinh viên các ngành Kỹ thuật, CNTT, Điện tử. Sách bao gồm các chủ đề: giới hạn, đạo hàm, tích phân, chuỗi số. Bản này còn mới 95%, có đánh dấu và ghi chú tóm tắt công thức quan trọng bên lề rất tiện cho ôn thi.',
-    price: 45000,
-    category: 'Giáo Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=450&fit=crop',
-    rating: 4.8,
-    reviews: 12,
-    seller: 'Minh Tuấn',
-    sellerProducts: 5,
-    sellerRating: 4.9,
-    learningPoints: [
-      'Giới hạn và liên tục của hàm số',
-      'Đạo hàm và vi phân',
-      'Tích phân xác định và bất định',
-      'Chuỗi số và chuỗi hàm',
-      'Phương trình vi phân cơ bản',
-    ],
-    requirements: [
-      'Kiến thức Toán THPT (hàm số, đạo hàm cơ bản)',
-      'Phù hợp SV năm 1 ngành Kỹ thuật, CNTT',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Hải Đăng', rating: 5, date: '10/01/2026', text: 'Sách còn rất mới, ghi chú bên lề rất hữu ích cho ôn thi giữa kỳ.' },
-      { id: 'r2', user: 'Mai Phương', rating: 5, date: '08/01/2026', text: 'Giao dịch nhanh gọn, sách đúng mô tả. Cảm ơn bạn!' },
-      { id: 'r3', user: 'Trung Kiên', rating: 4, date: '05/01/2026', text: 'Sách tốt, chỉ hơi ố vàng ở bìa nhưng nội dung bên trong còn nguyên.' },
-    ],
-  },
-  '2': {
-    id: '2',
-    name: 'Lập Trình C++ Từ Cơ Bản Đến Nâng Cao',
-    description: 'Sách học lập trình C++ kèm bài tập thực hành, phù hợp SV ngành CNTT',
-    fullDescription: 'Cuốn sách lập trình C++ toàn diện này phù hợp cho sinh viên CNTT từ năm 1 đến năm 3. Nội dung đi từ cú pháp cơ bản, mảng, con trỏ, OOP đến template và STL. Có hơn 200 bài tập kèm hướng dẫn giải. Sách đã qua sử dụng 1 học kỳ nhưng còn rất tốt.',
-    price: 85000,
-    category: 'Sách Chuyên Ngành',
-    imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&h=450&fit=crop',
-    rating: 4.9,
-    reviews: 8,
-    seller: 'Thu Hà',
-    sellerProducts: 3,
-    sellerRating: 4.8,
-    learningPoints: [
-      'Cú pháp C++ cơ bản: biến, vòng lặp, hàm',
-      'Mảng, con trỏ và cấp phát động',
-      'Lập trình hướng đối tượng (OOP)',
-      'Template và thư viện STL',
-      'Cấu trúc dữ liệu cơ bản',
-    ],
-    requirements: [
-      'Không yêu cầu kiến thức lập trình trước',
-      'Phù hợp SV CNTT từ năm 1',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Quốc Anh', rating: 5, date: '20/01/2026', text: 'Sách rất chi tiết, bài tập phong phú. Giúp mình pass môn NMLT.' },
-      { id: 'r2', user: 'Thùy Linh', rating: 5, date: '18/01/2026', text: 'Bạn bán rất nhiệt tình, sách còn mới 90%. Recommend!' },
-    ],
-  },
-  '3': {
-    id: '3',
-    name: 'Giáo Trình Vật Lý Đại Cương – Lương Duyên Bình',
-    description: 'Tập 1 & 2 còn mới 90%, có ghi chú tóm tắt bên lề rất hữu ích',
-    fullDescription: 'Bộ 2 tập Vật lý Đại cương của GS. Lương Duyên Bình, giáo trình chính thức cho SV đại học ngành kỹ thuật. Tập 1 gồm Cơ học và Nhiệt học, Tập 2 gồm Điện từ và Quang học. Sách có ghi chú tóm tắt công thức và bài tập mẫu do chủ trước viết thêm, rất tiện ôn thi.',
-    price: 60000,
-    category: 'Giáo Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&h=450&fit=crop',
-    rating: 4.7,
-    reviews: 15,
-    seller: 'Hoàng Nam',
-    sellerProducts: 8,
-    sellerRating: 4.7,
-    learningPoints: [
-      'Cơ học: động học, động lực học, công và năng lượng',
-      'Nhiệt học: nhiệt động lực học, thuyết động học phân tử',
-      'Điện từ: điện trường, từ trường, cảm ứng điện từ',
-      'Quang học: giao thoa, nhiễu xạ, phân cực ánh sáng',
-    ],
-    requirements: [
-      'Kiến thức Vật lý và Toán THPT',
-      'Phù hợp SV năm 1-2 ngành Kỹ thuật',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Việt Hùng', rating: 5, date: '18/01/2026', text: 'Ghi chú tóm tắt của chủ trước quá xuất sắc, tiết kiệm rất nhiều thời gian ôn.' },
-      { id: 'r2', user: 'Ngọc Trâm', rating: 4, date: '15/01/2026', text: 'Sách ổn, bìa hơi cũ nhưng nội dung bên trong còn tốt.' },
-    ],
-  },
-  '4': {
-    id: '4',
-    name: 'Nguyên Lý Kế Toán – Phan Đức Dũng',
-    description: 'Giáo trình kế toán cơ bản, phù hợp SV ngành Kinh tế, QTKD',
-    fullDescription: 'Giáo trình Nguyên lý Kế toán là tài liệu nền tảng cho sinh viên Kinh tế, Quản trị kinh doanh, Tài chính - Ngân hàng. Nội dung bao gồm: khái niệm kế toán, phương pháp ghi sổ, bảng cân đối kế toán, báo cáo tài chính. Sách còn mới, chưa viết ghi chú.',
-    price: 55000,
-    category: 'Sách Chuyên Ngành',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop',
-    rating: 4.6,
-    reviews: 6,
-    seller: 'Lan Anh',
-    sellerProducts: 2,
-    sellerRating: 4.6,
-    learningPoints: [
-      'Khái niệm cơ bản về kế toán',
-      'Phương pháp ghi sổ kép',
-      'Bảng cân đối kế toán',
-      'Báo cáo kết quả kinh doanh',
-      'Chu trình kế toán doanh nghiệp',
-    ],
-    requirements: [
-      'Không yêu cầu kiến thức trước',
-      'Phù hợp SV ngành Kinh tế, QTKD, TC-NH',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Thanh Huyền', rating: 5, date: '22/01/2026', text: 'Sách mới tinh, đúng mô tả. Giao dịch rất thuận lợi.' },
-      { id: 'r2', user: 'Đức Minh', rating: 4, date: '19/01/2026', text: 'Sách tốt, nội dung dễ hiểu cho người mới bắt đầu.' },
-    ],
-  },
-  '5': {
-    id: '5',
-    name: 'Bộ Dụng Cụ Vẽ Kỹ Thuật + Compa Staedtler',
-    description: 'Bộ compa, thước kẻ, eke chuyên dụng cho SV ngành Kiến trúc, Xây dựng',
-    fullDescription: 'Bộ dụng cụ vẽ kỹ thuật Staedtler chính hãng Đức, bao gồm: 1 compa kim loại, 2 eke 30-60 và 45-45, 1 thước T 30cm, bút kim kỹ thuật 0.3mm và 0.5mm. Đã sử dụng 1 học kỳ môn Hình họa - Vẽ kỹ thuật, compa còn rất tốt, bút kim còn mực.',
-    price: 120000,
-    category: 'Dụng Cụ Học Tập',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=450&fit=crop',
-    rating: 4.5,
-    reviews: 4,
-    seller: 'Đức Thịnh',
-    sellerProducts: 4,
-    sellerRating: 4.5,
-    learningPoints: [
-      'Compa kim loại Staedtler chính hãng',
-      'Eke 30-60 và 45-45 trong suốt',
-      'Thước T 30cm chuyên dụng',
-      'Bút kim kỹ thuật 0.3mm và 0.5mm',
-      'Hộp đựng bảo vệ dụng cụ',
-    ],
-    requirements: [
-      'Phù hợp SV ngành Kiến trúc, Xây dựng, Cơ khí',
-      'Dùng cho môn Hình họa, Vẽ kỹ thuật',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Bảo Ngọc', rating: 5, date: '01/02/2026', text: 'Dụng cụ còn rất tốt, compa vẽ chính xác. Giá rẻ hơn mua mới rất nhiều!' },
-      { id: 'r2', user: 'Anh Khoa', rating: 4, date: '28/01/2026', text: 'Bút kim hơi khô mực nhưng tổng thể vẫn OK với giá này.' },
-    ],
-  },
-  '6': {
-    id: '6',
-    name: 'Tiếng Anh Chuyên Ngành Công Nghệ Thông Tin',
-    description: 'Giáo trình tiếng Anh IT kèm từ vựng chuyên ngành và bài đọc hiểu',
-    fullDescription: 'Giáo trình Tiếng Anh chuyên ngành CNTT dành cho sinh viên IT từ năm 2. Nội dung gồm 15 bài học với từ vựng chuyên ngành (networking, database, software engineering, AI), bài đọc hiểu, writing và listening kèm audio. Sách còn nguyên bo CD audio.',
-    price: 70000,
-    category: 'Ngoại Ngữ',
-    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=450&fit=crop',
-    rating: 4.7,
-    reviews: 10,
-    seller: 'Phương Linh',
-    sellerProducts: 6,
-    sellerRating: 4.7,
-    learningPoints: [
-      'Từ vựng chuyên ngành Networking và Database',
-      'Thuật ngữ Software Engineering',
-      'Bài đọc hiểu về AI và Machine Learning',
-      'Kỹ năng viết tài liệu kỹ thuật bằng tiếng Anh',
-      'Kèm audio nghe hiểu (CD nguyên bộ)',
-    ],
-    requirements: [
-      'Trình độ tiếng Anh tối thiểu B1',
-      'Phù hợp SV CNTT từ năm 2',
-    ],
-    reviewList: [
-      { id: 'r1', user: 'Thanh Tùng', rating: 5, date: '05/02/2026', text: 'Sách rất cần cho ai muốn đọc tài liệu IT bằng tiếng Anh. CD nghe rõ.' },
-      { id: 'r2', user: 'Kim Ngân', rating: 4, date: '02/02/2026', text: 'Nội dung tốt, chỉ tiếc không có phần bài tập thêm.' },
-    ],
-  },
-};
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
@@ -197,8 +22,56 @@ export default function ProductDetailPage() {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const product = id ? PRODUCTS_DB[id] : null;
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const res = await productsApi.getById(id);
+        const p = res.data;
+        setProduct({
+          id: String(p.id || p.Id),
+          name: p.name || p.Name || '',
+          description: p.description || p.Description || '',
+          fullDescription: p.fullDescription || p.FullDescription || p.description || p.Description || '',
+          price: p.price || p.Price || 0,
+          category: p.categoryName || p.CategoryName || p.category || p.Category || '',
+          imageUrl: p.imageUrl || p.ImageUrl || p.imageUrls?.[0] || p.ImageUrls?.[0] || '',
+          imageUrls: p.imageUrls || p.ImageUrls || [],
+          rating: p.averageRating || p.AverageRating || p.rating || 0,
+          reviews: p.reviewCount || p.ReviewCount || 0,
+          seller: p.sellerName || p.SellerName || p.seller || '',
+          sellerId: p.sellerId || p.SellerId || '',
+          sellerProducts: p.sellerProductCount || p.SellerProductCount || 0,
+          sellerRating: p.sellerRating || p.SellerRating || 0,
+          condition: p.condition || p.Condition || '',
+          contactNote: p.contactNote || p.ContactNote || '',
+          learningPoints: p.learningPoints || p.LearningPoints || [],
+          requirements: p.requirements || p.Requirements || [],
+          reviewList: p.reviewList || p.ReviewList || p.reviews || p.Reviews || [],
+          createdAt: p.createdAt || p.CreatedAt || '',
+        });
+      } catch {
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
   const allReviews = [...(product?.reviewList || []), ...reviews];
+
+  if (loading) {
+    return (
+      <div className="pdp-container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+        <h2>⏳ Đang tải...</h2>
+        <p style={{ color: 'var(--text-secondary)', margin: '1rem 0' }}>
+          Vui lòng chờ trong giây lát.
+        </p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -214,12 +87,11 @@ export default function ProductDetailPage() {
     );
   }
 
-  const thumbImages = [
-    product.imageUrl,
-    product.imageUrl.replace('w=800', 'w=400'),
-    product.imageUrl.replace('w=800', 'w=600'),
-    product.imageUrl.replace('w=800', 'w=500'),
-  ];
+  const thumbImages = product.imageUrls && product.imageUrls.length > 0
+    ? product.imageUrls
+    : product.imageUrl
+      ? [product.imageUrl]
+      : [];
 
   return (
     <div className="pdp-container">
@@ -235,19 +107,25 @@ export default function ProductDetailPage() {
         {/* Image Gallery */}
         <div className="pdp-gallery">
           <div className="pdp-main-image">
-            <img src={thumbImages[selectedThumb]} alt={product.name} />
+            {thumbImages.length > 0 ? (
+              <img src={thumbImages[selectedThumb]} alt={product.name} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: 'var(--bg-secondary)', color: 'var(--text-muted)', fontSize: '3rem' }}>📷</div>
+            )}
           </div>
-          <div className="pdp-thumbnails">
-            {thumbImages.map((thumb, index) => (
-              <button
-                key={index}
-                className={`pdp-thumb ${selectedThumb === index ? 'active' : ''}`}
-                onClick={() => setSelectedThumb(index)}
-              >
-                <img src={thumb} alt={`${product.name} thumbnail ${index + 1}`} />
-              </button>
-            ))}
-          </div>
+          {thumbImages.length > 1 && (
+            <div className="pdp-thumbnails">
+              {thumbImages.map((thumb, index) => (
+                <button
+                  key={index}
+                  className={`pdp-thumb ${selectedThumb === index ? 'active' : ''}`}
+                  onClick={() => setSelectedThumb(index)}
+                >
+                  <img src={thumb} alt={`${product.name} thumbnail ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Purchase Panel */}
@@ -350,19 +228,27 @@ export default function ProductDetailPage() {
               <div>
                 <p className="pdp-description">{product.fullDescription}</p>
 
-                <h3 className="pdp-section-title">Nội Dung Chi Tiết</h3>
-                <ul className="pdp-learn-list">
-                  {product.learningPoints.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
+                {product.learningPoints.length > 0 && (
+                  <>
+                    <h3 className="pdp-section-title">Nội Dung Chi Tiết</h3>
+                    <ul className="pdp-learn-list">
+                      {product.learningPoints.map((point, i) => (
+                        <li key={i}>{point}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
-                <h3 className="pdp-section-title">Lưu Ý</h3>
-                <ul className="pdp-requirements-list">
-                  {product.requirements.map((req, i) => (
-                    <li key={i}>{req}</li>
-                  ))}
-                </ul>
+                {product.requirements.length > 0 && (
+                  <>
+                    <h3 className="pdp-section-title">Lưu Ý</h3>
+                    <ul className="pdp-requirements-list">
+                      {product.requirements.map((req, i) => (
+                        <li key={i}>{req}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
             )}
 
