@@ -51,15 +51,13 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.login({ email, password });
       const data = res.data;
-
+      // Backend AuthResponse: { userId, username, email, token, role }
       const jwt = data.token;
-      const userData = data.user || {
-        id: data.id || data.userId,
-        username: data.username || data.userName || email.split('@')[0],
-        email: data.email || email,
+      const userData = {
+        id: data.userId,
+        username: data.username,
+        email: data.email,
         role: data.role || 'User',
-        avatar: data.avatar || null,
-        bio: data.bio || '',
       };
 
       saveSession(jwt, userData, setToken, setUser);
@@ -119,16 +117,14 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
-
+      // Backend AuthResponse: { userId, username, email, token, role }
       if (data.token) {
         const jwt = data.token;
-        const userData = data.user || {
-          id: data.id || data.userId,
-          username: data.username || data.userName || username,
+        const userData = {
+          id: data.userId,
+          username: data.username || username,
           email: data.email || email,
           role: data.role || 'User',
-          avatar: null,
-          bio: '',
         };
 
         saveSession(jwt, userData, setToken, setUser);
