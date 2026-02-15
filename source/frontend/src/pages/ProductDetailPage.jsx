@@ -4,7 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi, productsApi } from '../api/endpoints';
+import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -15,6 +15,8 @@ export default function ProductDetailPage() {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
   const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -31,25 +33,20 @@ export default function ProductDetailPage() {
         const p = res.data;
         setProduct({
           id: String(p.id || p.Id),
-          name: p.name || p.Name || '',
-          description: p.description || p.Description || '',
-          fullDescription: p.fullDescription || p.FullDescription || p.description || p.Description || '',
-          price: p.price || p.Price || 0,
-          category: p.categoryName || p.CategoryName || p.category || p.Category || '',
-          imageUrl: p.imageUrl || p.ImageUrl || p.imageUrls?.[0] || p.ImageUrls?.[0] || '',
-          imageUrls: p.imageUrls || p.ImageUrls || [],
-          rating: p.averageRating || p.AverageRating || p.rating || 0,
-          reviews: p.reviewCount || p.ReviewCount || 0,
-          seller: p.sellerName || p.SellerName || p.seller || '',
-          sellerId: p.sellerId || p.SellerId || '',
-          sellerProducts: p.sellerProductCount || p.SellerProductCount || 0,
-          sellerRating: p.sellerRating || p.SellerRating || 0,
-          condition: p.condition || p.Condition || '',
-          contactNote: p.contactNote || p.ContactNote || '',
-          learningPoints: p.learningPoints || p.LearningPoints || [],
-          requirements: p.requirements || p.Requirements || [],
-          reviewList: p.reviewList || p.ReviewList || p.reviews || p.Reviews || [],
-          createdAt: p.createdAt || p.CreatedAt || '',
+          name: p.name || '',
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.categoryName || p.category || '',
+          imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
+          imageUrls: p.imageUrls || [],
+          rating: p.averageRating || 0,
+          reviews: p.reviewCount || 0,
+          seller: p.sellerName || '',
+          sellerId: p.sellerId || p.userId || '',
+          condition: p.condition || '',
+          contactNote: p.contactNote || '',
+          status: p.status || '',
+          createdAt: p.createdAt || '',
         });
       } catch {
         setProduct(null);
@@ -60,7 +57,31 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  const allReviews = [...(product?.reviewList || []), ...reviews];
+  // Fetch reviews for this product
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!id) return;
+      setReviewsLoading(true);
+      try {
+        const res = await reviewsApi.getByProduct(id);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setReviews(data.map((r) => ({
+          id: r.id,
+          user: r.username || 'Ẩn danh',
+          rating: r.rating,
+          text: r.content,
+          date: new Date(r.createdAt).toLocaleDateString('vi-VN'),
+        })));
+      } catch {
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+    fetchReviews();
+  }, [id]);
+
+  const allReviews = reviews;
 
   if (loading) {
     return (
@@ -150,12 +171,16 @@ export default function ProductDetailPage() {
                 onClick={async () => {
                   setSendingRequest(true);
                   try {
-                    const res = await transactionsApi.create({ productId: product.id });
+                    const res = await transactionsApi.create({
+                      productId: product.id,
+                      sellerId: product.sellerId,
+                      amount: product.price,
+                    });
                     toast.success('Đã gửi yêu cầu mua! Chờ người bán xác nhận.');
                     navigate(`/transactions/${res.data.id || res.data.Id}`);
                   } catch (err) {
-                    const msg = err.response?.data?.message || err.response?.data?.Message;
-                    if (msg) {
+                    const msg = err.response?.data?.message || err.response?.data?.title || err.response?.data;
+                    if (msg && typeof msg === 'string') {
                       toast.error(msg);
                     } else {
                       toast.error('Không thể gửi yêu cầu. Vui lòng thử lại.');
@@ -203,7 +228,7 @@ export default function ProductDetailPage() {
             <div className="pdp-seller-info">
               <div className="pdp-seller-info-name">{product.seller}</div>
               <div className="pdp-seller-info-meta">
-                ★ {product.sellerRating} &middot; {product.sellerProducts} sản phẩm
+                Người bán trên EduCycle
               </div>
             </div>
           </div>
@@ -226,27 +251,19 @@ export default function ProductDetailPage() {
           <div className="pdp-tab-content">
             {activeTab === 'description' && (
               <div>
-                <p className="pdp-description">{product.fullDescription}</p>
+                <p className="pdp-description">{product.description}</p>
 
-                {product.learningPoints.length > 0 && (
+                {product.condition && (
                   <>
-                    <h3 className="pdp-section-title">Nội Dung Chi Tiết</h3>
-                    <ul className="pdp-learn-list">
-                      {product.learningPoints.map((point, i) => (
-                        <li key={i}>{point}</li>
-                      ))}
-                    </ul>
+                    <h3 className="pdp-section-title">Tình Trạng</h3>
+                    <p>{product.condition}</p>
                   </>
                 )}
 
-                {product.requirements.length > 0 && (
+                {product.contactNote && (
                   <>
-                    <h3 className="pdp-section-title">Lưu Ý</h3>
-                    <ul className="pdp-requirements-list">
-                      {product.requirements.map((req, i) => (
-                        <li key={i}>{req}</li>
-                      ))}
-                    </ul>
+                    <h3 className="pdp-section-title">Ghi Chú Giao Dịch</h3>
+                    <p>{product.contactNote}</p>
                   </>
                 )}
               </div>
@@ -280,26 +297,44 @@ export default function ProductDetailPage() {
                   />
                   <button
                     className="pdp-review-submit-btn"
-                    onClick={() => {
+                    disabled={submittingReview}
+                    onClick={async () => {
                       if (!reviewForm.text.trim()) {
                         toast.error('Vui lòng nhập nội dung đánh giá');
                         return;
                       }
-                      setReviews((prev) => [
-                        ...prev,
-                        {
-                          id: 'new-' + Date.now(),
-                          user: 'Bạn',
+                      if (!isAuthenticated) {
+                        toast.error('Vui lòng đăng nhập để đánh giá');
+                        return;
+                      }
+                      setSubmittingReview(true);
+                      try {
+                        await reviewsApi.create({
+                          productId: id,
                           rating: reviewForm.rating,
-                          date: new Date().toLocaleDateString('vi-VN'),
-                          text: reviewForm.text,
-                        },
-                      ]);
-                      setReviewForm({ rating: 5, text: '' });
-                      toast.success('Đánh giá đã được gửi!');
+                          content: reviewForm.text,
+                        });
+                        setReviews((prev) => [
+                          {
+                            id: 'new-' + Date.now(),
+                            user: user?.username || 'Bạn',
+                            rating: reviewForm.rating,
+                            date: new Date().toLocaleDateString('vi-VN'),
+                            text: reviewForm.text,
+                          },
+                          ...prev,
+                        ]);
+                        setReviewForm({ rating: 5, text: '' });
+                        toast.success('Đánh giá đã được gửi!');
+                      } catch (err) {
+                        const msg = err.response?.data?.message || err.response?.data?.title;
+                        toast.error(msg || 'Không thể gửi đánh giá. Vui lòng thử lại.');
+                      } finally {
+                        setSubmittingReview(false);
+                      }
                     }}
                   >
-                    Gửi Đánh Giá
+                    {submittingReview ? '⏳ Đang gửi...' : 'Gửi Đánh Giá'}
                   </button>
                 </div>
 
@@ -331,12 +366,20 @@ export default function ProductDetailPage() {
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{Number(product.price).toLocaleString('vi-VN')}đ</p>
                   </div>
                   <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Tình trạng:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.condition || 'Không rõ'}</p>
+                  </div>
+                  <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Đánh giá:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.rating} / 5 ({product.reviews} đánh giá)</p>
                   </div>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Người bán:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.seller}</p>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>Trạng thái:</strong>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.status}</p>
                   </div>
                 </div>
               </div>
