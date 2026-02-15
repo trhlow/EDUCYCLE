@@ -29,8 +29,9 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="navbar-brand">
+        <Link to={isAuthenticated ? '/products' : '/'} className="navbar-brand">
           🎓 EduCycle
+          <span className="navbar-brand-tagline">Trao đổi tài liệu sinh viên</span>
         </Link>
 
         <button
@@ -42,23 +43,17 @@ export default function Navbar() {
         </button>
 
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
-          <NavLink to="/products" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            Duyệt
-          </NavLink>
-          <NavLink to="/about" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            Giới Thiệu
-          </NavLink>
-          <NavLink to="/contact" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            Liên Hệ
-          </NavLink>
-          {isAuthenticated && (
-            <NavLink to="/products/new" className={({ isActive }) => `navbar-link navbar-link-post ${isActive ? 'active' : ''}`}>
-              ➕ Đăng bán
+          {!isAuthenticated && (
+            <NavLink to="/" end className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+              Trang Chủ
             </NavLink>
           )}
-          {isAuthenticated && (
-            <NavLink to="/transactions" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Giao dịch
+          <NavLink to="/products" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+            {isAuthenticated ? '📚 Tìm Sách & Tài Liệu' : 'Duyệt'}
+          </NavLink>
+          {!isAuthenticated && (
+            <NavLink to="/contact" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+              Liên Hệ
             </NavLink>
           )}
           {isAdmin && (
