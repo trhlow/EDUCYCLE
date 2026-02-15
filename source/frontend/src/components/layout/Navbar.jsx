@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext';
 import './Navbar.css';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { itemCount } = useCart();
   const navigate = useNavigate();
   const userMenuRef = useRef(null);
 
@@ -58,7 +56,7 @@ export default function Navbar() {
               Giao dịch
             </NavLink>
           )}
-          {isAuthenticated && (
+          {isAdmin && (
             <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
               Bảng điều khiển
             </NavLink>
@@ -73,10 +71,6 @@ export default function Navbar() {
         <div className="navbar-actions">
           <Link to="/wishlist" className="navbar-icon-btn" aria-label="Yêu thích">
             ❤️
-          </Link>
-          <Link to="/cart" className="navbar-icon-btn" aria-label="Giỏ hàng">
-            🛒
-            {itemCount > 0 && <span className="navbar-cart-badge">{itemCount}</span>}
           </Link>
           {isAuthenticated ? (
             <div className="navbar-user-menu" ref={userMenuRef}>
@@ -94,12 +88,14 @@ export default function Navbar() {
                   <Link to="/profile" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                     👤 Hồ sơ
                   </Link>
-                  <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                    📊 Bảng điều khiển
-                  </Link>
                   <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                     🔄 Giao dịch
                   </Link>
+                  {isAdmin && (
+                    <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                      📊 Bảng điều khiển
+                    </Link>
+                  )}
                   <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                     ❤️ Yêu thích
                   </Link>

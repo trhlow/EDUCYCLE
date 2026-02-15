@@ -37,7 +37,7 @@ export function GuestRoute({ children }) {
   }
 
   if (isAuthenticated) {
-    const from = location.state?.from?.pathname || '/dashboard';
+    const from = location.state?.from?.pathname || '/products';
     return <Navigate to={from} replace />;
   }
 

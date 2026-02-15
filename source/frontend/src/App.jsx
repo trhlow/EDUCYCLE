@@ -29,7 +29,7 @@ export default function App() {
         <Route path="transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
         <Route path="transactions/guide" element={<TransactionGuidePage />} />
         <Route path="transactions/:id" element={<ProtectedRoute><TransactionDetailPage /></ProtectedRoute>} />
-        <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="dashboard" element={<ProtectedRoute adminOnly><DashboardPage /></ProtectedRoute>} />
         <Route path="admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="wishlist" element={<WishlistPage />} />

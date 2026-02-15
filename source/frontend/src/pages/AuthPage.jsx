@@ -42,8 +42,8 @@ export default function AuthPage() {
     if (!registerForm.email || !registerForm.email.includes('@')) {
       newErrors.registerEmail = 'Vui lòng nhập email hợp lệ';
     }
-    if (!registerForm.password || registerForm.password.length < 8) {
-      newErrors.registerPassword = 'Mật khẩu phải có ít nhất 8 ký tự';
+    if (!registerForm.password || registerForm.password.length < 6) {
+      newErrors.registerPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
     if (registerForm.password !== registerForm.confirmPassword) {
       newErrors.registerConfirm = 'Mật khẩu không khớp';
@@ -60,9 +60,10 @@ export default function AuthPage() {
     if (!validateLogin()) return;
     setIsSubmitting(true);
     try {
-      await login(loginForm.email, loginForm.password);
+      const userData = await login(loginForm.email, loginForm.password);
       toast.success('Đăng nhập thành công!');
-      const from = location.state?.from?.pathname || '/dashboard';
+      const isAdminUser = userData?.role === 'Admin';
+      const from = location.state?.from?.pathname || (isAdminUser ? '/dashboard' : '/products');
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(err.message || 'Đăng nhập thất bại');
@@ -77,7 +78,7 @@ export default function AuthPage() {
     try {
       await register(registerForm.username, registerForm.email, registerForm.password);
       toast.success('Đăng ký thành công! Chào mừng bạn!');
-      navigate('/dashboard', { replace: true });
+      navigate('/products', { replace: true });
     } catch (err) {
       toast.error(err.message || 'Đăng ký thất bại');
       setIsSubmitting(false);

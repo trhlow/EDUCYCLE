@@ -3,6 +3,24 @@ import { authApi } from '../api/endpoints';
 
 const AuthContext = createContext(null);
 
+// Mock accounts for development/demo (when backend is unavailable)
+const MOCK_ACCOUNTS = [
+  {
+    id: 'admin-001',
+    username: 'admin',
+    email: 'admin@educycle.com',
+    password: '123456',
+    role: 'Admin',
+  },
+];
+
+function saveSession(tokenValue, userData, setToken, setUser) {
+  localStorage.setItem('token', tokenValue);
+  localStorage.setItem('user', JSON.stringify(userData));
+  setToken(tokenValue);
+  setUser(userData);
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -25,9 +43,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Login via real backend API
-   * POST /api/auth/login  { email, password }
-   * Expected response: { token, user } or { token, ...userData }
+   * Login — try real backend first, fall back to mock accounts on network error
    */
   const login = async (email, password) => {
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
@@ -36,7 +52,6 @@ export function AuthProvider({ children }) {
       const res = await authApi.login({ email, password });
       const data = res.data;
 
-      // Backend may return { token, user } or { token, ...fields }
       const jwt = data.token;
       const userData = data.user || {
         id: data.id || data.userId,
@@ -47,12 +62,45 @@ export function AuthProvider({ children }) {
         bio: data.bio || '',
       };
 
-      localStorage.setItem('token', jwt);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setToken(jwt);
-      setUser(userData);
+      saveSession(jwt, userData, setToken, setUser);
       return userData;
     } catch (err) {
+      // If backend is unreachable → try mock accounts
+      const isNetworkError =
+        err.code === 'ERR_NETWORK' ||
+        err.message?.includes('Network Error') ||
+        !err.response;
+
+      if (isNetworkError) {
+        const mockAccount = MOCK_ACCOUNTS.find(
+          (a) => (a.email === email || a.username === email) && a.password === password
+        );
+
+        if (mockAccount) {
+          const mockToken = 'mock-jwt-' + Date.now();
+          const userData = {
+            id: mockAccount.id,
+            username: mockAccount.username,
+            email: mockAccount.email,
+            role: mockAccount.role,
+          };
+          saveSession(mockToken, userData, setToken, setUser);
+          return userData;
+        }
+
+        // Allow any email/password as regular user when backend is down (dev/demo)
+        const mockToken = 'mock-jwt-' + Date.now();
+        const userData = {
+          id: 'user-' + Date.now(),
+          username: email.split('@')[0],
+          email,
+          role: 'User',
+        };
+        saveSession(mockToken, userData, setToken, setUser);
+        return userData;
+      }
+
+      // Backend returned an actual error (e.g. 401)
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
@@ -63,8 +111,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Register via real backend API
-   * POST /api/auth/register  { username, email, password }
+   * Register — try real backend first, fall back to mock on network error
    */
   const register = async (username, email, password) => {
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
@@ -73,7 +120,6 @@ export function AuthProvider({ children }) {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
 
-      // If backend returns token after register → auto-login
       if (data.token) {
         const jwt = data.token;
         const userData = data.user || {
@@ -85,17 +131,30 @@ export function AuthProvider({ children }) {
           bio: '',
         };
 
-        localStorage.setItem('token', jwt);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setToken(jwt);
-        setUser(userData);
+        saveSession(jwt, userData, setToken, setUser);
         return userData;
       }
 
-      // If no token returned, backend may require separate login
-      // Auto-login after registration
       return await login(email, password);
     } catch (err) {
+      const isNetworkError =
+        err.code === 'ERR_NETWORK' ||
+        err.message?.includes('Network Error') ||
+        !err.response;
+
+      if (isNetworkError) {
+        // Mock register when backend is down
+        const mockToken = 'mock-jwt-' + Date.now();
+        const userData = {
+          id: 'user-' + Date.now(),
+          username,
+          email,
+          role: 'User',
+        };
+        saveSession(mockToken, userData, setToken, setUser);
+        return userData;
+      }
+
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
