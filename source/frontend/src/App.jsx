@@ -12,6 +12,9 @@ import ProfilePage from './pages/ProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import TransactionsPage from './pages/TransactionsPage';
+import TransactionDetailPage from './pages/TransactionDetailPage';
+import TransactionGuidePage from './pages/TransactionGuidePage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -23,6 +26,9 @@ export default function App() {
         <Route path="products" element={<ProductListingPage />} />
         <Route path="products/:id" element={<ProductDetailPage />} />
         <Route path="cart" element={<CartPage />} />
+        <Route path="transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+        <Route path="transactions/guide" element={<TransactionGuidePage />} />
+        <Route path="transactions/:id" element={<ProtectedRoute><TransactionDetailPage /></ProtectedRoute>} />
         <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

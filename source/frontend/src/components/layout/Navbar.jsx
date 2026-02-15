@@ -54,6 +54,11 @@ export default function Navbar() {
             Liên Hệ
           </NavLink>
           {isAuthenticated && (
+            <NavLink to="/transactions" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+              Giao dịch
+            </NavLink>
+          )}
+          {isAuthenticated && (
             <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
               Bảng điều khiển
             </NavLink>
@@ -91,6 +96,9 @@ export default function Navbar() {
                   </Link>
                   <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                     📊 Bảng điều khiển
+                  </Link>
+                  <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                    🔄 Giao dịch
                   </Link>
                   <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
                     ❤️ Yêu thích
