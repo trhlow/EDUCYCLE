@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
-import { productsApi } from '../api/endpoints';
+import { productsApi, categoriesApi } from '../api/endpoints';
 import './ProductListingPage.css';
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   'all',
   'Giáo Trình',
   'Sách Chuyên Ngành',
@@ -24,8 +24,24 @@ export default function ProductListingPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoriesApi.getAll();
+        const data = Array.isArray(res.data) ? res.data : [];
+        if (data.length > 0) {
+          setCategories(['all', ...data.map((c) => c.name || c.Name || '')]);
+        }
+      } catch {
+        // keep fallback
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -35,16 +51,16 @@ export default function ProductListingPage() {
         const data = res.data;
         const list = Array.isArray(data) ? data : data.items || data.products || [];
         setProducts(list.map((p) => ({
-          id: String(p.id || p.Id),
-          name: p.name || p.Name || '',
-          description: p.description || p.Description || '',
-          price: p.price || p.Price || 0,
-          category: p.categoryName || p.CategoryName || p.category || p.Category || '',
-          imageUrl: p.imageUrl || p.ImageUrl || p.imageUrls?.[0] || p.ImageUrls?.[0] || '',
-          rating: p.averageRating || p.AverageRating || p.rating || 0,
-          reviews: p.reviewCount || p.ReviewCount || 0,
-          seller: p.sellerName || p.SellerName || p.seller || '',
-          createdAt: p.createdAt || p.CreatedAt || '',
+          id: String(p.id),
+          name: p.name || '',
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.categoryName || p.category || '',
+          imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
+          rating: p.averageRating || 0,
+          reviews: p.reviewCount || 0,
+          seller: p.sellerName || '',
+          createdAt: p.createdAt || '',
         })));
       } catch {
         setProducts([]);
@@ -108,7 +124,7 @@ export default function ProductListingPage() {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat === 'all' ? 'Tất Cả Danh Mục' : cat}
                     </option>
