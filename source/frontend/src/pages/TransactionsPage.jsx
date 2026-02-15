@@ -39,6 +39,10 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [rulesAccepted, setRulesAccepted] = useState(() => {
+    return localStorage.getItem('educycle_tx_rules_accepted') === 'true';
+  });
+  const [rulesChecked, setRulesChecked] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
@@ -107,6 +111,109 @@ export default function TransactionsPage() {
     active: transactions.filter(tx => ['Accepted', 'Meeting'].includes(tx.status)).length,
     completed: transactions.filter(tx => ['Completed', 'AutoCompleted'].includes(tx.status)).length,
   };
+
+  const handleAcceptRules = () => {
+    if (!rulesChecked) {
+      toast.error('Vui lòng đọc và đồng ý với nội quy giao dịch!');
+      return;
+    }
+    localStorage.setItem('educycle_tx_rules_accepted', 'true');
+    setRulesAccepted(true);
+    toast.success('Bạn đã chấp thuận nội quy giao dịch!');
+  };
+
+  if (!rulesAccepted) {
+    return (
+      <div className="tx-page">
+        <div className="tx-rules-overlay">
+          <div className="tx-rules-modal">
+            <div className="tx-rules-header">
+              <div className="tx-rules-logo">🎓 EduCycle</div>
+              <h2 className="tx-rules-title">Nội Quy Giao Dịch</h2>
+              <p className="tx-rules-subtitle">Vui lòng đọc kỹ và chấp thuận trước khi tham gia giao dịch</p>
+            </div>
+
+            <div className="tx-rules-content">
+              <div className="tx-rules-section">
+                <h3>📋 Quy Định Chung</h3>
+                <ul>
+                  <li>Mọi giao dịch trên EduCycle là giao dịch <strong>trực tiếp giữa người mua và người bán</strong> (P2P). EduCycle chỉ là nền tảng kết nối, không chịu trách nhiệm về chất lượng sản phẩm.</li>
+                  <li>Người dùng phải cung cấp thông tin trung thực về sản phẩm đăng bán (tên, mô tả, tình trạng, giá cả, hình ảnh).</li>
+                  <li>Nghiêm cấm đăng bán các sản phẩm vi phạm pháp luật, bản quyền hoặc không liên quan đến học tập.</li>
+                </ul>
+              </div>
+
+              <div className="tx-rules-section">
+                <h3>🤝 Quy Trình Giao Dịch</h3>
+                <ul>
+                  <li><strong>Bước 1:</strong> Người mua gửi yêu cầu mua → Người bán xác nhận hoặc từ chối.</li>
+                  <li><strong>Bước 2:</strong> Hai bên trao đổi qua <strong>chat nội bộ</strong> để thống nhất thời gian, địa điểm gặp mặt.</li>
+                  <li><strong>Bước 3:</strong> Gặp mặt trực tiếp, kiểm tra sản phẩm, xác nhận bằng <strong>mã OTP</strong>.</li>
+                  <li><strong>Bước 4:</strong> Cả hai xác nhận hoàn tất → Giao dịch hoàn thành.</li>
+                </ul>
+              </div>
+
+              <div className="tx-rules-section">
+                <h3>🔒 Xác Nhận OTP</h3>
+                <ul>
+                  <li>Mỗi giao dịch được bảo vệ bằng <strong>mã OTP</strong> tạo bởi người mua.</li>
+                  <li>Người bán nhập mã OTP tại điểm giao nhận để xác minh giao dịch hợp lệ.</li>
+                  <li><strong>Không chia sẻ mã OTP</strong> cho bất kỳ ai ngoài đối tác giao dịch.</li>
+                  <li>Hệ thống <strong>không tự động hoàn thành</strong> — người mua phải xác nhận đã nhận hàng.</li>
+                </ul>
+              </div>
+
+              <div className="tx-rules-section">
+                <h3>⭐ Đánh Giá & Uy Tín</h3>
+                <ul>
+                  <li>Sau mỗi giao dịch hoàn tất, cả hai bên có thể đánh giá nhau (1–5 sao).</li>
+                  <li>Mỗi giao dịch chỉ được đánh giá <strong>một lần</strong>, không thể chỉnh sửa sau khi gửi.</li>
+                  <li>Người dùng mới có điểm uy tín mặc định là <strong>5.0 sao</strong>.</li>
+                  <li>Đánh giá phải trung thực, khách quan. Nghiêm cấm đánh giá ác ý hoặc gian lận.</li>
+                </ul>
+              </div>
+
+              <div className="tx-rules-section">
+                <h3>💬 Chat & Bảo Mật</h3>
+                <ul>
+                  <li>Mọi trao đổi chỉ qua <strong>hệ thống chat nội bộ</strong> của EduCycle.</li>
+                  <li>Nghiêm cấm chia sẻ thông tin cá nhân (SĐT, địa chỉ nhà, tài khoản ngân hàng) qua chat.</li>
+                  <li>EduCycle có quyền kiểm tra nội dung chat khi có tranh chấp hoặc báo cáo vi phạm.</li>
+                </ul>
+              </div>
+
+              <div className="tx-rules-section">
+                <h3>⚠️ Vi Phạm & Xử Lý</h3>
+                <ul>
+                  <li>Hủy giao dịch liên tục không lý do: <strong>cảnh cáo → khóa tạm thời → khóa vĩnh viễn</strong>.</li>
+                  <li>Đăng sản phẩm giả, lừa đảo: <strong>khóa tài khoản vĩnh viễn</strong>.</li>
+                  <li>Mọi tranh chấp sẽ được admin xem xét dựa trên bằng chứng chat và lịch sử giao dịch.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="tx-rules-footer">
+              <label className="tx-rules-checkbox">
+                <input
+                  type="checkbox"
+                  checked={rulesChecked}
+                  onChange={(e) => setRulesChecked(e.target.checked)}
+                />
+                <span>Tôi đã đọc, hiểu và đồng ý tuân thủ toàn bộ <strong>Nội Quy Giao Dịch</strong> của EduCycle</span>
+              </label>
+              <button
+                className={`tx-rules-accept-btn ${rulesChecked ? 'enabled' : ''}`}
+                onClick={handleAcceptRules}
+                disabled={!rulesChecked}
+              >
+                ✅ Chấp Thuận & Tiếp Tục
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
