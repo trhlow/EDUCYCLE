@@ -63,13 +63,14 @@ export function AuthProvider({ children }) {
       saveSession(jwt, userData, setToken, setUser);
       return userData;
     } catch (err) {
-      // If backend is unreachable → try mock accounts
+      // If backend is unreachable or broken → try mock accounts
       const isNetworkError =
         err.code === 'ERR_NETWORK' ||
         err.message?.includes('Network Error') ||
         !err.response;
+      const isServerError = err.response?.status >= 500;
 
-      if (isNetworkError) {
+      if (isNetworkError || isServerError) {
         const mockAccount = MOCK_ACCOUNTS.find(
           (a) => (a.email === email || a.username === email) && a.password === password
         );
@@ -137,9 +138,10 @@ export function AuthProvider({ children }) {
         err.code === 'ERR_NETWORK' ||
         err.message?.includes('Network Error') ||
         !err.response;
+      const isServerError = err.response?.status >= 500;
 
-      if (isNetworkError) {
-        // Mock register when backend is down
+      if (isNetworkError || isServerError) {
+        // Mock register when backend is down or broken
         const mockToken = 'mock-jwt-' + Date.now();
         const userData = {
           id: 'user-' + Date.now(),
