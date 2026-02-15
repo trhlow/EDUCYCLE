@@ -10,184 +10,176 @@ import './ProductDetailPage.css';
 const PRODUCTS_DB = {
   '1': {
     id: '1',
-    name: 'Khóa Học Lập Trình Python Nâng Cao',
-    description: 'Làm chủ Python với các dự án thực tế và khái niệm nâng cao',
-    fullDescription: 'Khóa học Python toàn diện này đưa bạn từ trình độ trung cấp lên nâng cao. Bạn sẽ học các mẫu thiết kế, lập trình bất đồng bộ, kiểm thử, thu thập dữ liệu web, xử lý dữ liệu và xây dựng ứng dụng sẵn sàng triển khai. Mỗi mô-đun bao gồm các dự án thực hành mô phỏng tình huống thực tế.',
-    price: 49.99,
-    category: 'Lập Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=450&fit=crop',
+    name: 'Giáo Trình Giải Tích 1 – Nguyễn Đình Trí',
+    description: 'Sách giáo trình Toán cao cấp dành cho sinh viên năm nhất các ngành kỹ thuật',
+    fullDescription: 'Giáo trình Giải tích 1 của tác giả Nguyễn Đình Trí là tài liệu bắt buộc cho sinh viên các ngành Kỹ thuật, CNTT, Điện tử. Sách bao gồm các chủ đề: giới hạn, đạo hàm, tích phân, chuỗi số. Bản này còn mới 95%, có đánh dấu và ghi chú tóm tắt công thức quan trọng bên lề rất tiện cho ôn thi.',
+    price: 45000,
+    category: 'Giáo Trình',
+    imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=450&fit=crop',
     rating: 4.8,
-    reviews: 342,
-    seller: 'CodeMaster Pro',
-    sellerCourses: 15,
+    reviews: 12,
+    seller: 'Minh Tuấn',
+    sellerProducts: 5,
     sellerRating: 4.9,
     learningPoints: [
-      'Các mẫu Python nâng cao và phương pháp tốt nhất',
-      'Lập trình bất đồng bộ với asyncio',
-      'Kiểm thử đơn vị và phát triển hướng kiểm thử',
-      'Thu thập dữ liệu web và tự động hóa pipeline dữ liệu',
-      'Xây dựng REST API với FastAPI',
-      'Tích hợp cơ sở dữ liệu với SQLAlchemy',
+      'Giới hạn và liên tục của hàm số',
+      'Đạo hàm và vi phân',
+      'Tích phân xác định và bất định',
+      'Chuỗi số và chuỗi hàm',
+      'Phương trình vi phân cơ bản',
     ],
     requirements: [
-      'Kiến thức Python cơ bản (biến, vòng lặp, hàm)',
-      'Máy tính đã cài đặt Python 3.8+',
-      'Sẵn sàng thực hành với các dự án thực tế',
+      'Kiến thức Toán THPT (hàm số, đạo hàm cơ bản)',
+      'Phù hợp SV năm 1 ngành Kỹ thuật, CNTT',
     ],
     reviewList: [
-      { id: 'r1', user: 'Sarah M.', rating: 5, date: 'Feb 10, 2024', text: 'Khóa học tuyệt vời! Các dự án thực tế giúp tôi tìm được công việc mới.' },
-      { id: 'r2', user: 'James L.', rating: 5, date: 'Feb 8, 2024', text: 'Khóa học Python tốt nhất tôi từng học. Phần lập trình bất đồng bộ chính xác là những gì tôi cần.' },
-      { id: 'r3', user: 'Maria G.', rating: 4, date: 'Feb 5, 2024', text: 'Nội dung rất kỹ lưỡng. Mong có thêm bài tập trong phần kiểm thử.' },
+      { id: 'r1', user: 'Hải Đăng', rating: 5, date: '10/01/2026', text: 'Sách còn rất mới, ghi chú bên lề rất hữu ích cho ôn thi giữa kỳ.' },
+      { id: 'r2', user: 'Mai Phương', rating: 5, date: '08/01/2026', text: 'Giao dịch nhanh gọn, sách đúng mô tả. Cảm ơn bạn!' },
+      { id: 'r3', user: 'Trung Kiên', rating: 4, date: '05/01/2026', text: 'Sách tốt, chỉ hơi ố vàng ở bìa nhưng nội dung bên trong còn nguyên.' },
     ],
   },
   '2': {
     id: '2',
-    name: 'Khóa Học Phát Triển Web Toàn Diện',
-    description: 'Học HTML, CSS, JavaScript, React và Node.js từ đầu',
-    fullDescription: 'Khóa học phát triển web full-stack bao gồm mọi thứ từ HTML cơ bản đến triển khai ứng dụng React + Node.js. Bao gồm hơn 40 giờ nội dung video với các dự án thực tế bao gồm trang thương mại điện tử, ứng dụng mạng xã hội và website portfolio.',
-    price: 89.99,
-    category: 'Phát Triển Web',
-    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=450&fit=crop',
+    name: 'Lập Trình C++ Từ Cơ Bản Đến Nâng Cao',
+    description: 'Sách học lập trình C++ kèm bài tập thực hành, phù hợp SV ngành CNTT',
+    fullDescription: 'Cuốn sách lập trình C++ toàn diện này phù hợp cho sinh viên CNTT từ năm 1 đến năm 3. Nội dung đi từ cú pháp cơ bản, mảng, con trỏ, OOP đến template và STL. Có hơn 200 bài tập kèm hướng dẫn giải. Sách đã qua sử dụng 1 học kỳ nhưng còn rất tốt.',
+    price: 85000,
+    category: 'Sách Chuyên Ngành',
+    imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&h=450&fit=crop',
     rating: 4.9,
-    reviews: 1205,
-    seller: 'WebDev Academy',
-    sellerCourses: 22,
+    reviews: 8,
+    seller: 'Thu Hà',
+    sellerProducts: 3,
     sellerRating: 4.8,
     learningPoints: [
-      'HTML5, CSS3 và JavaScript hiện đại (ES6+)',
-      'React với hooks, context và quản lý trạng thái',
-      'Phát triển backend với Node.js và Express.js',
-      'Cơ sở dữ liệu MongoDB và PostgreSQL',
-      'Mẫu xác thực và phân quyền',
-      'Triển khai lên nền tảng đám mây',
+      'Cú pháp C++ cơ bản: biến, vòng lặp, hàm',
+      'Mảng, con trỏ và cấp phát động',
+      'Lập trình hướng đối tượng (OOP)',
+      'Template và thư viện STL',
+      'Cấu trúc dữ liệu cơ bản',
     ],
     requirements: [
-      'Không cần kinh nghiệm lập trình trước',
-      'Máy tính có kết nối internet',
-      'Cam kết hoàn thành tất cả dự án',
+      'Không yêu cầu kiến thức lập trình trước',
+      'Phù hợp SV CNTT từ năm 1',
     ],
     reviewList: [
-      { id: 'r1', user: 'Alex K.', rating: 5, date: 'Feb 12, 2024', text: 'Hoàn toàn thay đổi sự nghiệp của tôi. Từ con số không trở thành lập trình viên full-stack.' },
-      { id: 'r2', user: 'Emily R.', rating: 5, date: 'Feb 10, 2024', text: 'Khóa học bootcamp tốt nhất trực tuyến. Đáng từng xu!' },
-      { id: 'r3', user: 'David P.', rating: 4, date: 'Feb 7, 2024', text: 'Nội dung tuyệt vời. Phần React được làm đặc biệt tốt.' },
+      { id: 'r1', user: 'Quốc Anh', rating: 5, date: '20/01/2026', text: 'Sách rất chi tiết, bài tập phong phú. Giúp mình pass môn NMLT.' },
+      { id: 'r2', user: 'Thùy Linh', rating: 5, date: '18/01/2026', text: 'Bạn bán rất nhiệt tình, sách còn mới 90%. Recommend!' },
     ],
   },
   '3': {
     id: '3',
-    name: 'Cơ Bản Khoa Học Dữ Liệu',
-    description: 'Giới thiệu về phân tích dữ liệu, thống kê và học máy',
-    fullDescription: 'Bắt đầu hành trình khoa học dữ liệu của bạn với khóa học toàn diện này. Học cách phân tích dữ liệu, tạo trực quan hóa, áp dụng phương pháp thống kê và xây dựng mô hình học máy đầu tiên bằng Python, Pandas và Scikit-learn.',
-    price: 69.99,
-    category: 'Khoa Học Dữ Liệu',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=450&fit=crop',
+    name: 'Giáo Trình Vật Lý Đại Cương – Lương Duyên Bình',
+    description: 'Tập 1 & 2 còn mới 90%, có ghi chú tóm tắt bên lề rất hữu ích',
+    fullDescription: 'Bộ 2 tập Vật lý Đại cương của GS. Lương Duyên Bình, giáo trình chính thức cho SV đại học ngành kỹ thuật. Tập 1 gồm Cơ học và Nhiệt học, Tập 2 gồm Điện từ và Quang học. Sách có ghi chú tóm tắt công thức và bài tập mẫu do chủ trước viết thêm, rất tiện ôn thi.',
+    price: 60000,
+    category: 'Giáo Trình',
+    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&h=450&fit=crop',
     rating: 4.7,
-    reviews: 567,
-    seller: 'DataPro Institute',
-    sellerCourses: 8,
+    reviews: 15,
+    seller: 'Hoàng Nam',
+    sellerProducts: 8,
     sellerRating: 4.7,
     learningPoints: [
-      'Phân tích dữ liệu với Pandas và NumPy',
-      'Trực quan hóa dữ liệu với Matplotlib và Seaborn',
-      'Phân tích thống kê và kiểm định giả thuyết',
-      'Giới thiệu học máy với Scikit-learn',
-      'Bộ dữ liệu thực tế và nghiên cứu tình huống',
+      'Cơ học: động học, động lực học, công và năng lượng',
+      'Nhiệt học: nhiệt động lực học, thuyết động học phân tử',
+      'Điện từ: điện trường, từ trường, cảm ứng điện từ',
+      'Quang học: giao thoa, nhiễu xạ, phân cực ánh sáng',
     ],
     requirements: [
-      'Nên có kiến thức Python cơ bản',
-      'Hiểu các khái niệm toán học cơ bản',
+      'Kiến thức Vật lý và Toán THPT',
+      'Phù hợp SV năm 1-2 ngành Kỹ thuật',
     ],
     reviewList: [
-      { id: 'r1', user: 'Tom W.', rating: 5, date: 'Feb 8, 2024', text: 'Giới thiệu hoàn hảo về khoa học dữ liệu. Giải thích rất rõ ràng.' },
-      { id: 'r2', user: 'Lisa N.', rating: 4, date: 'Feb 5, 2024', text: 'Khóa học nền tảng tốt với các ví dụ thực tế.' },
+      { id: 'r1', user: 'Việt Hùng', rating: 5, date: '18/01/2026', text: 'Ghi chú tóm tắt của chủ trước quá xuất sắc, tiết kiệm rất nhiều thời gian ôn.' },
+      { id: 'r2', user: 'Ngọc Trâm', rating: 4, date: '15/01/2026', text: 'Sách ổn, bìa hơi cũ nhưng nội dung bên trong còn tốt.' },
     ],
   },
   '4': {
     id: '4',
-    name: 'Khóa Học Thiết Kế UI/UX',
-    description: 'Tạo giao diện người dùng đẹp mắt và trải nghiệm người dùng xuất sắc',
-    fullDescription: 'Học quy trình thiết kế UI/UX hoàn chỉnh từ nghiên cứu người dùng đến nguyên mẫu chi tiết. Khóa học bao gồm tư duy thiết kế, wireframing, nguyên tắc thiết kế trực quan và tạo nguyên mẫu với Figma.',
-    price: 59.99,
-    category: 'Thiết Kế',
-    imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=450&fit=crop',
+    name: 'Nguyên Lý Kế Toán – Phan Đức Dũng',
+    description: 'Giáo trình kế toán cơ bản, phù hợp SV ngành Kinh tế, QTKD',
+    fullDescription: 'Giáo trình Nguyên lý Kế toán là tài liệu nền tảng cho sinh viên Kinh tế, Quản trị kinh doanh, Tài chính - Ngân hàng. Nội dung bao gồm: khái niệm kế toán, phương pháp ghi sổ, bảng cân đối kế toán, báo cáo tài chính. Sách còn mới, chưa viết ghi chú.',
+    price: 55000,
+    category: 'Sách Chuyên Ngành',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop',
     rating: 4.6,
-    reviews: 423,
-    seller: 'Design Guru',
-    sellerCourses: 12,
-    sellerRating: 4.8,
+    reviews: 6,
+    seller: 'Lan Anh',
+    sellerProducts: 2,
+    sellerRating: 4.6,
     learningPoints: [
-      'Phương pháp tư duy thiết kế',
-      'Nghiên cứu người dùng và tạo persona',
-      'Wireframing và tạo nguyên mẫu với Figma',
-      'Nguyên tắc thiết kế trực quan và lý thuyết màu sắc',
-      'Thiết kế đáp ứng và khả năng tiếp cận',
+      'Khái niệm cơ bản về kế toán',
+      'Phương pháp ghi sổ kép',
+      'Bảng cân đối kế toán',
+      'Báo cáo kết quả kinh doanh',
+      'Chu trình kế toán doanh nghiệp',
     ],
     requirements: [
-      'Không cần kinh nghiệm thiết kế trước',
-      'Tài khoản Figma (phiên bản miễn phí vẫn dùng được)',
+      'Không yêu cầu kiến thức trước',
+      'Phù hợp SV ngành Kinh tế, QTKD, TC-NH',
     ],
     reviewList: [
-      { id: 'r1', user: 'Anna S.', rating: 5, date: 'Feb 11, 2024', text: 'Khóa học tuyệt vời! Giúp tôi xây dựng portfolio thiết kế.' },
-      { id: 'r2', user: 'Chris B.', rating: 4, date: 'Feb 7, 2024', text: 'Khóa học thiết kế rất toàn diện, bao gồm tất cả kiến thức cần thiết.' },
+      { id: 'r1', user: 'Thanh Huyền', rating: 5, date: '22/01/2026', text: 'Sách mới tinh, đúng mô tả. Giao dịch rất thuận lợi.' },
+      { id: 'r2', user: 'Đức Minh', rating: 4, date: '19/01/2026', text: 'Sách tốt, nội dung dễ hiểu cho người mới bắt đầu.' },
     ],
   },
   '5': {
     id: '5',
-    name: 'Tiếp Thị Kỹ Thuật Số Cơ Bản',
-    description: 'SEO, tiếp thị mạng xã hội và chiến lược nội dung',
-    fullDescription: 'Làm chủ tiếp thị kỹ thuật số với các dự án thực hành bao gồm SEO, tiếp thị mạng xã hội, chiến dịch email, chiến lược nội dung và Google Analytics. Học cách tạo và thực hiện các chiến dịch tiếp thị hiệu quả.',
-    price: 39.99,
-    category: 'Tiếp Thị',
-    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop',
+    name: 'Bộ Dụng Cụ Vẽ Kỹ Thuật + Compa Staedtler',
+    description: 'Bộ compa, thước kẻ, eke chuyên dụng cho SV ngành Kiến trúc, Xây dựng',
+    fullDescription: 'Bộ dụng cụ vẽ kỹ thuật Staedtler chính hãng Đức, bao gồm: 1 compa kim loại, 2 eke 30-60 và 45-45, 1 thước T 30cm, bút kim kỹ thuật 0.3mm và 0.5mm. Đã sử dụng 1 học kỳ môn Hình họa - Vẽ kỹ thuật, compa còn rất tốt, bút kim còn mực.',
+    price: 120000,
+    category: 'Dụng Cụ Học Tập',
+    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=450&fit=crop',
     rating: 4.5,
-    reviews: 289,
-    seller: 'Marketing Experts',
-    sellerCourses: 6,
-    sellerRating: 4.6,
+    reviews: 4,
+    seller: 'Đức Thịnh',
+    sellerProducts: 4,
+    sellerRating: 4.5,
     learningPoints: [
-      'Chiến lược tối ưu hóa công cụ tìm kiếm (SEO)',
-      'Tiếp thị và quảng cáo mạng xã hội',
-      'Tiếp thị email và tự động hóa',
-      'Chiến lược nội dung và viết quảng cáo',
-      'Google Analytics và quyết định dựa trên dữ liệu',
+      'Compa kim loại Staedtler chính hãng',
+      'Eke 30-60 và 45-45 trong suốt',
+      'Thước T 30cm chuyên dụng',
+      'Bút kim kỹ thuật 0.3mm và 0.5mm',
+      'Hộp đựng bảo vệ dụng cụ',
     ],
     requirements: [
-      'Không cần kinh nghiệm tiếp thị trước',
-      'Có tài khoản mạng xã hội để thực hành',
+      'Phù hợp SV ngành Kiến trúc, Xây dựng, Cơ khí',
+      'Dùng cho môn Hình họa, Vẽ kỹ thuật',
     ],
     reviewList: [
-      { id: 'r1', user: 'Mike T.', rating: 5, date: 'Feb 9, 2024', text: 'Thực tế và có thể áp dụng ngay. Đã thấy kết quả từ các mẹo SEO.' },
-      { id: 'r2', user: 'Rachel H.', rating: 4, date: 'Feb 6, 2024', text: 'Tổng quan tốt về tất cả các kênh tiếp thị kỹ thuật số chính.' },
+      { id: 'r1', user: 'Bảo Ngọc', rating: 5, date: '01/02/2026', text: 'Dụng cụ còn rất tốt, compa vẽ chính xác. Giá rẻ hơn mua mới rất nhiều!' },
+      { id: 'r2', user: 'Anh Khoa', rating: 4, date: '28/01/2026', text: 'Bút kim hơi khô mực nhưng tổng thể vẫn OK với giá này.' },
     ],
   },
   '6': {
     id: '6',
-    name: 'Phát Triển Ứng Dụng Di Động với React Native',
-    description: 'Xây dựng ứng dụng iOS và Android với một mã nguồn duy nhất',
-    fullDescription: 'Học cách xây dựng ứng dụng di động đa nền tảng bằng React Native. Khóa học bao gồm điều hướng, quản lý trạng thái, API gốc, thông báo đẩy và xuất bản lên cửa hàng ứng dụng.',
-    price: 79.99,
-    category: 'Phát Triển Di Động',
-    imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=450&fit=crop',
+    name: 'Tiếng Anh Chuyên Ngành Công Nghệ Thông Tin',
+    description: 'Giáo trình tiếng Anh IT kèm từ vựng chuyên ngành và bài đọc hiểu',
+    fullDescription: 'Giáo trình Tiếng Anh chuyên ngành CNTT dành cho sinh viên IT từ năm 2. Nội dung gồm 15 bài học với từ vựng chuyên ngành (networking, database, software engineering, AI), bài đọc hiểu, writing và listening kèm audio. Sách còn nguyên bo CD audio.',
+    price: 70000,
+    category: 'Ngoại Ngữ',
+    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=450&fit=crop',
     rating: 4.7,
-    reviews: 456,
-    seller: 'AppDev Masters',
-    sellerCourses: 10,
+    reviews: 10,
+    seller: 'Phương Linh',
+    sellerProducts: 6,
     sellerRating: 4.7,
     learningPoints: [
-      'Các thành phần và API cốt lõi của React Native',
-      'Điều hướng với React Navigation',
-      'Quản lý trạng thái với Redux và Context',
-      'Tính năng thiết bị gốc (camera, vị trí, v.v.)',
-      'Thông báo đẩy và tác vụ nền',
-      'Quy trình gửi lên cửa hàng ứng dụng',
+      'Từ vựng chuyên ngành Networking và Database',
+      'Thuật ngữ Software Engineering',
+      'Bài đọc hiểu về AI và Machine Learning',
+      'Kỹ năng viết tài liệu kỹ thuật bằng tiếng Anh',
+      'Kèm audio nghe hiểu (CD nguyên bộ)',
     ],
     requirements: [
-      'Yêu cầu kiến thức JavaScript và React',
-      'Khuyến nghị Mac cho phát triển iOS',
-      'Đã cài đặt Node.js trên máy',
+      'Trình độ tiếng Anh tối thiểu B1',
+      'Phù hợp SV CNTT từ năm 2',
     ],
     reviewList: [
-      { id: 'r1', user: 'Kevin L.', rating: 5, date: 'Feb 13, 2024', text: 'Đã xuất bản ứng dụng đầu tiên nhờ khóa học này!' },
-      { id: 'r2', user: 'Sophie M.', rating: 4, date: 'Feb 10, 2024', text: 'Rất thực tế. Thích cách tiếp cận dự án thực tế.' },
+      { id: 'r1', user: 'Thanh Tùng', rating: 5, date: '05/02/2026', text: 'Sách rất cần cho ai muốn đọc tài liệu IT bằng tiếng Anh. CD nghe rõ.' },
+      { id: 'r2', user: 'Kim Ngân', rating: 4, date: '02/02/2026', text: 'Nội dung tốt, chỉ tiếc không có phần bài tập thêm.' },
     ],
   },
 };
@@ -333,7 +325,7 @@ export default function ProductDetailPage() {
             <div className="pdp-seller-info">
               <div className="pdp-seller-info-name">{product.seller}</div>
               <div className="pdp-seller-info-meta">
-                ★ {product.sellerRating} &middot; {product.sellerCourses} khóa học
+                ★ {product.sellerRating} &middot; {product.sellerProducts} sản phẩm
               </div>
             </div>
           </div>
@@ -348,7 +340,7 @@ export default function ProductDetailPage() {
                 className={`pdp-tab ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab === 'description' ? 'Mô Tả' : tab === 'reviews' ? 'Đánh Giá' : 'Thông Tin Khóa Học'}
+                {tab === 'description' ? 'Mô Tả' : tab === 'reviews' ? 'Đánh Giá' : 'Thông Tin Sản Phẩm'}
               </button>
             ))}
           </div>
@@ -358,14 +350,14 @@ export default function ProductDetailPage() {
               <div>
                 <p className="pdp-description">{product.fullDescription}</p>
 
-                <h3 className="pdp-section-title">Bạn sẽ học được gì</h3>
+                <h3 className="pdp-section-title">Nội Dung Chi Tiết</h3>
                 <ul className="pdp-learn-list">
                   {product.learningPoints.map((point, i) => (
                     <li key={i}>{point}</li>
                   ))}
                 </ul>
 
-                <h3 className="pdp-section-title">Yêu Cầu</h3>
+                <h3 className="pdp-section-title">Lưu Ý</h3>
                 <ul className="pdp-requirements-list">
                   {product.requirements.map((req, i) => (
                     <li key={i}>{req}</li>
@@ -376,7 +368,7 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                <h3 className="pdp-section-title">Đánh Giá Học Viên ({allReviews.length})</h3>
+                <h3 className="pdp-section-title">Đánh Giá Người Bán ({allReviews.length})</h3>
 
                 {/* Review submission form */}
                 <div className="pdp-review-form">
@@ -442,7 +434,7 @@ export default function ProductDetailPage() {
 
             {activeTab === 'info' && (
               <div>
-                <h3 className="pdp-section-title">Thông Tin Khóa Học</h3>
+                <h3 className="pdp-section-title">Thông Tin Sản Phẩm</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Danh mục:</strong>
@@ -450,14 +442,14 @@ export default function ProductDetailPage() {
                   </div>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Giá:</strong>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>${product.price}</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{Number(product.price).toLocaleString('vi-VN')}đ</p>
                   </div>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Đánh giá:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.rating} / 5 ({product.reviews} đánh giá)</p>
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Giảng viên:</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>Người bán:</strong>
                     <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.seller}</p>
                   </div>
                 </div>

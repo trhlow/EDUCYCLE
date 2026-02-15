@@ -7,18 +7,18 @@ export default function HomePage() {
       <section className="home-hero">
         <div className="home-hero-content">
           <h1 className="home-hero-title">
-            Khám Phá Hành Trình Học Tập Tiếp Theo
+            Trao Đổi Sách &amp; Tài Liệu Học Tập Giữa Sinh Viên
           </h1>
           <p className="home-hero-subtitle">
-            Truy cập hàng nghìn khóa học từ các giảng viên chuyên gia trên toàn thế giới.
-            Mua, bán và chia sẻ tài liệu giáo dục tại một sàn giao dịch đáng tin cậy.
+            EduCycle – Nền tảng P2P giúp sinh viên mua bán, trao đổi sách giáo trình
+            và dụng cụ học tập. Tiết kiệm chi phí, tái sử dụng tài nguyên, kết nối cộng đồng.
           </p>
           <div className="home-hero-actions">
             <Link to="/products" className="home-btn-primary">
-              Duyệt Khóa Học
+              Tìm Sách Ngay
             </Link>
             <Link to="/auth" className="home-btn-secondary">
-              Bắt Đầu Bán
+              Đăng Ký Bán Sách
             </Link>
           </div>
         </div>
@@ -29,23 +29,61 @@ export default function HomePage() {
         <div className="home-features-grid">
           <div className="home-feature-card">
             <div className="home-feature-icon">📚</div>
-            <h3 className="home-feature-title">Khóa Học Chất Lượng</h3>
+            <h3 className="home-feature-title">Trao Đổi Trực Tiếp</h3>
             <p className="home-feature-text">
-              Tài liệu giáo dục được chọn lọc, đánh giá bởi chuyên gia để đảm bảo nội dung chất lượng cao.
-            </p>
-          </div>
-          <div className="home-feature-card">
-            <div className="home-feature-icon">💰</div>
-            <h3 className="home-feature-title">Giá Cả Hợp Lý</h3>
-            <p className="home-feature-text">
-              Giá cạnh tranh với phí minh bạch. Người bán kiếm nhiều hơn, người mua trả ít hơn.
+              Giao dịch P2P giữa sinh viên với nhau – không qua trung gian, không phí ẩn.
+              Gặp mặt, trao sách, xác nhận ngay trên ứng dụng.
             </p>
           </div>
           <div className="home-feature-card">
             <div className="home-feature-icon">🔒</div>
-            <h3 className="home-feature-title">Giao Dịch An Toàn</h3>
+            <h3 className="home-feature-title">Xác Nhận Bằng OTP</h3>
             <p className="home-feature-text">
-              Thanh toán được bảo vệ và tài khoản được xác minh cho sự an tâm trong mọi giao dịch.
+              Mỗi giao dịch được xác nhận bằng mã OTP tại điểm giao nhận,
+              đảm bảo minh bạch và chống gian lận.
+            </p>
+          </div>
+          <div className="home-feature-card">
+            <div className="home-feature-icon">⭐</div>
+            <h3 className="home-feature-title">Đánh Giá Uy Tín</h3>
+            <p className="home-feature-text">
+              Hệ thống đánh giá sao (1–5) sau mỗi giao dịch hoàn tất giúp bạn chọn đúng
+              người bán đáng tin cậy.
+            </p>
+          </div>
+          <div className="home-feature-card">
+            <div className="home-feature-icon">💬</div>
+            <h3 className="home-feature-title">Chat Nội Bộ An Toàn</h3>
+            <p className="home-feature-text">
+              Trao đổi thời gian, địa điểm giao nhận qua chat trong ứng dụng –
+              không cần chia sẻ SĐT hay thông tin cá nhân.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-features" style={{ paddingTop: 0 }}>
+        <h2 className="home-features-title">Cách Thức Hoạt Động</h2>
+        <div className="home-features-grid">
+          <div className="home-feature-card">
+            <div className="home-feature-icon">1️⃣</div>
+            <h3 className="home-feature-title">Tìm &amp; Gửi Yêu Cầu</h3>
+            <p className="home-feature-text">
+              Duyệt sách trên sàn, tìm cuốn bạn cần và gửi yêu cầu mua cho người bán.
+            </p>
+          </div>
+          <div className="home-feature-card">
+            <div className="home-feature-icon">2️⃣</div>
+            <h3 className="home-feature-title">Chat &amp; Hẹn Gặp</h3>
+            <p className="home-feature-text">
+              Sau khi người bán chấp nhận, hai bên chat để thống nhất thời gian và địa điểm gặp mặt.
+            </p>
+          </div>
+          <div className="home-feature-card">
+            <div className="home-feature-icon">3️⃣</div>
+            <h3 className="home-feature-title">Gặp Mặt &amp; Xác Nhận OTP</h3>
+            <p className="home-feature-text">
+              Giao sách trực tiếp, xác nhận bằng mã OTP ngay tại chỗ, rồi đánh giá lẫn nhau.
             </p>
           </div>
         </div>

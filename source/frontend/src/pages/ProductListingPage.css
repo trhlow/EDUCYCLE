@@ -405,22 +405,16 @@
   color: var(--primary-600);
 }
 
-.plp-add-to-cart-btn {
-  padding: var(--space-2) var(--space-5);
-  background: var(--accent-500);
-  color: var(--text-inverse);
-  border: none;
-  border-radius: var(--radius-md);
+.plp-view-detail-btn {
+  color: var(--primary-500);
   font-weight: var(--weight-semibold);
   font-size: var(--text-sm);
-  cursor: pointer;
   transition: var(--transition);
 }
 
-.plp-add-to-cart-btn:hover {
-  background: var(--accent-600);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-accent);
+.plp-card:hover .plp-view-detail-btn,
+.plp-card-list:hover .plp-view-detail-btn {
+  color: var(--primary-600);
 }
 
 /* Empty State */

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import './ProductListingPage.css';
@@ -8,86 +7,85 @@ import './ProductListingPage.css';
 const MOCK_PRODUCTS = [
   {
     id: '1',
-    name: 'Khóa Học Lập Trình Python Nâng Cao',
-    description: 'Làm chủ Python với các dự án thực tế và khái niệm nâng cao',
-    price: 49.99,
-    category: 'Lập Trình',
-    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=225&fit=crop',
+    name: 'Giáo Trình Giải Tích 1 – Nguyễn Đình Trí',
+    description: 'Sách giáo trình Toán cao cấp dành cho sinh viên năm nhất các ngành kỹ thuật',
+    price: 45000,
+    category: 'Giáo Trình',
+    imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=225&fit=crop',
     rating: 4.8,
-    reviews: 342,
-    seller: 'CodeMaster Pro',
-    createdAt: '2024-02-10',
+    reviews: 12,
+    seller: 'Minh Tuấn',
+    createdAt: '2026-01-15',
   },
   {
     id: '2',
-    name: 'Khóa Học Phát Triển Web Toàn Diện',
-    description: 'Học HTML, CSS, JavaScript, React và Node.js từ đầu',
-    price: 89.99,
-    category: 'Phát Triển Web',
-    imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=225&fit=crop',
+    name: 'Lập Trình C++ Từ Cơ Bản Đến Nâng Cao',
+    description: 'Sách học lập trình C++ kèm bài tập thực hành, phù hợp SV ngành CNTT',
+    price: 85000,
+    category: 'Sách Chuyên Ngành',
+    imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=225&fit=crop',
     rating: 4.9,
-    reviews: 1205,
-    seller: 'WebDev Academy',
-    createdAt: '2024-02-12',
+    reviews: 8,
+    seller: 'Thu Hà',
+    createdAt: '2026-01-20',
   },
   {
     id: '3',
-    name: 'Cơ Bản Khoa Học Dữ Liệu',
-    description: 'Giới thiệu về phân tích dữ liệu, thống kê và học máy',
-    price: 69.99,
-    category: 'Khoa Học Dữ Liệu',
-    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop',
+    name: 'Giáo Trình Vật Lý Đại Cương – Lương Duyên Bình',
+    description: 'Tập 1 & 2 còn mới 90%, có ghi chú tóm tắt bên lề rất hữu ích',
+    price: 60000,
+    category: 'Giáo Trình',
+    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&h=225&fit=crop',
     rating: 4.7,
-    reviews: 567,
-    seller: 'DataPro Institute',
-    createdAt: '2024-02-08',
+    reviews: 15,
+    seller: 'Hoàng Nam',
+    createdAt: '2026-01-18',
   },
   {
     id: '4',
-    name: 'Khóa Học Thiết Kế UI/UX',
-    description: 'Tạo giao diện người dùng đẹp mắt và trải nghiệm người dùng xuất sắc',
-    price: 59.99,
-    category: 'Thiết Kế',
-    imageUrl: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=225&fit=crop',
+    name: 'Nguyên Lý Kế Toán – Phan Đức Dũng',
+    description: 'Giáo trình kế toán cơ bản, phù hợp SV ngành Kinh tế, Quản trị kinh doanh',
+    price: 55000,
+    category: 'Sách Chuyên Ngành',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=225&fit=crop',
     rating: 4.6,
-    reviews: 423,
-    seller: 'Design Guru',
-    createdAt: '2024-02-11',
+    reviews: 6,
+    seller: 'Lan Anh',
+    createdAt: '2026-01-22',
   },
   {
     id: '5',
-    name: 'Tiếp Thị Kỹ Thuật Số Cơ Bản',
-    description: 'SEO, tiếp thị mạng xã hội và chiến lược nội dung',
-    price: 39.99,
-    category: 'Tiếp Thị',
-    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=225&fit=crop',
+    name: 'Bộ Dụng Cụ Vẽ Kỹ Thuật + Compa Staedtler',
+    description: 'Bộ compa, thước kẻ, eke chuyên dụng cho SV ngành Kiến trúc, Xây dựng',
+    price: 120000,
+    category: 'Dụng Cụ Học Tập',
+    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=225&fit=crop',
     rating: 4.5,
-    reviews: 289,
-    seller: 'Marketing Experts',
-    createdAt: '2024-02-09',
+    reviews: 4,
+    seller: 'Đức Thịnh',
+    createdAt: '2026-02-01',
   },
   {
     id: '6',
-    name: 'Phát Triển Ứng Dụng Di Động với React Native',
-    description: 'Xây dựng ứng dụng iOS và Android với một mã nguồn duy nhất',
-    price: 79.99,
-    category: 'Phát Triển Di Động',
-    imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=225&fit=crop',
+    name: 'Tiếng Anh Chuyên Ngành Công Nghệ Thông Tin',
+    description: 'Giáo trình tiếng Anh IT kèm từ vựng chuyên ngành và bài đọc hiểu',
+    price: 70000,
+    category: 'Ngoại Ngữ',
+    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=225&fit=crop',
     rating: 4.7,
-    reviews: 456,
-    seller: 'AppDev Masters',
-    createdAt: '2024-02-13',
+    reviews: 10,
+    seller: 'Phương Linh',
+    createdAt: '2026-02-05',
   },
 ];
 
 const CATEGORIES = [
   'all',
-  'Lập Trình',
-  'Phát Triển Web',
-  'Khoa Học Dữ Liệu',
-  'Thiết Kế',
-  'Tiếp Thị',
-  'Phát Triển Di Động',
+  'Giáo Trình',
+  'Sách Chuyên Ngành',
+  'Tài Liệu Ôn Thi',
+  'Dụng Cụ Học Tập',
+  'Ngoại Ngữ',
 ];
 
 export default function ProductListingPage() {
@@ -98,7 +96,6 @@ export default function ProductListingPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
 
@@ -110,9 +107,9 @@ export default function ProductListingPage() {
       selectedCategory === 'all' || product.category === selectedCategory;
 
     let matchesPrice = true;
-    if (priceRange === 'under50') matchesPrice = product.price < 50;
-    else if (priceRange === '50to75') matchesPrice = product.price >= 50 && product.price < 75;
-    else if (priceRange === 'over75') matchesPrice = product.price >= 75;
+    if (priceRange === 'under50k') matchesPrice = product.price < 50000;
+    else if (priceRange === '50kto100k') matchesPrice = product.price >= 50000 && product.price < 100000;
+    else if (priceRange === 'over100k') matchesPrice = product.price >= 100000;
 
     const matchesRating = product.rating >= minRating;
 
@@ -135,9 +132,9 @@ export default function ProductListingPage() {
   return (
     <div>
       <section className="plp-hero">
-        <h1 className="plp-hero-title">Khám Phá Hành Trình Học Tập Tiếp Theo</h1>
+        <h1 className="plp-hero-title">Tìm Sách &amp; Tài Liệu Học Tập</h1>
         <p className="plp-hero-subtitle">
-          Truy cập hàng nghìn khóa học từ các giảng viên chuyên gia trên toàn thế giới
+          Trao đổi sách giáo trình, tài liệu và dụng cụ học tập giữa sinh viên
         </p>
       </section>
 
@@ -168,9 +165,9 @@ export default function ProductListingPage() {
                 <div className="plp-radio-group">
                   {[
                     { value: 'all', label: 'Tất Cả Mức Giá' },
-                    { value: 'under50', label: 'Dưới $50' },
-                    { value: '50to75', label: '$50 - $75' },
-                    { value: 'over75', label: 'Trên $75' },
+                    { value: 'under50k', label: 'Dưới 50.000đ' },
+                    { value: '50kto100k', label: '50.000đ - 100.000đ' },
+                    { value: 'over100k', label: 'Trên 100.000đ' },
                   ].map((opt) => (
                     <label key={opt.value} className="plp-radio-label">
                       <input
@@ -231,7 +228,7 @@ export default function ProductListingPage() {
                 <input
                   type="text"
                   className="plp-search-input"
-                  placeholder="Tìm kiếm khóa học..."
+                  placeholder="Tìm sách, tài liệu..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -267,7 +264,7 @@ export default function ProductListingPage() {
             </div>
 
             <div className="plp-results-count">
-              Hiển thị {filteredProducts.length} trong {MOCK_PRODUCTS.length} khóa học
+              Hiển thị {filteredProducts.length} trong {MOCK_PRODUCTS.length} sản phẩm
             </div>
 
             {filteredProducts.length > 0 ? (
@@ -306,18 +303,8 @@ export default function ProductListingPage() {
                         <div className="plp-card-seller">bởi {product.seller}</div>
                       </div>
                       <div className="plp-card-footer">
-                        <div className="plp-card-price">${product.price}</div>
-                        <button
-                          className="plp-add-to-cart-btn"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            addItem(product);
-                            toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
-                          }}
-                        >
-                          Thêm Vào Giỏ
-                        </button>
+                        <div className="plp-card-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
+                        <span className="plp-view-detail-btn">Xem chi tiết →</span>
                       </div>
                     </div>
                   </Link>
@@ -326,7 +313,7 @@ export default function ProductListingPage() {
             ) : (
               <div className="plp-empty">
                 <div className="plp-empty-icon">📚</div>
-                <h3 className="plp-empty-title">Không tìm thấy khóa học</h3>
+                <h3 className="plp-empty-title">Không tìm thấy sản phẩm</h3>
                 <p className="plp-empty-text">
                   Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
                 </p>
