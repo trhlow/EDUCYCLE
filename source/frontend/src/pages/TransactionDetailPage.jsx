@@ -188,9 +188,9 @@ export default function TransactionDetailPage() {
 
     try {
       await reviewsApi.create({
-        transactionId: parseInt(id),
+        productId: transaction.product?.id,
         rating: reviewForm.rating,
-        comment: reviewForm.comment,
+        content: reviewForm.comment,
       });
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);

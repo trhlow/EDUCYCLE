@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { productsApi } from '../api/endpoints';
+import { productsApi, categoriesApi } from '../api/endpoints';
 import './PostProductPage.css';
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   { value: '', label: '-- Chọn danh mục --' },
   { value: 'Giáo Trình', label: 'Giáo Trình' },
   { value: 'Sách Chuyên Ngành', label: 'Sách Chuyên Ngành' },
@@ -31,10 +31,12 @@ export default function PostProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [errors, setErrors] = useState({});
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
 
   const [form, setForm] = useState({
     name: '',
     category: '',
+    categoryId: '',
     condition: '',
     price: '',
     description: '',
@@ -42,9 +44,37 @@ export default function PostProductPage() {
     imageUrl: '',
   });
 
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoriesApi.getAll();
+        const data = Array.isArray(res.data) ? res.data : [];
+        if (data.length > 0) {
+          setCategories([
+            { value: '', label: '-- Chọn danh mục --', id: '' },
+            ...data.map((c) => ({
+              value: c.name || c.Name || '',
+              label: c.name || c.Name || '',
+              id: c.id || c.Id || '',
+            })),
+          ]);
+        }
+      } catch {
+        // Keep fallback categories
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'category') {
+      const cat = categories.find((c) => c.value === value);
+      setForm((prev) => ({ ...prev, category: value, categoryId: cat?.id || '' }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -97,6 +127,7 @@ export default function PostProductPage() {
       const payload = {
         name: form.name.trim(),
         category: form.category,
+        categoryId: form.categoryId || undefined,
         condition: form.condition,
         price: Number(form.price),
         description: form.description.trim(),
@@ -184,7 +215,7 @@ export default function PostProductPage() {
                     value={form.category}
                     onChange={handleChange}
                   >
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <option key={cat.value} value={cat.value}>
                         {cat.label}
                       </option>

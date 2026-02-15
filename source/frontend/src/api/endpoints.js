@@ -14,6 +14,11 @@ export const productsApi = {
   update: (id, data) => api.put(`/products/${id}`, data),
   delete: (id) => api.delete(`/products/${id}`),
   getMyProducts: () => api.get('/products/mine'),
+  // Admin
+  getPending: () => api.get('/products/pending'),
+  getAllForAdmin: () => api.get('/products/admin/all'),
+  approve: (id) => api.patch(`/products/${id}/approve`),
+  reject: (id) => api.patch(`/products/${id}/reject`),
 };
 
 // ─── Categories ──────────────────────────────────────
@@ -34,6 +39,7 @@ export const transactionsApi = {
   getAll: () => api.get('/transactions'),
   getMyTransactions: () => api.get('/transactions/mine'),
   getById: (id) => api.get(`/transactions/${id}`),
+  // data = { productId, sellerId, amount }
   create: (data) => api.post('/transactions', data),
   // data = { status: 'Accepted' | 'Rejected' | 'Cancelled' | 'Meeting' }
   updateStatus: (id, data) => api.patch(`/transactions/${id}/status`, data),
@@ -56,8 +62,17 @@ export const messagesApi = {
 export const reviewsApi = {
   getAll: () => api.get('/reviews'),
   getById: (id) => api.get(`/reviews/${id}`),
+  // data = { productId, rating, content }
   create: (data) => api.post('/reviews', data),
   delete: (id) => api.delete(`/reviews/${id}`),
   getByTransaction: (transactionId) =>
     api.get(`/reviews/transaction/${transactionId}`),
+  getByProduct: (productId) =>
+    api.get(`/reviews/product/${productId}`),
+};
+
+// ─── Admin ───────────────────────────────────────────
+export const adminApi = {
+  getStats: () => api.get('/admin/stats'),
+  getUsers: () => api.get('/admin/users'),
 };

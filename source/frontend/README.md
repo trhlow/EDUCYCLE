@@ -1,79 +1,135 @@
 # 🎓 EduCycle Frontend
 
-> Nền tảng trao đổi sách & tài liệu học tập giữa sinh viên (P2P)
+> **Nền tảng trao đổi sách & tài liệu học tập P2P dành cho sinh viên**
 
-EduCycle là ứng dụng web giúp sinh viên mua bán, trao đổi sách giáo trình, tài liệu ôn thi và dụng cụ học tập một cách trực tiếp, an toàn và tiện lợi.
+EduCycle là ứng dụng web giúp sinh viên mua bán, trao đổi sách giáo trình, tài liệu ôn thi và dụng cụ học tập một cách trực tiếp, an toàn và minh bạch — không qua trung gian.
 
-## 📸 Tính Năng Chính
+---
 
-- **🔐 Đăng ký / Đăng nhập** — Xác thực JWT, phân quyền User/Admin
-- **📚 Duyệt sản phẩm** — Tìm kiếm, lọc theo danh mục, giá, đánh giá
-- **📝 Đăng bán tài liệu** — Form đăng bán với preview, hỗ trợ nhiều hình ảnh
-- **📩 Gửi yêu cầu mua** — Giao dịch P2P trực tiếp giữa người mua và người bán
-- **🤝 Quy trình giao dịch** — Yêu cầu → Chấp nhận → Gặp mặt → OTP → Hoàn thành
-- **🔒 Xác nhận OTP** — Mã OTP bảo vệ mỗi giao dịch tại điểm giao nhận
-- **💬 Chat nội bộ** — Trao đổi an toàn, không lộ thông tin cá nhân
-- **⭐ Đánh giá uy tín** — Hệ thống đánh giá 1–5 sao sau mỗi giao dịch
-- **📋 Nội quy giao dịch** — Bắt buộc chấp thuận trước khi giao dịch
-- **❤️ Yêu thích** — Lưu sản phẩm quan tâm
-- **👤 Trang cá nhân** — Quản lý hồ sơ, sản phẩm đã đăng
-- **🛡️ Quản trị Admin** — Dashboard + Quản lý users/products/transactions
+## ✨ Tính Năng Chính
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| 🔐 **Xác thực** | Đăng ký / Đăng nhập JWT, phân quyền User & Admin |
+| 📚 **Duyệt sản phẩm** | Tìm kiếm, lọc theo danh mục (từ API), giá, đánh giá |
+| 📝 **Đăng bán** | Form đầy đủ với preview ảnh, danh mục động, tình trạng sách |
+| 📩 **Yêu cầu mua** | Tạo giao dịch P2P với `{productId, sellerId, amount}` |
+| 🤝 **Quy trình giao dịch** | Yêu cầu → Chấp nhận → Gặp mặt → OTP → Hoàn thành |
+| 🔒 **Xác nhận OTP** | Mã OTP do người bán tạo, người mua nhập để xác minh |
+| 💬 **Chat nội bộ** | Tin nhắn real-time trong từng giao dịch |
+| ⭐ **Đánh giá** | Hệ thống 1–5 sao với nội dung, gắn liền sản phẩm |
+| 📋 **Nội quy** | Bắt buộc chấp thuận trước khi tham gia giao dịch |
+| ❤️ **Yêu thích** | Lưu sản phẩm quan tâm vào danh sách |
+| 📊 **Dashboard** | Tổng quan sản phẩm, giao dịch, doanh thu cá nhân |
+| 🛡️ **Admin Panel** | Thống kê, quản lý users, sản phẩm, duyệt/từ chối, giao dịch |
+
+---
 
 ## 🛠️ Công Nghệ
 
 | Layer | Stack |
 |-------|-------|
-| **Framework** | React 19 + Vite 7 |
-| **Routing** | React Router v7 |
-| **State** | React Context API |
-| **HTTP** | Axios |
+| **Framework** | React 19.2 + Vite 7 |
+| **Language** | JavaScript (JSX) |
+| **Routing** | React Router v7.13 |
+| **State** | React Context API (Auth, Cart, Wishlist) |
+| **HTTP Client** | Axios 1.13 |
 | **Styling** | Pure CSS + CSS Variables (Design Tokens) |
-| **Code Split** | React.lazy + Suspense (mỗi page 1 chunk) |
-| **Backend** | .NET Web API + SQL Server (repo riêng) |
+| **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
+| **Backend** | .NET Web API + SQL Server + JWT (repo riêng) |
+| **Proxy** | Vite dev server → `http://localhost:5171/api` |
 
-## 📂 Cấu Trúc Thư Mục
+---
+
+## 📂 Cấu Trúc Dự Án
 
 ```
 src/
-├── api/                  # Axios instance + API endpoints
-│   ├── axios.js
-│   └── endpoints.js
-├── components/           # Shared components
-│   ├── PageLoader.jsx    # Loading screen với logo EduCycle
-│   ├── ProtectedRoute.jsx
-│   ├── Toast.jsx
+├── api/
+│   ├── axios.js              # Axios instance + JWT interceptor
+│   └── endpoints.js          # authApi, productsApi, categoriesApi,
+│                              # transactionsApi, messagesApi, reviewsApi, adminApi
+├── components/
+│   ├── PageLoader.jsx/.css   # Loading screen (React.lazy fallback)
+│   ├── ProtectedRoute.jsx    # Route guard (auth + adminOnly)
+│   ├── Toast.jsx/.css        # Toast notification system
 │   └── layout/
-│       ├── Layout.jsx    # App layout + Footer
-│       └── Navbar.jsx    # Navigation bar
-├── contexts/             # React Context providers
-│   ├── AuthContext.jsx   # Auth + mock login fallback
-│   ├── CartContext.jsx
-│   └── WishlistContext.jsx
-├── pages/                # Tất cả pages (lazy-loaded)
-│   ├── HomePage.jsx
-│   ├── AuthPage.jsx
-│   ├── ProductListingPage.jsx
-│   ├── ProductDetailPage.jsx
-│   ├── PostProductPage.jsx
-│   ├── TransactionsPage.jsx
-│   ├── TransactionDetailPage.jsx
-│   ├── TransactionGuidePage.jsx
-│   ├── ProfilePage.jsx
-│   ├── DashboardPage.jsx
-│   ├── AdminPage.jsx
-│   └── ...
+│       ├── Layout.jsx/.css   # App shell + Footer
+│       └── Navbar.jsx/.css   # Top navigation bar
+├── contexts/
+│   ├── AuthContext.jsx       # JWT auth + mock fallback khi offline
+│   ├── CartContext.jsx       # Giỏ hàng (localStorage)
+│   └── WishlistContext.jsx   # Yêu thích (localStorage)
+├── pages/                    # 16 pages — tất cả lazy-loaded
+│   ├── HomePage.jsx          # Landing page
+│   ├── AuthPage.jsx          # Đăng nhập / Đăng ký
+│   ├── ProductListingPage.jsx # Danh sách sản phẩm + bộ lọc
+│   ├── ProductDetailPage.jsx  # Chi tiết + đánh giá + yêu cầu mua
+│   ├── PostProductPage.jsx    # Form đăng bán (categories từ API)
+│   ├── TransactionsPage.jsx   # Danh sách giao dịch + nội quy
+│   ├── TransactionDetailPage.jsx # Chat + OTP + đánh giá
+│   ├── TransactionGuidePage.jsx  # Hướng dẫn quy trình
+│   ├── DashboardPage.jsx     # Dashboard cá nhân (API thực)
+│   ├── AdminPage.jsx         # Quản trị viên (API thực)
+│   ├── ProfilePage.jsx       # Hồ sơ cá nhân
+│   ├── WishlistPage.jsx      # Danh sách yêu thích
+│   ├── CartPage.jsx          # Giỏ hàng
+│   ├── AboutPage.jsx         # Giới thiệu
+│   ├── ContactPage.jsx       # Liên hệ
+│   └── NotFoundPage.jsx      # 404
 ├── styles/
-│   └── tokens.css        # CSS Design Tokens
-├── App.jsx               # Routes + Suspense
-├── main.jsx              # Entry point + Providers
-└── index.css
+│   └── tokens.css            # CSS Design Tokens
+├── App.jsx                   # Routes + Suspense wrapper
+├── main.jsx                  # Entry point + Context Providers
+└── index.css                 # Global styles
 ```
+
+---
+
+## 🔗 Tích Hợp Backend
+
+Frontend giao tiếp hoàn toàn với .NET Web API thông qua Vite proxy:
+
+```
+Frontend /api/*  →  http://localhost:5171/api/*
+```
+
+### API Endpoints đã tích hợp
+
+| Module | Endpoints |
+|--------|-----------|
+| **Auth** | `POST /auth/register`, `POST /auth/login` |
+| **Products** | `GET /products`, `GET /products/:id`, `POST /products`, `PUT /products/:id`, `DELETE /products/:id`, `GET /products/mine`, `GET /products/pending`, `GET /products/admin/all`, `PATCH /products/:id/approve`, `PATCH /products/:id/reject` |
+| **Categories** | `GET /categories`, `GET /categories/:id`, `POST /categories`, `PUT /categories/:id`, `DELETE /categories/:id` |
+| **Transactions** | `GET /transactions`, `GET /transactions/mine`, `GET /transactions/:id`, `POST /transactions`, `PATCH /transactions/:id/status`, `POST /transactions/:id/otp`, `POST /transactions/:id/verify-otp`, `POST /transactions/:id/confirm` |
+| **Messages** | `GET /transactions/:id/messages`, `POST /transactions/:id/messages` |
+| **Reviews** | `GET /reviews`, `POST /reviews`, `DELETE /reviews/:id`, `GET /reviews/product/:productId` |
+| **Admin** | `GET /admin/stats`, `GET /admin/users` |
+
+### Backend Data Shapes
+
+```
+AuthResponse     → { userId, username, email, token, role }
+ProductResponse  → { id, name, description, price, imageUrl, imageUrls, category,
+                     categoryName, categoryId, condition, contactNote, sellerId,
+                     sellerName, status, averageRating, reviewCount, createdAt }
+TransactionResponse → { id, buyer: {id, username, email},
+                         seller: {id, username, email},
+                         product: {id, name, price, imageUrl},
+                         amount, status, createdAt }
+ReviewResponse   → { id, userId, username, productId, rating, content, createdAt }
+MessageResponse  → { id, transactionId, senderId, senderName, content, createdAt }
+```
+
+---
 
 ## 🚀 Cài Đặt & Chạy
 
 ### Yêu cầu
+
 - **Node.js** ≥ 18
 - **npm** ≥ 9
+- **Backend** đang chạy tại `http://localhost:5171` (tùy chọn — có mock fallback)
 
 ### Cài đặt
 
@@ -98,55 +154,66 @@ npm run build
 npm run preview
 ```
 
+---
+
 ## 🔑 Tài Khoản Test
 
-Khi backend chưa chạy, hệ thống tự động dùng mock auth:
+Khi backend **không chạy**, hệ thống tự động sử dụng mock auth:
 
 | Vai trò | Email | Mật khẩu |
 |---------|-------|-----------|
 | **Admin** | `admin@educycle.com` | `123456` |
-| **User** | Bất kỳ email nào khác | Bất kỳ (≥ 6 ký tự) |
+| **User** | Bất kỳ email | Bất kỳ mật khẩu |
 
-## 🔗 Kết Nối Backend
+Khi backend **đang chạy**, sử dụng tài khoản đã đăng ký trong hệ thống.
 
-Frontend proxy API qua Vite:
+---
 
-```
-/api → http://localhost:5171
-```
-
-Backend repo: .NET Web API + SQL Server (cần chạy riêng)
-
-## 📋 Quy Trình Giao Dịch
+## 📋 Quy Trình Giao Dịch P2P
 
 ```
-Người mua gửi yêu cầu
-        ↓
-Người bán xác nhận / từ chối
-        ↓
-Chat thống nhất thời gian, địa điểm
-        ↓
-Gặp mặt → Người mua tạo OTP
-        ↓
-Người bán nhập OTP xác nhận
-        ↓
-Người mua xác nhận nhận hàng
-        ↓
-Giao dịch hoàn thành → Đánh giá
+  Người mua gửi yêu cầu (productId + sellerId + amount)
+                    ↓
+  Người bán xác nhận  ←→  hoặc từ chối
+                    ↓
+  Chat nội bộ — thống nhất thời gian & địa điểm
+                    ↓
+  Chuyển trạng thái "Gặp mặt"
+                    ↓
+  Người bán tạo mã OTP  →  Người mua nhập OTP
+                    ↓
+  Người mua xác nhận nhận hàng
+                    ↓
+  Giao dịch hoàn thành  →  Đánh giá (1–5 ⭐)
 ```
+
+**Trạng thái:** `Pending → Accepted → Meeting → Completed`
+Ngoại lệ: `Rejected`, `Cancelled`, `Disputed`, `AutoCompleted`
+
+---
 
 ## 🌿 Git Workflow
 
 | Branch | Mục đích |
 |--------|----------|
-| `main` | Production – code ổn định |
-| `dev` | Development – tích hợp features |
+| `main` | Production — code ổn định |
+| `dev` | Development — tích hợp features |
 | `feature/*` | Feature branches từ dev |
+
+### Quy trình:
+
+```
+feature/* → dev → main
+```
+
+---
 
 ## 📄 License
 
-Đồ án tốt nghiệp – Không sử dụng cho mục đích thương mại.
+Đồ án tốt nghiệp đại học — Không sử dụng cho mục đích thương mại.
 
 ---
+
+**Built with ❤️ by EduCycle Team**
 
 **EduCycle** – *Trao đổi tài liệu sinh viên* 🎓
