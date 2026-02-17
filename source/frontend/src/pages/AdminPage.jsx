@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../components/Toast';
-import { adminApi, productsApi, transactionsApi } from '../api/endpoints';
+import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi, messagesApi } from '../api/endpoints';
 import './AdminPage.css';
 
 const ADMIN_MENU = [
   { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview' },
   { icon: '👥', label: 'Người Dùng', view: 'users' },
   { icon: '📚', label: 'Sản Phẩm', view: 'products' },
+  { icon: '🏷️', label: 'Danh Mục', view: 'categories' },
   { icon: '💳', label: 'Giao Dịch', view: 'orders' },
+  { icon: '⭐', label: 'Đánh Giá', view: 'reviews' },
+  { icon: '💬', label: 'Tin Nhắn', view: 'messages' },
   { icon: '🔍', label: 'Kiểm Duyệt', view: 'moderation' },
 ];
 
@@ -55,7 +58,10 @@ export default function AdminPage() {
         {currentView === 'overview' && <AdminOverview />}
         {currentView === 'users' && <AdminUsers />}
         {currentView === 'products' && <AdminProducts />}
+        {currentView === 'categories' && <AdminCategories />}
         {currentView === 'orders' && <AdminOrders />}
+        {currentView === 'reviews' && <AdminReviews />}
+        {currentView === 'messages' && <AdminMessages />}
         {currentView === 'moderation' && <AdminModeration />}
       </div>
     </div>
@@ -376,6 +382,241 @@ function AdminOrders() {
             </tbody>
           </table>
         )}
+      </div>
+    </>
+  );
+}
+
+function AdminCategories() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: '', description: '' });
+  const toast = useToast();
+
+  const fetchCategories = async () => {
+    try {
+      const res = await categoriesApi.getAll();
+      const data = Array.isArray(res.data) ? res.data : [];
+      setCategories(data);
+    } catch {
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await categoriesApi.update(editingId, form);
+        toast.success('Đã cập nhật danh mục');
+      } else {
+        await categoriesApi.create(form);
+        toast.success('Đã tạo danh mục mới');
+      }
+      setForm({ name: '', description: '' });
+      setShowForm(false);
+      setEditingId(null);
+      fetchCategories();
+    } catch {
+      toast.error('Không thể lưu danh mục');
+    }
+  };
+
+  const handleEdit = (cat) => {
+    setForm({ name: cat.name, description: cat.description || '' });
+    setEditingId(cat.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Xóa danh mục này? Sản phẩm trong danh mục có thể bị ảnh hưởng.')) return;
+    try {
+      await categoriesApi.delete(id);
+      toast.success('Đã xóa danh mục');
+      fetchCategories();
+    } catch {
+      toast.error('Không thể xóa danh mục');
+    }
+  };
+
+  return (
+    <>
+      <h1 className="admin-page-title">Quản Lý Danh Mục</h1>
+
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h2 className="admin-section-title">Danh Mục Sản Phẩm ({categories.length})</h2>
+          <button className="admin-btn admin-btn-success" onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({ name: '', description: '' }); }}>
+            {showForm ? '✕ Đóng' : '+ Tạo Mới'}
+          </button>
+        </div>
+
+        {showForm && (
+          <form onSubmit={handleSubmit} style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ marginBottom: 'var(--space-3)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Tên Danh Mục *</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+                style={{ width: '100%', padding: 'var(--space-3)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}
+              />
+            </div>
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Mô Tả</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                style={{ width: '100%', padding: 'var(--space-3)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', resize: 'vertical' }}
+              />
+            </div>
+            <button type="submit" className="admin-btn admin-btn-success">
+              {editingId ? 'Cập Nhật' : 'Tạo Mới'}
+            </button>
+          </form>
+        )}
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+        ) : categories.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Chưa có danh mục nào</div>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Tên</th>
+                <th>Mô Tả</th>
+                <th>Hành Động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((cat) => (
+                <tr key={cat.id}>
+                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{cat.name}</td>
+                  <td>{cat.description || '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <button className="admin-btn" onClick={() => handleEdit(cat)}>Sửa</button>
+                      <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(cat.id)}>Xóa</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
+  );
+}
+
+function AdminReviews() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const toast = useToast();
+
+  const fetchReviews = async () => {
+    try {
+      const res = await reviewsApi.getAll();
+      const data = Array.isArray(res.data) ? res.data : [];
+      setReviews(data);
+    } catch {
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Xóa đánh giá này?')) return;
+    try {
+      await reviewsApi.delete(id);
+      toast.success('Đã xóa đánh giá');
+      fetchReviews();
+    } catch {
+      toast.error('Không thể xóa đánh giá');
+    }
+  };
+
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+
+  return (
+    <>
+      <h1 className="admin-page-title">Quản Lý Đánh Giá</h1>
+
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h2 className="admin-section-title">Tất Cả Đánh Giá ({reviews.length})</h2>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+        ) : reviews.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Chưa có đánh giá nào</div>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Ngày</th>
+                <th>Sản Phẩm</th>
+                <th>Người Dùng</th>
+                <th>Đánh Giá</th>
+                <th>Nội Dung</th>
+                <th>Hành Động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reviews.map((review) => (
+                <tr key={review.id}>
+                  <td>{formatDate(review.createdAt)}</td>
+                  <td style={{ fontWeight: 500 }}>{review.product?.name || review.productName || '—'}</td>
+                  <td>{review.reviewer?.username || review.reviewerName || '—'}</td>
+                  <td>
+                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>
+                      {'⭐'.repeat(review.rating || 0)} ({review.rating}/5)
+                    </span>
+                  </td>
+                  <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {review.content || '—'}
+                  </td>
+                  <td>
+                    <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(review.id)}>Xóa</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
+  );
+}
+
+function AdminMessages() {
+  return (
+    <>
+      <h1 className="admin-page-title">Quản Lý Tin Nhắn</h1>
+
+      <div className="admin-section">
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '3rem', marginBottom: 'var(--space-4)' }}>💬</div>
+          <h3 style={{ marginBottom: 'var(--space-2)' }}>Tin nhắn gắn với giao dịch</h3>
+          <p>Tin nhắn chỉ có thể xem trong chi tiết từng giao dịch. Truy cập tab "Giao Dịch" để xem chi tiết.</p>
+        </div>
       </div>
     </>
   );

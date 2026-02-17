@@ -43,35 +43,35 @@ export default function Navbar() {
         </button>
 
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
-          {!isAuthenticated && (
-            <NavLink to="/" end className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Trang Chủ
-            </NavLink>
-          )}
-          <NavLink to="/products" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-            {isAuthenticated ? '📚 Tìm Sách & Tài Liệu' : 'Duyệt'}
-          </NavLink>
-          {!isAuthenticated && (
-            <NavLink to="/contact" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Liên Hệ
-            </NavLink>
-          )}
-          {isAdmin && (
+          {isAdmin ? (
             <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Bảng điều khiển
+              📊 Bảng Điều Khiển
             </NavLink>
-          )}
-          {isAdmin && (
-            <NavLink to="/admin" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Quản trị
-            </NavLink>
+          ) : (
+            <>
+              {!isAuthenticated && (
+                <NavLink to="/" end className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                  Trang Chủ
+                </NavLink>
+              )}
+              <NavLink to="/products" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                {isAuthenticated ? '📚 Tìm Sách & Tài Liệu' : 'Duyệt'}
+              </NavLink>
+              {!isAuthenticated && (
+                <NavLink to="/contact" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                  Liên Hệ
+                </NavLink>
+              )}
+            </>
           )}
         </div>
 
         <div className="navbar-actions">
-          <Link to="/wishlist" className="navbar-icon-btn" aria-label="Yêu thích">
-            ❤️
-          </Link>
+          {!isAdmin && (
+            <Link to="/wishlist" className="navbar-icon-btn" aria-label="Yêu thích">
+              ❤️
+            </Link>
+          )}
           {isAuthenticated ? (
             <div className="navbar-user-menu" ref={userMenuRef}>
               <button
@@ -85,29 +85,31 @@ export default function Navbar() {
               </button>
               {userMenuOpen && (
                 <div className="navbar-dropdown">
-                  <Link to="/profile" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                    👤 Hồ sơ
-                  </Link>
-                  <Link to="/products/new" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                    📦 Đăng bán
-                  </Link>
-                  <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                    🔄 Giao dịch
-                  </Link>
-                  {isAdmin && (
-                    <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                      📊 Bảng điều khiển
-                    </Link>
+                  {!isAdmin && (
+                    <>
+                      <Link to="/profile" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        👤 Hồ sơ
+                      </Link>
+                      <Link to="/products/new" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        📦 Đăng bán
+                      </Link>
+                      <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        🔄 Giao dịch
+                      </Link>
+                      <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        ❤️ Yêu thích
+                      </Link>
+                      <div className="navbar-dropdown-divider" />
+                    </>
                   )}
-                  <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                    ❤️ Yêu thích
-                  </Link>
                   {isAdmin && (
-                    <Link to="/admin" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
-                      ⚙️ Quản trị
-                    </Link>
+                    <>
+                      <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        📊 Bảng Điều Khiển
+                      </Link>
+                      <div className="navbar-dropdown-divider" />
+                    </>
                   )}
-                  <div className="navbar-dropdown-divider" />
                   <button className="navbar-dropdown-item navbar-dropdown-logout" onClick={handleLogout}>
                     🚪 Đăng xuất
                   </button>

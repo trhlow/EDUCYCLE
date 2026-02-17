@@ -16,9 +16,17 @@ const SIDEBAR_ITEMS = [
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+
+  // Redirect user to profile (admin có quyền xem dashboard)
+  useEffect(() => {
+    if (!isAdmin) {
+      // User không có dashboard, redirect về profile
+      navigate('/profile', { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   const handleViewChange = (view) => {
     setCurrentView(view);

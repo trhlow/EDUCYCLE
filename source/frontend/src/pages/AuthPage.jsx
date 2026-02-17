@@ -63,7 +63,7 @@ export default function AuthPage() {
       const userData = await login(loginForm.email, loginForm.password);
       toast.success('Đăng nhập thành công!');
       const isAdminUser = userData?.role === 'Admin';
-      const from = location.state?.from?.pathname || (isAdminUser ? '/dashboard' : '/products');
+      const from = location.state?.from?.pathname || (isAdminUser ? '/admin' : '/products');
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(err.message || 'Đăng nhập thất bại');

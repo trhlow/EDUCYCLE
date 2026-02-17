@@ -9,7 +9,7 @@ const MOCK_ACCOUNTS = [
     id: 'admin-001',
     username: 'admin',
     email: 'admin@educycle.com',
-    password: '123456',
+    password: 'admin@1',
     role: 'Admin',
   },
 ];
