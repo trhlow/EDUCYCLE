@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, messagesApi, reviewsApi } from '../api/endpoints';
@@ -27,7 +27,6 @@ export default function TransactionDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [transaction, setTransaction] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -35,7 +34,6 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [otpInput, setOtpInput] = useState('');
   const [otpGenerated, setOtpGenerated] = useState(false);
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [hasReviewed, setHasReviewed] = useState(false);
   const [activeSection, setActiveSection] = useState('chat');
@@ -46,6 +44,7 @@ export default function TransactionDetailPage() {
   useEffect(() => {
     fetchTransaction();
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -194,11 +193,9 @@ export default function TransactionDetailPage() {
       });
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-      setShowReviewForm(false);
     } catch {
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-      setShowReviewForm(false);
     }
   };
 
@@ -378,7 +375,7 @@ export default function TransactionDetailPage() {
               {canReview && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Giao dịch đã hoàn thành! Hãy đánh giá đối tác của bạn.</p>
-                  <button className="txd-btn txd-btn-review" onClick={() => setShowReviewForm(true)}>
+                  <button className="txd-btn txd-btn-review" onClick={() => setActiveSection('review')}>
                     ⭐ Viết đánh giá
                   </button>
                 </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
@@ -15,10 +14,8 @@ export default function ProductDetailPage() {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
   const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
-  const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { user, isAuthenticated } = useAuth();
   const toast = useToast();
@@ -61,7 +58,6 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchReviews = async () => {
       if (!id) return;
-      setReviewsLoading(true);
       try {
         const res = await reviewsApi.getByProduct(id);
         const data = Array.isArray(res.data) ? res.data : [];
@@ -74,8 +70,6 @@ export default function ProductDetailPage() {
         })));
       } catch {
         setReviews([]);
-      } finally {
-        setReviewsLoading(false);
       }
     };
     fetchReviews();

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { authApi } from '../api/endpoints';
 
 const AuthContext = createContext(null);
@@ -22,25 +22,30 @@ function saveSession(tokenValue, userData, setToken, setUser) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Restore session from localStorage on mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
+  // Restore session from localStorage on initialization
+  const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedToken && savedUser) {
+    if (savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        return JSON.parse(savedUser);
       } catch {
-        localStorage.removeItem('token');
         localStorage.removeItem('user');
+        return null;
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+
+  const [token, setToken] = useState(() => {
+    const savedToken = localStorage.getItem('token');
+    if (savedToken && localStorage.getItem('user')) {
+      return savedToken;
+    }
+    localStorage.removeItem('token');
+    return null;
+  });
+
+  const loading = false;
 
   /**
    * Login — try real backend first, fall back to mock accounts on network error
@@ -187,6 +192,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

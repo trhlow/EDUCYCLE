@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useToast } from '../components/Toast';
 import './CartPage.css';
@@ -7,7 +7,6 @@ import './CartPage.css';
 export default function CartPage() {
   const { items: cartItems, removeItem, clearCart } = useCart();
   const toast = useToast();
-  const navigate = useNavigate();
   const [step, setStep] = useState('cart');
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
 
