@@ -5,6 +5,7 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
+import { maskUsername } from '../utils/maskUsername';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -13,10 +14,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
   const [selectedThumb, setSelectedThumb] = useState(0);
-  const [reviewForm, setReviewForm] = useState({ rating: 5, text: '' });
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
-  const [submittingReview, setSubmittingReview] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -57,17 +56,17 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  // Fetch reviews for this product
+  // Fetch reviews for the seller (user-to-user reviews)
   useEffect(() => {
-    const fetchReviews = async () => {
-      if (!id) return;
+    const fetchSellerReviews = async () => {
+      if (!product?.sellerId) return;
       setReviewsLoading(true);
       try {
-        const res = await reviewsApi.getByProduct(id);
+        const res = await reviewsApi.getByUser(product.sellerId);
         const data = Array.isArray(res.data) ? res.data : [];
         setReviews(data.map((r) => ({
           id: r.id,
-          user: r.username || 'Ẩn danh',
+          user: maskUsername(r.reviewerName || r.username || 'Ẩn danh'),
           rating: r.rating,
           text: r.content,
           date: new Date(r.createdAt).toLocaleDateString('vi-VN'),
@@ -78,8 +77,8 @@ export default function ProductDetailPage() {
         setReviewsLoading(false);
       }
     };
-    fetchReviews();
-  }, [id]);
+    fetchSellerReviews();
+  }, [product?.sellerId]);
 
   const allReviews = reviews;
 
@@ -153,7 +152,7 @@ export default function ProductDetailPage() {
         <div className="pdp-purchase-panel">
           <h1 className="pdp-title">{product.name}</h1>
           <div className="pdp-seller-row">
-            bởi <span className="pdp-seller-name">{product.seller}</span>
+            bởi <span className="pdp-seller-name">{maskUsername(product.seller)}</span>
           </div>
           <div className="pdp-rating-row">
             <span className="pdp-stars">★ {product.rating}</span>
@@ -164,8 +163,13 @@ export default function ProductDetailPage() {
 
           {/* Transaction Request Button */}
           <div className="pdp-actions">
-            {isAuthenticated && product.sellerId !== user?.id ? (
-              <button 
+            {/* Sold status */}
+            {(product.status === 'Sold' || product.status === 'Completed') ? (
+              <div className="pdp-sold-notice">
+                ✅ Sản phẩm đã được bán
+              </div>
+            ) : isAuthenticated && product.sellerId !== user?.id ? (
+              <button
                 className="pdp-btn-buy pdp-btn-request"
                 disabled={sendingRequest}
                 onClick={async () => {
@@ -193,7 +197,7 @@ export default function ProductDetailPage() {
                 {sendingRequest ? '⏳ Đang gửi...' : '📩 Gửi Yêu Cầu Mua'}
               </button>
             ) : !isAuthenticated ? (
-              <button 
+              <button
                 className="pdp-btn-buy"
                 onClick={() => {
                   toast.info('Vui lòng đăng nhập để gửi yêu cầu mua');
@@ -226,7 +230,7 @@ export default function ProductDetailPage() {
           <div className="pdp-seller-card">
             <div className="pdp-seller-avatar">👤</div>
             <div className="pdp-seller-info">
-              <div className="pdp-seller-info-name">{product.seller}</div>
+              <div className="pdp-seller-info-name">{maskUsername(product.seller)}</div>
               <div className="pdp-seller-info-meta">
                 Người bán trên EduCycle
               </div>
@@ -272,71 +276,16 @@ export default function ProductDetailPage() {
             {activeTab === 'reviews' && (
               <div>
                 <h3 className="pdp-section-title">Đánh Giá Người Bán ({allReviews.length})</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>
+                  Đánh giá từ những người đã giao dịch với người bán này. Bạn chỉ có thể đánh giá sau khi hoàn thành giao dịch.
+                </p>
 
-                {/* Review submission form */}
-                <div className="pdp-review-form">
-                  <h4 className="pdp-review-form-title">Viết đánh giá</h4>
-                  <div className="pdp-review-rating-select">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        className={`pdp-review-star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
-                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                      >
-                        ★
-                      </button>
-                    ))}
-                    <span className="pdp-review-rating-text">{reviewForm.rating}/5</span>
+                {allReviews.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: 'var(--space-2)' }}>⭐</div>
+                    <p>Chưa có đánh giá nào về người bán này.</p>
                   </div>
-                  <textarea
-                    className="pdp-review-textarea"
-                    rows={3}
-                    placeholder="Chia sẻ trải nghiệm của bạn..."
-                    value={reviewForm.text}
-                    onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
-                  />
-                  <button
-                    className="pdp-review-submit-btn"
-                    disabled={submittingReview}
-                    onClick={async () => {
-                      if (!reviewForm.text.trim()) {
-                        toast.error('Vui lòng nhập nội dung đánh giá');
-                        return;
-                      }
-                      if (!isAuthenticated) {
-                        toast.error('Vui lòng đăng nhập để đánh giá');
-                        return;
-                      }
-                      setSubmittingReview(true);
-                      try {
-                        await reviewsApi.create({
-                          productId: id,
-                          rating: reviewForm.rating,
-                          content: reviewForm.text,
-                        });
-                        setReviews((prev) => [
-                          {
-                            id: 'new-' + Date.now(),
-                            user: user?.username || 'Bạn',
-                            rating: reviewForm.rating,
-                            date: new Date().toLocaleDateString('vi-VN'),
-                            text: reviewForm.text,
-                          },
-                          ...prev,
-                        ]);
-                        setReviewForm({ rating: 5, text: '' });
-                        toast.success('Đánh giá đã được gửi!');
-                      } catch (err) {
-                        const msg = err.response?.data?.message || err.response?.data?.title;
-                        toast.error(msg || 'Không thể gửi đánh giá. Vui lòng thử lại.');
-                      } finally {
-                        setSubmittingReview(false);
-                      }
-                    }}
-                  >
-                    {submittingReview ? '⏳ Đang gửi...' : 'Gửi Đánh Giá'}
-                  </button>
-                </div>
+                )}
 
                 {allReviews.map((review) => (
                   <div key={review.id} className="pdp-review-card">
@@ -375,7 +324,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Người bán:</strong>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{product.seller}</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>{maskUsername(product.seller)}</p>
                   </div>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Trạng thái:</strong>

@@ -196,13 +196,18 @@
 
 .auth-social-login {
   display: flex;
+  flex-direction: column;
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
 }
 
 .auth-social-btn {
-  flex: 1;
-  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
   background: var(--bg-primary);
   border: 2px solid var(--neutral-200);
   border-radius: var(--radius-md);
@@ -214,8 +219,61 @@
 }
 
 .auth-social-btn:hover {
-  border-color: var(--primary-500);
-  background: var(--primary-50);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-social-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-social-btn svg {
+  flex-shrink: 0;
+}
+
+/* Microsoft */
+.auth-social-btn--microsoft {
+  background: #2F2F2F;
+  color: #fff;
+  border-color: #2F2F2F;
+}
+
+.auth-social-btn--microsoft:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+}
+
+/* Google */
+.auth-social-btn--google {
+  background: #fff;
+  color: #3c4043;
+  border-color: #dadce0;
+}
+
+.auth-social-btn--google:hover {
+  background: #f8f9fa;
+  border-color: #bdc1c6;
+}
+
+/* Facebook */
+.auth-social-btn--facebook {
+  background: #1877F2;
+  color: #fff;
+  border-color: #1877F2;
+}
+
+.auth-social-btn--facebook:hover {
+  background: #166fe5;
+  border-color: #166fe5;
+}
+
+.auth-social-hint {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
 }
 
 .auth-footer {
@@ -263,6 +321,7 @@
     border-radius: 0;
     box-shadow: none;
   }
+
   .auth-page {
     padding: 0;
     align-items: stretch;

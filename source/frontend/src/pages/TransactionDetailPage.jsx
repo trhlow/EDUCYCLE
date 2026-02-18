@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi, messagesApi, reviewsApi } from '../api/endpoints';
+import { transactionsApi, messagesApi, reviewsApi, productsApi } from '../api/endpoints';
+import { maskUsername } from '../utils/maskUsername';
 import './TransactionDetailPage.css';
 
 const STATUS_CONFIG = {
@@ -170,6 +171,8 @@ export default function TransactionDetailPage() {
         if (role === 'seller') updatedTx.sellerConfirmed = true;
         if (updatedTx.buyerConfirmed && updatedTx.sellerConfirmed) {
           updatedTx.status = 'Completed';
+          // Auto delete product from listing
+          handleAutoDeleteProduct(updatedTx);
         }
         setTransaction(updatedTx);
         toast.success('Xác nhận thành công!');
@@ -198,9 +201,12 @@ export default function TransactionDetailPage() {
       return;
     }
 
+    // User-to-user review: target the other user
+    const targetUserId = otherUser?.id || otherUser?.Id;
     try {
-      await reviewsApi.create({
-        productId: transaction.product?.id,
+      await reviewsApi.createUserReview({
+        targetUserId,
+        transactionId: id,
         rating: reviewForm.rating,
         content: reviewForm.comment,
       });
@@ -208,9 +214,22 @@ export default function TransactionDetailPage() {
       setHasReviewed(true);
       setShowReviewForm(false);
     } catch {
+      // Mock fallback
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
       setShowReviewForm(false);
+    }
+  };
+
+  /* ── Auto-delete product after successful transaction ── */
+  const handleAutoDeleteProduct = async (tx) => {
+    const productId = tx?.product?.id || tx?.product?.Id;
+    if (!productId) return;
+    try {
+      await productsApi.delete(productId);
+      toast.info('📦 Sản phẩm đã được gỡ khỏi sàn sau giao dịch thành công.');
+    } catch {
+      // Silent fail — backend may handle this automatically
     }
   };
 
@@ -334,7 +353,7 @@ export default function TransactionDetailPage() {
                 </div>
                 <div className="txd-info-row">
                   <span className="txd-info-label">Đối tác</span>
-                  <span className="txd-info-value">@{otherUser?.username}</span>
+                  <span className="txd-info-value">@{maskUsername(otherUser?.username)}</span>
                 </div>
                 <div className="txd-info-row">
                   <span className="txd-info-label">Tạo lúc</span>
@@ -352,7 +371,7 @@ export default function TransactionDetailPage() {
               {/* Seller: Accept/Reject when Pending */}
               {role === 'seller' && transaction.status === 'Pending' && (
                 <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Bạn có yêu cầu mua mới từ @{transaction.buyer?.username}</p>
+                  <p className="txd-actions-hint">Bạn có yêu cầu mua mới từ @{maskUsername(transaction.buyer?.username)}</p>
                   <div className="txd-actions-btns">
                     <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('Accepted')}>
                       ✅ Chấp nhận

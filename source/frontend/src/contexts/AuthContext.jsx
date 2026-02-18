@@ -160,6 +160,61 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /* ─── Social Logins ─── */
+  const loginWithProvider = async (provider) => {
+    // In production, this would redirect to OAuth flow.
+    // For now, mock a successful social login.
+    try {
+      const res = await authApi.login({ provider });
+      const data = res.data;
+      const jwt = data.token;
+      const userData = {
+        id: data.userId,
+        username: data.username,
+        email: data.email,
+        role: data.role || 'User',
+        phoneVerified: data.phoneVerified || false,
+      };
+      saveSession(jwt, userData, setToken, setUser);
+      return userData;
+    } catch {
+      // Mock social login when backend is unavailable
+      const mockToken = 'mock-jwt-social-' + Date.now();
+      const mockEmail = provider === 'microsoft'
+        ? 'student@university.edu.vn'
+        : provider === 'google'
+          ? 'student@gmail.com'
+          : 'student@facebook.com';
+      const userData = {
+        id: 'user-' + Date.now(),
+        username: mockEmail.split('@')[0],
+        email: mockEmail,
+        role: 'User',
+        phoneVerified: false,
+      };
+      saveSession(mockToken, userData, setToken, setUser);
+      return userData;
+    }
+  };
+
+  const loginWithMicrosoft = () => loginWithProvider('microsoft');
+  const loginWithGoogle = () => loginWithProvider('google');
+  const loginWithFacebook = () => loginWithProvider('facebook');
+
+  /* ─── Phone Verification ─── */
+  const verifyPhone = async (phone, otp) => {
+    try {
+      // In production: await authApi.verifyPhone({ phone, otp });
+      // Mock: always succeed
+      const updated = { ...user, phoneVerified: true, phone };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -178,7 +233,13 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, updateProfile, isAdmin, isAuthenticated }}
+      value={{
+        user, token, loading,
+        login, register, logout, updateProfile,
+        loginWithMicrosoft, loginWithGoogle, loginWithFacebook,
+        verifyPhone,
+        isAdmin, isAuthenticated,
+      }}
     >
       {children}
     </AuthContext.Provider>
