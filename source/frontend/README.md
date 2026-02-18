@@ -1,219 +1,123 @@
-# 🎓 EduCycle Frontend
+# 🎓 EduCycle Platform
 
-> **Nền tảng trao đổi sách & tài liệu học tập P2P dành cho sinh viên**
+> **Nền tảng trao đổi sách & tài liệu học tập P2P dành cho sinh viên**  
+> *Kết nối - Chia sẻ - Tiết kiệm*
 
-EduCycle là ứng dụng web giúp sinh viên mua bán, trao đổi sách giáo trình, tài liệu ôn thi và dụng cụ học tập một cách trực tiếp, an toàn và minh bạch — không qua trung gian.
+![EduCycle Banner](https://via.placeholder.com/1200x400?text=EduCycle+Platform)
 
----
-
-## ✨ Tính Năng Chính
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| 🔐 **Xác thực** | Đăng ký / Đăng nhập JWT, phân quyền User & Admin |
-| 📚 **Duyệt sản phẩm** | Tìm kiếm, lọc theo danh mục (từ API), giá, đánh giá |
-| 📝 **Đăng bán** | Form đầy đủ với preview ảnh, danh mục động, tình trạng sách |
-| 📩 **Yêu cầu mua** | Tạo giao dịch P2P với `{productId, sellerId, amount}` |
-| 🤝 **Quy trình giao dịch** | Yêu cầu → Chấp nhận → Gặp mặt → OTP → Hoàn thành |
-| 🔒 **Xác nhận OTP** | Mã OTP do người bán tạo, người mua nhập để xác minh |
-| 💬 **Chat nội bộ** | Tin nhắn real-time trong từng giao dịch |
-| ⭐ **Đánh giá** | Hệ thống 1–5 sao với nội dung, gắn liền sản phẩm |
-| 📋 **Nội quy** | Bắt buộc chấp thuận trước khi tham gia giao dịch |
-| ❤️ **Yêu thích** | Lưu sản phẩm quan tâm vào danh sách |
-| 📊 **Dashboard** | Tổng quan sản phẩm, giao dịch, doanh thu cá nhân |
-| 🛡️ **Admin Panel** | Thống kê, quản lý users, sản phẩm, duyệt/từ chối, giao dịch |
+**EduCycle** là giải pháp công nghệ giúp sinh viên các trường đại học mua bán, trao đổi giáo trình, sách chuyên ngành và dụng cụ học tập. Dự án tập trung vào tính **minh bạch**, **an toàn** và **trải nghiệm người dùng** tối ưu.
 
 ---
 
-## 🛠️ Công Nghệ
+## ✨ Tính Năng Nổi Bật
 
-| Layer | Stack |
-|-------|-------|
-| **Framework** | React 19.2 + Vite 7 |
-| **Language** | JavaScript (JSX) |
-| **Routing** | React Router v7.13 |
-| **State** | React Context API (Auth, Cart, Wishlist) |
-| **HTTP Client** | Axios 1.13 |
-| **Styling** | Pure CSS + CSS Variables (Design Tokens) |
-| **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
-| **Backend** | .NET Web API + SQL Server + JWT (repo riêng) |
-| **Proxy** | Vite dev server → `http://localhost:5171/api` |
+### 🔐 Xác Thực & Bảo Mật
+- **Đa kênh đăng nhập**: Hỗ trợ Email/Password, **Microsoft** (ưu tiên sinh viên `.edu.vn`), Google, Facebook.
+- **Xác thực số điện thoại**: Bắt buộc xác thực OTP trước khi đăng bán sản phẩm để đảm bảo uy tín.
+- **Bảo vệ quyền riêng tư**: Tự động mã hoá tên người dùng (ví dụ: `Ngu***A`) trên các trang công khai.
 
----
+### 🛍️ Giao Dịch P2P Thông Minh
+- **Quy trình khép kín**: Yêu cầu → Chấp nhận → Gặp mặt → Xác thực OTP → Hoàn tất.
+- **Auto-Delete Product**: Sản phẩm tự động ẩn khỏi sàn ngay khi giao dịch thành công.
+- **Chat Real-time**: Trao đổi trực tiếp giữa người mua và người bán.
 
-## 📂 Cấu Trúc Dự Án
-
-```
-src/
-├── api/
-│   ├── axios.js              # Axios instance + JWT interceptor
-│   └── endpoints.js          # authApi, productsApi, categoriesApi,
-│                              # transactionsApi, messagesApi, reviewsApi, adminApi
-├── components/
-│   ├── PageLoader.jsx/.css   # Loading screen (React.lazy fallback)
-│   ├── ProtectedRoute.jsx    # Route guard (auth + adminOnly)
-│   ├── Toast.jsx/.css        # Toast notification system
-│   └── layout/
-│       ├── Layout.jsx/.css   # App shell + Footer
-│       └── Navbar.jsx/.css   # Top navigation bar
-├── contexts/
-│   ├── AuthContext.jsx       # JWT auth + mock fallback khi offline
-│   ├── CartContext.jsx       # Giỏ hàng (localStorage)
-│   └── WishlistContext.jsx   # Yêu thích (localStorage)
-├── pages/                    # 16 pages — tất cả lazy-loaded
-│   ├── HomePage.jsx          # Landing page
-│   ├── AuthPage.jsx          # Đăng nhập / Đăng ký
-│   ├── ProductListingPage.jsx # Danh sách sản phẩm + bộ lọc
-│   ├── ProductDetailPage.jsx  # Chi tiết + đánh giá + yêu cầu mua
-│   ├── PostProductPage.jsx    # Form đăng bán (categories từ API)
-│   ├── TransactionsPage.jsx   # Danh sách giao dịch + nội quy
-│   ├── TransactionDetailPage.jsx # Chat + OTP + đánh giá
-│   ├── TransactionGuidePage.jsx  # Hướng dẫn quy trình
-│   ├── DashboardPage.jsx     # Dashboard cá nhân (API thực)
-│   ├── AdminPage.jsx         # Quản trị viên (API thực)
-│   ├── ProfilePage.jsx       # Hồ sơ cá nhân
-│   ├── WishlistPage.jsx      # Danh sách yêu thích
-│   ├── CartPage.jsx          # Giỏ hàng
-│   ├── AboutPage.jsx         # Giới thiệu
-│   ├── ContactPage.jsx       # Liên hệ
-│   └── NotFoundPage.jsx      # 404
-├── styles/
-│   └── tokens.css            # CSS Design Tokens
-├── App.jsx                   # Routes + Suspense wrapper
-├── main.jsx                  # Entry point + Context Providers
-└── index.css                 # Global styles
-```
+### ⭐ Hệ Thống Đánh Giá User-to-User
+- **Đánh giá Uy tín**: Người mua và người bán đánh giá lẫn nhau sau mỗi giao dịch.
+- **Lịch sử minh bạch**: Xem lịch sử đánh giá của đối tác trước khi giao dịch.
 
 ---
 
-## 🔗 Tích Hợp Backend
+## 🛠️ Tech Stack
 
-Frontend giao tiếp hoàn toàn với .NET Web API thông qua Vite proxy:
+### Frontend (`/educycle-frontend`)
+- **Core**: React 19, Vite 7
+- **Routing**: React Router v7
+- **State Management**: Context API
+- **Styling**: Pure CSS Variables (Tokens), Responsive Design
+- **HTTP**: Axios (Interceptor, Auth Header)
 
-```
-Frontend /api/*  →  http://localhost:5171/api/*
-```
-
-### API Endpoints đã tích hợp
-
-| Module | Endpoints |
-|--------|-----------|
-| **Auth** | `POST /auth/register`, `POST /auth/login` |
-| **Products** | `GET /products`, `GET /products/:id`, `POST /products`, `PUT /products/:id`, `DELETE /products/:id`, `GET /products/mine`, `GET /products/pending`, `GET /products/admin/all`, `PATCH /products/:id/approve`, `PATCH /products/:id/reject` |
-| **Categories** | `GET /categories`, `GET /categories/:id`, `POST /categories`, `PUT /categories/:id`, `DELETE /categories/:id` |
-| **Transactions** | `GET /transactions`, `GET /transactions/mine`, `GET /transactions/:id`, `POST /transactions`, `PATCH /transactions/:id/status`, `POST /transactions/:id/otp`, `POST /transactions/:id/verify-otp`, `POST /transactions/:id/confirm` |
-| **Messages** | `GET /transactions/:id/messages`, `POST /transactions/:id/messages` |
-| **Reviews** | `GET /reviews`, `POST /reviews`, `DELETE /reviews/:id`, `GET /reviews/product/:productId` |
-| **Admin** | `GET /admin/stats`, `GET /admin/users` |
-
-### Backend Data Shapes
-
-```
-AuthResponse     → { userId, username, email, token, role }
-ProductResponse  → { id, name, description, price, imageUrl, imageUrls, category,
-                     categoryName, categoryId, condition, contactNote, sellerId,
-                     sellerName, status, averageRating, reviewCount, createdAt }
-TransactionResponse → { id, buyer: {id, username, email},
-                         seller: {id, username, email},
-                         product: {id, name, price, imageUrl},
-                         amount, status, createdAt }
-ReviewResponse   → { id, userId, username, productId, rating, content, createdAt }
-MessageResponse  → { id, transactionId, senderId, senderName, content, createdAt }
-```
+### Backend (`/educycle-backend`)
+- **Framework**: ASP.NET Core 8 Web API
+- **Architecture**: Clean Architecture (Domain, Application, Infrastructure, API)
+- **Database**: SQL Server, Entity Framework Core
+- **Authentication**: JWT Bearer, OAuth 2.0 (Social)
 
 ---
 
-## 🚀 Cài Đặt & Chạy
+## 🚀 Hướng Dẫn Cài Đặt
 
-### Yêu cầu
-
-- **Node.js** ≥ 18
-- **npm** ≥ 9
-- **Backend** đang chạy tại `http://localhost:5171` (tùy chọn — có mock fallback)
-
-### Cài đặt
+### 1. Khởi chạy Backend
+Đảm bảo bạn đã cài đặt .NET 8 SDK và SQL Server.
 
 ```bash
-git clone https://github.com/trhlow/educycle-frontend.git
-cd educycle-frontend
+# Di chuyển vào thư mục API
+cd ../educycle-backend/EduCycle.Api
+
+# Cấu hình ConnectionString trong appsettings.Development.json
+
+# Chạy Migrations (Cập nhật DB)
+dotnet ef database update
+
+# Khởi chạy Server
+dotnet run
+# Server sẽ chạy tại: http://localhost:5171
+```
+
+### 2. Khởi chạy Frontend
+Yêu cầu Node.js >= 18.
+
+```bash
+# Di chuyển vào thư mục Frontend
+cd ../educycle-frontend
+
+# Cài đặt dependencies
 npm install
-```
 
-### Chạy Development
-
-```bash
+# Chạy Development Server
 npm run dev
 ```
 
-Mở [http://localhost:5173](http://localhost:5173)
+Truy cập: [http://localhost:5173](http://localhost:5173)
 
-### Build Production
+---
 
-```bash
-npm run build
-npm run preview
+## 📂 Cấu Trúc Dự Án Frontend
+
+```
+src/
+├── api/            # API endpoints & Axios config
+├── components/     # Reusable components (Toast, Modal, Loader...)
+├── contexts/       # Global state (Auth, Cart...)
+├── pages/          # Page components (Lazy loaded)
+│   ├── AuthPage.jsx           # Login/Register/Social
+│   ├── PostProductPage.jsx    # Đăng tin + Verify Phone
+│   ├── ProductDetailPage.jsx  # Chi tiết + Reviews
+│   ├── TransactionDetailPage.jsx # Giao dịch + OTP
+│   └── ...
+├── styles/         # Global styles & Design Tokens
+└── utils/          # Helpers (Masking, Formatting...)
 ```
 
 ---
 
-## 🔑 Tài Khoản Test
+## 🤝 Quy Trình Đóng Góp (Contribution)
 
-Khi backend **không chạy**, hệ thống tự động sử dụng mock auth:
+Chúng tôi sử dụng quy trình **Git Flow** đơn giản hoá:
 
-| Vai trò | Email | Mật khẩu |
-|---------|-------|-----------|
-| **Admin** | `admin@educycle.com` | `123456` |
-| **User** | Bất kỳ email | Bất kỳ mật khẩu |
+1.  **Main Branch**: `dev` (Code mới nhất đang phát triển)
+2.  **Feature Branch**: `feature/ten-tinh-nang`
 
-Khi backend **đang chạy**, sử dụng tài khoản đã đăng ký trong hệ thống.
-
----
-
-## 📋 Quy Trình Giao Dịch P2P
-
-```
-  Người mua gửi yêu cầu (productId + sellerId + amount)
-                    ↓
-  Người bán xác nhận  ←→  hoặc từ chối
-                    ↓
-  Chat nội bộ — thống nhất thời gian & địa điểm
-                    ↓
-  Chuyển trạng thái "Gặp mặt"
-                    ↓
-  Người bán tạo mã OTP  →  Người mua nhập OTP
-                    ↓
-  Người mua xác nhận nhận hàng
-                    ↓
-  Giao dịch hoàn thành  →  Đánh giá (1–5 ⭐)
-```
-
-**Trạng thái:** `Pending → Accepted → Meeting → Completed`
-Ngoại lệ: `Rejected`, `Cancelled`, `Disputed`, `AutoCompleted`
-
----
-
-## 🌿 Git Workflow
-
-| Branch | Mục đích |
-|--------|----------|
-| `main` | Production — code ổn định |
-| `dev` | Development — tích hợp features |
-| `feature/*` | Feature branches từ dev |
-
-### Quy trình:
-
-```
-feature/* → dev → main
-```
+**Các bước đóng góp:**
+1.  Checkout branch `dev` và pull code mới nhất: `git checkout dev && git pull`
+2.  Tạo branch mới: `git checkout -b feature/tinh-nang-moi`
+3.  Commit changes: `git commit -m "feat: mô tả tính năng"`
+4.  Push lên remote: `git push origin feature/tinh-nang-moi`
+5.  Tạo Pull Request (PR) về branch `dev`.
 
 ---
 
 ## 📄 License
 
-Đồ án tốt nghiệp đại học — Không sử dụng cho mục đích thương mại.
+Dự án thuộc về **EduCycle Team**. Không sử dụng cho mục đích thương mại khi chưa có sự cho phép.
 
----
-
-**Built with ❤️ by EduCycle Team**
-
-**EduCycle** – *Trao đổi tài liệu sinh viên* 🎓
+Made with ❤️ by **EduCycle Team**
