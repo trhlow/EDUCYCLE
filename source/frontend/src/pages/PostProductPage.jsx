@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
@@ -30,7 +30,9 @@ export default function PostProductPage() {
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [errors, setErrors] = useState({});
+  const fileInputRef = useRef(null);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
 
   const [form, setForm] = useState({
@@ -88,11 +90,50 @@ export default function PostProductPage() {
       return;
     }
     setPreviewImages((prev) => [...prev, url]);
+    setUploadedFiles((prev) => [...prev, null]);
     setForm((prev) => ({ ...prev, imageUrl: '' }));
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const remaining = 5 - previewImages.length;
+    if (remaining <= 0) {
+      toast.error('Tối đa 5 ảnh');
+      return;
+    }
+
+    const filesToAdd = files.slice(0, remaining);
+    if (files.length > remaining) {
+      toast.info(`Chỉ thêm được ${remaining} ảnh nữa (tối đa 5)`);
+    }
+
+    filesToAdd.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`"${file.name}" không phải là file ảnh`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`"${file.name}" vượt quá 5MB`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPreviewImages((prev) => [...prev, event.target.result]);
+        setUploadedFiles((prev) => [...prev, file]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input để có thể chọn lại cùng file
+    e.target.value = '';
   };
 
   const removeImage = (index) => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const validate = () => {
@@ -124,19 +165,43 @@ export default function PostProductPage() {
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        name: form.name.trim(),
-        category: form.category,
-        categoryId: form.categoryId || undefined,
-        condition: form.condition,
-        price: Number(form.price),
-        description: form.description.trim(),
-        contactNote: form.contactNote.trim() || undefined,
-        imageUrls: previewImages.length > 0 ? previewImages : undefined,
-        imageUrl: previewImages[0] || undefined,
-      };
+      const hasFiles = uploadedFiles.some((f) => f !== null);
 
-      const res = await productsApi.create(payload);
+      let res;
+      if (hasFiles) {
+        // Gửi qua FormData khi có file upload
+        const formData = new FormData();
+        formData.append('name', form.name.trim());
+        formData.append('category', form.category);
+        if (form.categoryId) formData.append('categoryId', form.categoryId);
+        formData.append('condition', form.condition);
+        formData.append('price', Number(form.price));
+        formData.append('description', form.description.trim());
+        if (form.contactNote.trim()) formData.append('contactNote', form.contactNote.trim());
+
+        uploadedFiles.forEach((file, index) => {
+          if (file) {
+            formData.append('images', file);
+          } else if (previewImages[index]) {
+            formData.append('imageUrls', previewImages[index]);
+          }
+        });
+
+        res = await productsApi.create(formData);
+      } else {
+        const payload = {
+          name: form.name.trim(),
+          category: form.category,
+          categoryId: form.categoryId || undefined,
+          condition: form.condition,
+          price: Number(form.price),
+          description: form.description.trim(),
+          contactNote: form.contactNote.trim() || undefined,
+          imageUrls: previewImages.length > 0 ? previewImages : undefined,
+          imageUrl: previewImages[0] || undefined,
+        };
+        res = await productsApi.create(payload);
+      }
       toast.success('Đăng sản phẩm thành công! 🎉');
       const newId = res.data?.id || res.data?.Id;
       navigate(newId ? `/products/${newId}` : '/products');
@@ -317,6 +382,27 @@ export default function PostProductPage() {
               <div className="post-field">
                 <label className="post-label">Hình ảnh sản phẩm</label>
                 <div className="post-image-upload">
+                  {/* File upload button */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    className="post-file-upload-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    📁 Chọn ảnh từ thiết bị
+                  </button>
+
+                  <div className="post-image-divider">
+                    <span>hoặc dán link ảnh</span>
+                  </div>
+
                   <div className="post-image-url-row">
                     <input
                       type="text"
@@ -340,7 +426,7 @@ export default function PostProductPage() {
                       + Thêm
                     </button>
                   </div>
-                  <span className="post-hint">Tối đa 5 ảnh. Dán URL ảnh từ Imgur, Google Photos, v.v.</span>
+                  <span className="post-hint">Tối đa 5 ảnh (mỗi ảnh tối đa 5MB). Hỗ trợ JPG, PNG, GIF, WebP.</span>
 
                   {previewImages.length > 0 && (
                     <div className="post-image-preview-grid">

@@ -154,6 +154,41 @@
   gap: var(--space-3);
 }
 
+.post-file-upload-btn {
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+  color: var(--primary-700);
+  border: 2px dashed var(--primary-300);
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.post-file-upload-btn:hover {
+  background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+  border-color: var(--primary-500);
+  transform: translateY(-1px);
+}
+
+.post-image-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.post-image-divider::before,
+.post-image-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
 .post-image-url-row {
   display: flex;
   gap: var(--space-2);
