@@ -48,6 +48,18 @@ export default function TransactionDetailPage() {
     fetchMessages();
   }, [id]);
 
+  // Polling messages every 1s when chat is open and active
+  useEffect(() => {
+    let interval;
+    if (activeSection === 'chat' && transaction) {
+      const canChat = ['Accepted', 'Meeting'].includes(transaction.status);
+      if (canChat) {
+        interval = setInterval(fetchMessages, 1000);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [id, activeSection, transaction]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -79,7 +91,7 @@ export default function TransactionDetailPage() {
 
   const role = transaction?.buyer?.id === user?.id ? 'buyer'
     : transaction?.seller?.id === user?.id ? 'seller'
-    : 'unknown';
+      : 'unknown';
 
   const otherUser = role === 'buyer' ? transaction?.seller : transaction?.buyer;
   const config = STATUS_CONFIG[transaction?.status] || STATUS_CONFIG.Pending;
@@ -90,10 +102,10 @@ export default function TransactionDetailPage() {
       await transactionsApi.updateStatus(id, { status: newStatus });
       toast.success(
         newStatus === 'Accepted' ? 'Đã chấp nhận yêu cầu mua!' :
-        newStatus === 'Rejected' ? 'Đã từ chối yêu cầu.' :
-        newStatus === 'Cancelled' ? 'Đã hủy giao dịch.' :
-        newStatus === 'Meeting' ? 'Chuyển sang trạng thái gặp mặt!' :
-        'Cập nhật thành công!'
+          newStatus === 'Rejected' ? 'Đã từ chối yêu cầu.' :
+            newStatus === 'Cancelled' ? 'Đã hủy giao dịch.' :
+              newStatus === 'Meeting' ? 'Chuyển sang trạng thái gặp mặt!' :
+                'Cập nhật thành công!'
       );
       fetchTransaction();
     } catch {
@@ -489,7 +501,7 @@ export default function TransactionDetailPage() {
                 ) : (
                   <div className="txd-chat-disabled">
                     {transaction.status === 'Pending' ? 'Chat sẽ mở khi người bán chấp nhận yêu cầu' :
-                     'Trò chuyện đã đóng'}
+                      'Trò chuyện đã đóng'}
                   </div>
                 )}
               </div>
@@ -620,9 +632,9 @@ export default function TransactionDetailPage() {
                         ))}
                         <span className="txd-stars-text">
                           {reviewForm.rating === 5 ? 'Tuyệt vời!' :
-                           reviewForm.rating === 4 ? 'Rất tốt' :
-                           reviewForm.rating === 3 ? 'Bình thường' :
-                           reviewForm.rating === 2 ? 'Kém' : 'Rất kém'}
+                            reviewForm.rating === 4 ? 'Rất tốt' :
+                              reviewForm.rating === 3 ? 'Bình thường' :
+                                reviewForm.rating === 2 ? 'Kém' : 'Rất kém'}
                         </span>
                       </div>
                     </div>
