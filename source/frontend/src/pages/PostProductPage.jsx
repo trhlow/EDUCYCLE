@@ -5,6 +5,109 @@ import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import './PostProductPage.css';
 
+/* ── Phone Verification Modal ── */
+function PhoneVerifyModal({ onVerified, onClose }) {
+  const [step, setStep] = useState('input'); // input | otp
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [sending, setSending] = useState(false);
+  const { verifyPhone } = useAuth();
+  const toast = useToast();
+
+  const handleSendOtp = () => {
+    if (!/^(0[3-9])[0-9]{8}$/.test(phone)) {
+      toast.error('Số điện thoại không hợp lệ (VD: 0912345678)');
+      return;
+    }
+    setSending(true);
+    // Mock: simulate sending OTP
+    setTimeout(() => {
+      setSending(false);
+      setStep('otp');
+      toast.success('Mã OTP đã gửi đến ' + phone);
+    }, 1000);
+  };
+
+  const handleVerify = async () => {
+    if (otp.length < 4) {
+      toast.error('Vui lòng nhập mã OTP (4-6 số)');
+      return;
+    }
+    setSending(true);
+    const ok = await verifyPhone(phone, otp);
+    setSending(false);
+    if (ok) {
+      toast.success('Xác thực số điện thoại thành công!');
+      onVerified();
+    } else {
+      toast.error('Mã OTP không đúng!');
+    }
+  };
+
+  return (
+    <div className="phone-modal-overlay" onClick={onClose}>
+      <div className="phone-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="phone-modal-close" onClick={onClose}>✕</button>
+        <div className="phone-modal-icon">📱</div>
+        <h3 className="phone-modal-title">Xác Thực Số Điện Thoại</h3>
+        <p className="phone-modal-desc">
+          Bạn cần xác thực SĐT trước khi đăng bán để đảm bảo an toàn giao dịch
+          và dễ dàng liên lạc khi cần.
+        </p>
+
+        {step === 'input' ? (
+          <div className="phone-modal-form">
+            <label className="phone-modal-label">Số điện thoại</label>
+            <input
+              type="tel"
+              className="phone-modal-input"
+              placeholder="0912 345 678"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\s/g, ''))}
+              maxLength={11}
+            />
+            <button
+              className="phone-modal-btn"
+              onClick={handleSendOtp}
+              disabled={sending}
+            >
+              {sending ? '⏳ Đang gửi...' : '📤 Gửi Mã OTP'}
+            </button>
+          </div>
+        ) : (
+          <div className="phone-modal-form">
+            <label className="phone-modal-label">Nhập mã OTP</label>
+            <input
+              type="text"
+              className="phone-modal-input phone-modal-otp"
+              placeholder="• • • • • •"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              maxLength={6}
+              autoFocus
+            />
+            <p className="phone-modal-hint">Mã OTP đã gửi đến {phone}</p>
+            <button
+              className="phone-modal-btn"
+              onClick={handleVerify}
+              disabled={sending}
+            >
+              {sending ? '⏳ Đang xác thực...' : '✅ Xác Nhận'}
+            </button>
+            <button
+              type="button"
+              className="phone-modal-btn-secondary"
+              onClick={() => setStep('input')}
+            >
+              ← Đổi số khác
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const FALLBACK_CATEGORIES = [
   { value: '', label: '-- Chọn danh mục --' },
   { value: 'Giáo Trình', label: 'Giáo Trình' },
@@ -34,6 +137,8 @@ export default function PostProductPage() {
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const isPhoneVerified = user?.phoneVerified === true;
 
   const [form, setForm] = useState({
     name: '',
@@ -158,6 +263,13 @@ export default function PostProductPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Gate: must verify phone first
+    if (!isPhoneVerified) {
+      setShowPhoneModal(true);
+      return;
+    }
+
     if (!validate()) {
       toast.error('Vui lòng kiểm tra lại thông tin');
       return;
@@ -527,6 +639,15 @@ export default function PostProductPage() {
             >
               Hủy
             </button>
+            {!isPhoneVerified && (
+              <button
+                type="button"
+                className="post-btn-verify"
+                onClick={() => setShowPhoneModal(true)}
+              >
+                📱 Xác thực SĐT để đăng bán
+              </button>
+            )}
             <button
               type="submit"
               className="post-btn-submit"
@@ -537,6 +658,14 @@ export default function PostProductPage() {
           </div>
         </form>
       </div>
+
+      {/* Phone Verification Modal */}
+      {showPhoneModal && (
+        <PhoneVerifyModal
+          onVerified={() => setShowPhoneModal(false)}
+          onClose={() => setShowPhoneModal(false)}
+        />
+      )}
     </div>
   );
 }

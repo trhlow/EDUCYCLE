@@ -62,13 +62,17 @@ export const messagesApi = {
 export const reviewsApi = {
   getAll: () => api.get('/reviews'),
   getById: (id) => api.get(`/reviews/${id}`),
-  // data = { productId, rating, content }
+  // data = { productId, rating, content } (legacy)
   create: (data) => api.post('/reviews', data),
   delete: (id) => api.delete(`/reviews/${id}`),
   getByTransaction: (transactionId) =>
     api.get(`/reviews/transaction/${transactionId}`),
   getByProduct: (productId) =>
     api.get(`/reviews/product/${productId}`),
+  // User-to-user reviews
+  getByUser: (userId) => api.get(`/reviews/user/${userId}`),
+  // data = { targetUserId, transactionId, rating, content }
+  createUserReview: (data) => api.post('/reviews/user', data),
 };
 
 // ─── Admin ───────────────────────────────────────────
