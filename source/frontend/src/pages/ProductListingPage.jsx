@@ -83,7 +83,7 @@ export default function ProductListingPage() {
     else if (priceRange === '50kto100k') matchesPrice = product.price >= 50000 && product.price < 100000;
     else if (priceRange === 'over100k') matchesPrice = product.price >= 100000;
 
-    const matchesRating = product.rating >= minRating;
+    const matchesRating = minRating === 0 || (product.reviews > 0 && product.rating >= minRating);
 
     return matchesSearch && matchesCategory && matchesPrice && matchesRating;
   }).sort((a, b) => {
