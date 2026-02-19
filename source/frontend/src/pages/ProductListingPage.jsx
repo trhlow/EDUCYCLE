@@ -61,7 +61,12 @@ export default function ProductListingPage() {
           reviews: p.reviewCount || 0,
           seller: p.sellerName || '',
           createdAt: p.createdAt || '',
-        })));
+          status: p.status || '',
+        })).filter((p) => {
+          // Hide sold/completed products from listing
+          const s = p.status?.toLowerCase();
+          return s !== 'sold' && s !== 'completed';
+        }));
       } catch {
         setProducts([]);
       } finally {
@@ -83,7 +88,7 @@ export default function ProductListingPage() {
     else if (priceRange === '50kto100k') matchesPrice = product.price >= 50000 && product.price < 100000;
     else if (priceRange === 'over100k') matchesPrice = product.price >= 100000;
 
-    const matchesRating = minRating === 0 || (product.reviews > 0 && product.rating >= minRating);
+    const matchesRating = minRating === 0 || product.rating >= minRating;
 
     return matchesSearch && matchesCategory && matchesPrice && matchesRating;
   }).sort((a, b) => {

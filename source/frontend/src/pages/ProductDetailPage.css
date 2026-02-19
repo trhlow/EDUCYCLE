@@ -502,6 +502,30 @@
   color: var(--text-secondary);
 }
 
+/* Shopee-style Seller Rating */
+.pdp-seller-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.pdp-seller-rating-stars {
+  color: var(--accent-500);
+  font-size: var(--text-base);
+}
+
+.pdp-seller-rating-score {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.pdp-seller-rating-count {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
 /* Sold / Own Product Notices */
 .pdp-sold-notice {
   padding: var(--space-4);

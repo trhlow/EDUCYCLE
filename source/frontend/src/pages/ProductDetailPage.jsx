@@ -234,6 +234,23 @@ export default function ProductDetailPage() {
               <div className="pdp-seller-info-meta">
                 Người bán trên EduCycle
               </div>
+              {/* Shopee-style seller rating */}
+              {allReviews.length > 0 ? (() => {
+                const avgR = (allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length).toFixed(1);
+                return (
+                  <div className="pdp-seller-rating">
+                    <span className="pdp-seller-rating-stars">
+                      {'★'.repeat(Math.round(Number(avgR)))}{'☆'.repeat(5 - Math.round(Number(avgR)))}
+                    </span>
+                    <span className="pdp-seller-rating-score">{avgR}</span>
+                    <span className="pdp-seller-rating-count">({allReviews.length} đánh giá)</span>
+                  </div>
+                );
+              })() : (
+                <div className="pdp-seller-rating">
+                  <span className="pdp-seller-rating-count">Chưa có đánh giá</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
