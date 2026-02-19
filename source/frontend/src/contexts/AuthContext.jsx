@@ -3,6 +3,8 @@ import { authApi } from '../api/endpoints';
 
 const AuthContext = createContext(null);
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 // Mock accounts for development/demo (when backend is unavailable)
 const MOCK_ACCOUNTS = [
   {
@@ -19,6 +21,20 @@ function saveSession(tokenValue, userData, setToken, setUser) {
   localStorage.setItem('user', JSON.stringify(userData));
   setToken(tokenValue);
   setUser(userData);
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      id: payload.nameid || payload.sub || payload.userId,
+      username: payload.unique_name || payload.name || payload.username,
+      email: payload.email,
+      role: payload.role || 'User',
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -51,19 +67,18 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.login({ email, password });
       const data = res.data;
-      // Backend AuthResponse: { userId, username, email, token, role }
       const jwt = data.token;
       const userData = {
         id: data.userId,
         username: data.username,
         email: data.email,
         role: data.role || 'User',
+        isEmailVerified: data.isEmailVerified ?? true,
       };
 
       saveSession(jwt, userData, setToken, setUser);
       return userData;
     } catch (err) {
-      // If backend is unreachable → try mock accounts
       const isNetworkError =
         err.code === 'ERR_NETWORK' ||
         err.message?.includes('Network Error') ||
@@ -81,24 +96,24 @@ export function AuthProvider({ children }) {
             username: mockAccount.username,
             email: mockAccount.email,
             role: mockAccount.role,
+            isEmailVerified: true,
           };
           saveSession(mockToken, userData, setToken, setUser);
           return userData;
         }
 
-        // Allow any email/password as regular user when backend is down (dev/demo)
         const mockToken = 'mock-jwt-' + Date.now();
         const userData = {
           id: 'user-' + Date.now(),
           username: email.split('@')[0],
           email,
           role: 'User',
+          isEmailVerified: true,
         };
         saveSession(mockToken, userData, setToken, setUser);
         return userData;
       }
 
-      // Backend returned an actual error (e.g. 401)
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
@@ -109,7 +124,8 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Register — try real backend first, fall back to mock on network error
+   * Register — returns user data WITHOUT auto-navigating.
+   * After register, the UI should show OTP verification form.
    */
   const register = async (username, email, password) => {
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
@@ -117,7 +133,8 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
-      // Backend AuthResponse: { userId, username, email, token, role }
+
+      // Save session but mark as unverified
       if (data.token) {
         const jwt = data.token;
         const userData = {
@@ -125,13 +142,19 @@ export function AuthProvider({ children }) {
           username: data.username || username,
           email: data.email || email,
           role: data.role || 'User',
+          isEmailVerified: data.isEmailVerified ?? false,
         };
-
         saveSession(jwt, userData, setToken, setUser);
-        return userData;
+        return { ...userData, message: data.message };
       }
 
-      return await login(email, password);
+      // Fallback: backend might not return token until verified
+      return {
+        email: data.email || email,
+        username: data.username || username,
+        isEmailVerified: false,
+        message: data.message || 'Vui lòng kiểm tra email để xác thực OTP.',
+      };
     } catch (err) {
       const isNetworkError =
         err.code === 'ERR_NETWORK' ||
@@ -146,9 +169,10 @@ export function AuthProvider({ children }) {
           username,
           email,
           role: 'User',
+          isEmailVerified: false,
         };
         saveSession(mockToken, userData, setToken, setUser);
-        return userData;
+        return { ...userData, message: 'Mã OTP: 123456 (demo mode)' };
       }
 
       const message =
@@ -160,57 +184,89 @@ export function AuthProvider({ children }) {
     }
   };
 
-  /* ─── Social Logins ─── */
-  const loginWithProvider = async (provider) => {
-    // In production, this would redirect to OAuth flow.
-    // For now, mock a successful social login.
+  /**
+   * Verify OTP — complete email verification
+   */
+  const verifyOtp = async (email, otp) => {
     try {
-      const res = await authApi.login({ provider });
-      const data = res.data;
-      const jwt = data.token;
-      const userData = {
-        id: data.userId,
-        username: data.username,
-        email: data.email,
-        role: data.role || 'User',
-        phoneVerified: data.phoneVerified || false,
-      };
-      saveSession(jwt, userData, setToken, setUser);
-      return userData;
-    } catch {
-      // Mock social login when backend is unavailable
-      const mockToken = 'mock-jwt-social-' + Date.now();
-      const mockEmail = provider === 'microsoft'
-        ? 'student@university.edu.vn'
-        : provider === 'google'
-          ? 'student@gmail.com'
-          : 'student@facebook.com';
-      const userData = {
-        id: 'user-' + Date.now(),
-        username: mockEmail.split('@')[0],
-        email: mockEmail,
-        role: 'User',
-        phoneVerified: false,
-      };
-      saveSession(mockToken, userData, setToken, setUser);
-      return userData;
+      await authApi.verifyOtp({ email, otp });
+      // Update local user state
+      const updated = { ...user, isEmailVerified: true };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      return true;
+    } catch (err) {
+      // Mock mode
+      if (err.code === 'ERR_NETWORK' || !err.response) {
+        if (otp === '123456') {
+          const updated = { ...user, isEmailVerified: true };
+          setUser(updated);
+          localStorage.setItem('user', JSON.stringify(updated));
+          return true;
+        }
+        throw new Error('Mã OTP không đúng!');
+      }
+      const message = err.response?.data?.message || err.response?.data || 'OTP không hợp lệ';
+      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
   };
 
-  const loginWithMicrosoft = () => loginWithProvider('microsoft');
-  const loginWithGoogle = () => loginWithProvider('google');
-  const loginWithFacebook = () => loginWithProvider('facebook');
+  /**
+   * Resend OTP
+   */
+  const resendOtp = async (email) => {
+    try {
+      await authApi.resendOtp({ email });
+      return true;
+    } catch (err) {
+      if (err.code === 'ERR_NETWORK' || !err.response) {
+        return true; // Mock: always succeed
+      }
+      throw new Error(err.response?.data?.message || 'Gửi lại OTP thất bại');
+    }
+  };
 
-  /* ─── Phone Verification ─── */
+  /**
+   * Social Logins — redirect to backend OAuth endpoint
+   */
+  const loginWithGoogle = () => {
+    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/google-login`;
+  };
+  const loginWithFacebook = () => {
+    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/facebook-login`;
+  };
+  const loginWithMicrosoft = () => {
+    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/microsoft-login`;
+  };
+
+  /**
+   * Handle OAuth callback — parse JWT from redirect URL
+   */
+  const handleOAuthCallback = (jwtToken) => {
+    const decoded = decodeJwtPayload(jwtToken);
+    if (decoded) {
+      saveSession(jwtToken, { ...decoded, isEmailVerified: true }, setToken, setUser);
+    }
+  };
+
+  /**
+   * Phone Verification — in Profile page
+   */
   const verifyPhone = async (phone, otp) => {
     try {
-      // In production: await authApi.verifyPhone({ phone, otp });
-      // Mock: always succeed
+      await authApi.verifyPhone({ phone, otp });
       const updated = { ...user, phoneVerified: true, phone };
       setUser(updated);
       localStorage.setItem('user', JSON.stringify(updated));
       return true;
-    } catch {
+    } catch (err) {
+      // Mock mode
+      if (err.code === 'ERR_NETWORK' || !err.response) {
+        const updated = { ...user, phoneVerified: true, phone };
+        setUser(updated);
+        localStorage.setItem('user', JSON.stringify(updated));
+        return true;
+      }
       return false;
     }
   };
@@ -237,7 +293,8 @@ export function AuthProvider({ children }) {
         user, token, loading,
         login, register, logout, updateProfile,
         loginWithMicrosoft, loginWithGoogle, loginWithFacebook,
-        verifyPhone,
+        handleOAuthCallback,
+        verifyOtp, resendOtp, verifyPhone,
         isAdmin, isAuthenticated,
       }}
     >
