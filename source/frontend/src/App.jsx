@@ -3,9 +3,11 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
 import PageLoader from './components/PageLoader';
+import RouteTransition from './components/RouteTransition';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
+const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
 const ProductListingPage = lazy(() => import('./pages/ProductListingPage'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
@@ -25,7 +27,9 @@ function SuspenseWrapper({ children }) {
   const location = useLocation();
   return (
     <Suspense key={location.pathname} fallback={<PageLoader />}>
-      {children}
+      <RouteTransition>
+        {children}
+      </RouteTransition>
     </Suspense>
   );
 }
@@ -36,6 +40,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<SuspenseWrapper><HomePage /></SuspenseWrapper>} />
         <Route path="auth" element={<SuspenseWrapper><GuestRoute><AuthPage /></GuestRoute></SuspenseWrapper>} />
+        <Route path="oauth-callback" element={<SuspenseWrapper><OAuthCallbackPage /></SuspenseWrapper>} />
         <Route path="products" element={<SuspenseWrapper><ProductListingPage /></SuspenseWrapper>} />
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
@@ -46,7 +51,7 @@ export default function App() {
         <Route path="dashboard" element={<SuspenseWrapper><ProtectedRoute adminOnly><DashboardPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="admin" element={<SuspenseWrapper><ProtectedRoute adminOnly><AdminPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="profile" element={<SuspenseWrapper><ProtectedRoute><ProfilePage /></ProtectedRoute></SuspenseWrapper>} />
-        <Route path="wishlist" element={<SuspenseWrapper><WishlistPage /></SuspenseWrapper>} />
+        <Route path="wishlist" element={<SuspenseWrapper><ProtectedRoute><WishlistPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="about" element={<SuspenseWrapper><AboutPage /></SuspenseWrapper>} />
         <Route path="contact" element={<SuspenseWrapper><ContactPage /></SuspenseWrapper>} />
         <Route path="*" element={<SuspenseWrapper><NotFoundPage /></SuspenseWrapper>} />
