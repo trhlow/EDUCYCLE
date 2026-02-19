@@ -4,6 +4,10 @@ import api from './axios';
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  verifyOtp: (data) => api.post('/auth/verify-otp', data),
+  resendOtp: (data) => api.post('/auth/resend-otp', data),
+  verifyPhone: (data) => api.post('/auth/verify-phone', data),
+  socialLogin: (data) => api.post('/auth/social-login', data),
 };
 
 // ─── Products ────────────────────────────────────────
@@ -34,14 +38,11 @@ export const categoriesApi = {
 // Status flow: Pending → Accepted → Meeting → Completed
 //                     → Rejected
 //                     → Cancelled
-//                     → AutoCompleted (timeout)
 export const transactionsApi = {
   getAll: () => api.get('/transactions'),
   getMyTransactions: () => api.get('/transactions/mine'),
   getById: (id) => api.get(`/transactions/${id}`),
-  // data = { productId, sellerId, amount }
   create: (data) => api.post('/transactions', data),
-  // data = { status: 'Accepted' | 'Rejected' | 'Cancelled' | 'Meeting' }
   updateStatus: (id, data) => api.patch(`/transactions/${id}/status`, data),
   // OTP flow
   generateOtp: (id) => api.post(`/transactions/${id}/otp`),
@@ -62,7 +63,6 @@ export const messagesApi = {
 export const reviewsApi = {
   getAll: () => api.get('/reviews'),
   getById: (id) => api.get(`/reviews/${id}`),
-  // data = { productId, rating, content } (legacy)
   create: (data) => api.post('/reviews', data),
   delete: (id) => api.delete(`/reviews/${id}`),
   getByTransaction: (transactionId) =>
@@ -71,8 +71,6 @@ export const reviewsApi = {
     api.get(`/reviews/product/${productId}`),
   // User-to-user reviews
   getByUser: (userId) => api.get(`/reviews/user/${userId}`),
-  // data = { targetUserId, transactionId, rating, content }
-  createUserReview: (data) => api.post('/reviews/user', data),
 };
 
 // ─── Admin ───────────────────────────────────────────
