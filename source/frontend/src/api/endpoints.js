@@ -71,6 +71,7 @@ export const reviewsApi = {
     api.get(`/reviews/product/${productId}`),
   // User-to-user reviews
   getByUser: (userId) => api.get(`/reviews/user/${userId}`),
+  createUserReview: (data) => api.post('/reviews', data),
 };
 
 // ─── Admin ───────────────────────────────────────────

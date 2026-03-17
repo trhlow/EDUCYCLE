@@ -153,7 +153,7 @@ function OverviewView({ user }) {
           <div className="dash-section">
             <div className="dash-section-header">
               <h2 className="dash-section-title">Sản Phẩm Của Tôi</h2>
-              <Link to="/post-product" className="dash-section-action">+ Đăng Mới</Link>
+              <Link to="/products/new" className="dash-section-action">+ Đăng Mới</Link>
             </div>
             {products.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
@@ -278,7 +278,7 @@ function ProductsView() {
       <div className="dash-section">
         <div className="dash-section-header">
           <h2 className="dash-section-title">Tất Cả Sản Phẩm ({products.length})</h2>
-          <button className="dash-section-action" onClick={() => navigate('/post-product')}>
+          <button className="dash-section-action" onClick={() => navigate('/products/new')}>
             + Đăng Sản Phẩm Mới
           </button>
         </div>
@@ -287,7 +287,7 @@ function ProductsView() {
           <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
         ) : products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-            Bạn chưa đăng sản phẩm nào. <Link to="/post-product">Đăng ngay!</Link>
+            Bạn chưa đăng sản phẩm nào. <Link to="/products/new">Đăng ngay!</Link>
           </div>
         ) : (
           <table className="dash-table">

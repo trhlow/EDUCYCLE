@@ -5,17 +5,6 @@ const AuthContext = createContext(null);
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
-// Mock accounts for development/demo (when backend is unavailable)
-const MOCK_ACCOUNTS = [
-  {
-    id: 'admin-001',
-    username: 'admin',
-    email: 'admin@educycle.com',
-    password: '123456',
-    role: 'Admin',
-  },
-];
-
 function saveSession(tokenValue, userData, setToken, setUser) {
   localStorage.setItem('token', tokenValue);
   localStorage.setItem('user', JSON.stringify(userData));
@@ -59,7 +48,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   /**
-   * Login — try real backend first, fall back to mock accounts on network error
+   * Login — authenticate via backend API
    */
   const login = async (email, password) => {
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
@@ -85,33 +74,7 @@ export function AuthProvider({ children }) {
         !err.response;
 
       if (isNetworkError) {
-        const mockAccount = MOCK_ACCOUNTS.find(
-          (a) => (a.email === email || a.username === email) && a.password === password
-        );
-
-        if (mockAccount) {
-          const mockToken = 'mock-jwt-' + Date.now();
-          const userData = {
-            id: mockAccount.id,
-            username: mockAccount.username,
-            email: mockAccount.email,
-            role: mockAccount.role,
-            isEmailVerified: true,
-          };
-          saveSession(mockToken, userData, setToken, setUser);
-          return userData;
-        }
-
-        const mockToken = 'mock-jwt-' + Date.now();
-        const userData = {
-          id: 'user-' + Date.now(),
-          username: email.split('@')[0],
-          email,
-          role: 'User',
-          isEmailVerified: true,
-        };
-        saveSession(mockToken, userData, setToken, setUser);
-        return userData;
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối.');
       }
 
       const message =
@@ -162,17 +125,7 @@ export function AuthProvider({ children }) {
         !err.response;
 
       if (isNetworkError) {
-        // Mock register when backend is down
-        const mockToken = 'mock-jwt-' + Date.now();
-        const userData = {
-          id: 'user-' + Date.now(),
-          username,
-          email,
-          role: 'User',
-          isEmailVerified: false,
-        };
-        saveSession(mockToken, userData, setToken, setUser);
-        return { ...userData, message: 'Mã OTP: 123456 (demo mode)' };
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
       }
 
       const message =
@@ -196,15 +149,9 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(updated));
       return true;
     } catch (err) {
-      // Mock mode
-      if (err.code === 'ERR_NETWORK' || !err.response) {
-        if (otp === '123456') {
-          const updated = { ...user, isEmailVerified: true };
-          setUser(updated);
-          localStorage.setItem('user', JSON.stringify(updated));
-          return true;
-        }
-        throw new Error('Mã OTP không đúng!');
+      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
+      if (isNetworkError) {
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
       }
       const message = err.response?.data?.message || err.response?.data || 'OTP không hợp lệ';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
@@ -219,8 +166,9 @@ export function AuthProvider({ children }) {
       await authApi.resendOtp({ email });
       return true;
     } catch (err) {
-      if (err.code === 'ERR_NETWORK' || !err.response) {
-        return true; // Mock: always succeed
+      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
+      if (isNetworkError) {
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
       }
       throw new Error(err.response?.data?.message || 'Gửi lại OTP thất bại');
     }
@@ -260,12 +208,9 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(updated));
       return true;
     } catch (err) {
-      // Mock mode
-      if (err.code === 'ERR_NETWORK' || !err.response) {
-        const updated = { ...user, phoneVerified: true, phone };
-        setUser(updated);
-        localStorage.setItem('user', JSON.stringify(updated));
-        return true;
+      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
+      if (isNetworkError) {
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
       }
       return false;
     }

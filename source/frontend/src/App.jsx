@@ -42,8 +42,8 @@ export default function App() {
         <Route path="auth" element={<SuspenseWrapper><GuestRoute><AuthPage /></GuestRoute></SuspenseWrapper>} />
         <Route path="oauth-callback" element={<SuspenseWrapper><OAuthCallbackPage /></SuspenseWrapper>} />
         <Route path="products" element={<SuspenseWrapper><ProductListingPage /></SuspenseWrapper>} />
-        <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="cart" element={<SuspenseWrapper><CartPage /></SuspenseWrapper>} />
         <Route path="transactions" element={<SuspenseWrapper><ProtectedRoute><TransactionsPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="transactions/guide" element={<SuspenseWrapper><TransactionGuidePage /></SuspenseWrapper>} />
