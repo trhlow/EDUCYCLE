@@ -114,21 +114,18 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-    // ===== OTP (stub — for full OTP support add email service integration) =====
+    // ===== OTP — requires email service integration =====
 
     @Override
     public boolean verifyOtp(VerifyOtpRequest request) {
         // TODO: Integrate with email service for real OTP verification
-        // Placeholder: in C# this was in AuthServiceWithOtp
-        log.warn("verifyOtp called but OTP email service is not yet configured");
-        return true;
+        throw new BadRequestException("OTP verification is not yet configured. Contact admin.");
     }
 
     @Override
     public boolean resendOtp(ResendOtpRequest request) {
         // TODO: Resend OTP via email service
-        log.warn("resendOtp called but OTP email service is not yet configured");
-        return true;
+        throw new BadRequestException("OTP resend is not yet configured. Contact admin.");
     }
 
     // ===== Private Helpers =====
@@ -146,14 +143,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String resolveEmail(SocialLoginRequest request) {
-        if (request.email() != null && !request.email().isBlank()) {
-            return request.email();
+        if (request.email() == null || request.email().isBlank()) {
+            throw new BadRequestException(
+                    "Email is required for social login. Provider: " + request.provider());
         }
-        return switch (request.provider().toLowerCase()) {
-            case "microsoft" -> "student@university.edu.vn";
-            case "google"    -> "student@gmail.com";
-            case "facebook"  -> "student@facebook.com";
-            default -> throw new BadRequestException("Unsupported provider: " + request.provider());
-        };
+        return request.email();
     }
 }

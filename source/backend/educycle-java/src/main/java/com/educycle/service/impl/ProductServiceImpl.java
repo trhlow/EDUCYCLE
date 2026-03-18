@@ -23,7 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.educycle.util.PrivacyHelper.maskUsername;
 
 /**
  * Maps C# ProductService.cs
@@ -196,12 +201,18 @@ public class ProductServiceImpl implements ProductService {
 
     // ===== Private Helpers =====
 
+    /**
+     * Batch-loads reviews for all products in a SINGLE query (fixes N+1).
+     */
     private List<ProductResponse> mapAllWithReviews(List<Product> products) {
+        Set<UUID> ids = products.stream().map(Product::getId).collect(Collectors.toSet());
+        Map<UUID, List<Review>> reviewMap = reviewRepository.findByProductIdIn(ids)
+                .stream()
+                .filter(r -> r.getProduct() != null)
+                .collect(Collectors.groupingBy(r -> r.getProduct().getId()));
+
         return products.stream()
-                .map(p -> {
-                    List<Review> reviews = reviewRepository.findByProductId(p.getId());
-                    return mapToResponse(p, reviews);
-                })
+                .map(p -> mapToResponse(p, reviewMap.getOrDefault(p.getId(), List.of())))
                 .toList();
     }
 
@@ -258,13 +269,5 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    /**
-     * Masks username for privacy (same logic as C# MaskUsername).
-     * e.g. "nguyen" → "ngu***n"
-     */
-    private static String maskUsername(String username) {
-        if (username == null || username.isBlank()) return "Ngu***";
-        if (username.length() <= 3) return username + "***";
-        return username.substring(0, 3) + "***" + username.charAt(username.length() - 1);
-    }
+
 }

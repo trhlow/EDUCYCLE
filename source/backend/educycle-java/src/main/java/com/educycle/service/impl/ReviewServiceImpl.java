@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import static com.educycle.util.PrivacyHelper.maskUsername;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -115,9 +117,4 @@ public class ReviewServiceImpl implements ReviewService {
         );
     }
 
-    private static String maskUsername(String username) {
-        if (username == null || username.isBlank()) return "Ngu***";
-        if (username.length() <= 3) return username + "***";
-        return username.substring(0, 3) + "***" + username.charAt(username.length() - 1);
-    }
 }

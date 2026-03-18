@@ -14,6 +14,7 @@ import com.educycle.repository.ProductRepository;
 import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.TransactionService;
+import com.educycle.util.OtpHasher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,12 +51,22 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionResponse create(CreateTransactionRequest request, UUID buyerId) {
+        // Buyer cannot be the same as seller
+        if (buyerId.equals(request.sellerId())) {
+            throw new BadRequestException("Buyer cannot be the same as seller");
+        }
+
         User buyer  = userRepository.findById(buyerId)
                 .orElseThrow(() -> new NotFoundException("Buyer not found"));
         User seller = userRepository.findById(request.sellerId())
                 .orElseThrow(() -> new NotFoundException("Seller not found"));
         Product product = productRepository.findByIdWithUser(request.productId())
                 .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        // Product must be APPROVED to create a transaction
+        if (product.getStatus() != ProductStatus.APPROVED) {
+            throw new BadRequestException("Product is not available for transaction (status: " + product.getStatus() + ")");
+        }
 
         Transaction transaction = Transaction.builder()
                 .product(product)
@@ -128,14 +139,14 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Transaction with id '" + id + "' not found"));
 
-        // 6-digit OTP — SecureRandom replaces C# Random.Shared (non-cryptographic)
+        // 6-digit OTP — SecureRandom for cryptographic safety
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
-        t.setOtpCode(otp);
+        t.setOtpCode(OtpHasher.hash(otp));  // store SHA-256 hash, not plaintext
         t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
         transactionRepository.save(t);
 
         log.info("OTP generated for transaction {}", id);
-        return Map.of("otp", otp);
+        return Map.of("otp", otp);  // return plaintext to user only
     }
 
     // ===== VERIFY OTP =====
@@ -146,7 +157,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new NotFoundException("Transaction with id '" + id + "' not found"));
 
         if (t.getOtpCode() == null
-                || !t.getOtpCode().equals(otp)
+                || !OtpHasher.verify(otp, t.getOtpCode())
                 || t.getOtpExpiresAt() == null
                 || t.getOtpExpiresAt().isBefore(Instant.now())) {
             throw new BadRequestException("Invalid or expired OTP");

@@ -90,19 +90,23 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS — replaces C# AllowAll policy (AllowAnyOrigin / Method / Header).
-     * NOTE: In production, restrict AllowedOrigins to your frontend domain.
+     * CORS — restricted to known frontend origins.
+     * In production, configure cors.allowed-origins in application.yml.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",    // Vite dev server
+                "http://localhost:3000"     // alternative dev server
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(false);
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/api/**", config);
         return source;
     }
 }
