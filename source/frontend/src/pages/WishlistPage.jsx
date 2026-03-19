@@ -1,14 +1,13 @@
+import { formatPrice } from '../utils/format';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useCart } from '../contexts/CartContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import './WishlistPage.css';
 
 export default function WishlistPage() {
   const { items: wishlistedProducts, removeFromWishlist, clearWishlist } = useWishlist();
   const { addItem } = useCart();
-  const toast = useToast();
-
   const handleAddToCart = (product) => {
     addItem({
       id: product.id,
@@ -24,15 +23,15 @@ export default function WishlistPage() {
 
   const handleRemove = (id, name) => {
     removeFromWishlist(id);
-    toast.info(`Đã xóa "${name}" khỏi danh sách yêu thích`);
+    toast(`Đã xóa "${name}" khỏi danh sách yêu thích`);
   };
 
   const handleClear = () => {
     clearWishlist();
-    toast.info('Đã xóa tất cả khỏi danh sách yêu thích');
+    toast('Đã xóa tất cả khỏi danh sách yêu thích');
   };
 
-  const formatPrice = (price) => '$' + price.toFixed(2);
+  
 
   if (wishlistedProducts.length === 0) {
     return (

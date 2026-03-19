@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
+import { useDebounce } from '../hooks/useDebounce';
 import './ProductListingPage.css';
 
 const FALLBACK_CATEGORIES = [
@@ -18,6 +19,7 @@ export default function ProductListingPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -26,7 +28,6 @@ export default function ProductListingPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const toast = useToast();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -78,8 +79,8 @@ export default function ProductListingPage() {
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     const matchesCategory =
       selectedCategory === 'all' || product.category === selectedCategory;
 
@@ -278,7 +279,7 @@ export default function ProductListingPage() {
                           e.preventDefault();
                           e.stopPropagation();
                           toggleWishlist(product);
-                          toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                          toast(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
                         }}
                         title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
                       >

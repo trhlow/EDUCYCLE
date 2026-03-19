@@ -1,5 +1,6 @@
+import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import { adminApi, productsApi, transactionsApi } from '../api/endpoints';
 import './AdminPage.css';
 
@@ -213,7 +214,7 @@ function AdminProducts() {
     fetchProducts();
   }, []);
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
+  
 
   const statusLabel = (s) => {
     if (s === 'Approved') return 'Đã duyệt';
@@ -308,8 +309,8 @@ function AdminOrders() {
     fetchTransactions();
   }, []);
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+  
+  
 
   const statusMap = {
     Pending: 'Chờ xác nhận', Accepted: 'Đã chấp nhận', Meeting: 'Đang gặp mặt',
@@ -382,7 +383,6 @@ function AdminOrders() {
 }
 
 function AdminModeration() {
-  const toast = useToast();
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -422,7 +422,7 @@ function AdminModeration() {
     }
   };
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
+  
 
   return (
     <>

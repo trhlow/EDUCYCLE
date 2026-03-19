@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
   const { user, updateProfile, logout, verifyPhone } = useAuth();
-  const toast = useToast();
-
   const [formData, setFormData] = useState({
     username: user?.username || '',
     email: user?.email || '',
@@ -52,7 +50,7 @@ export default function ProfilePage() {
   const handleDeleteAccount = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.')) {
       logout();
-      toast.info('Tài khoản đã được xóa');
+      toast('Tài khoản đã được xóa');
     }
   };
 

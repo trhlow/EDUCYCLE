@@ -1,7 +1,8 @@
+import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import { productsApi, transactionsApi } from '../api/endpoints';
 import './DashboardPage.css';
 
@@ -17,7 +18,6 @@ export default function DashboardPage() {
   const [currentView, setCurrentView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
-  const toast = useToast();
   const navigate = useNavigate();
 
   const handleViewChange = (view) => {
@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     logout();
-    toast.info('Đã đăng xuất');
+    toast('Đã đăng xuất');
     navigate('/');
   };
 
@@ -115,8 +115,8 @@ function OverviewView({ user }) {
     fetchData();
   }, []);
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+  
+  
 
   const completedTx = transactions.filter((tx) => ['Completed', 'AutoCompleted'].includes(tx.status));
   const salesAmount = completedTx
@@ -240,7 +240,6 @@ function OverviewView({ user }) {
 function ProductsView() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const toast = useToast();
   const navigate = useNavigate();
 
   const fetchProducts = async () => {
@@ -269,7 +268,7 @@ function ProductsView() {
     }
   };
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
+  
 
   return (
     <>
@@ -352,8 +351,8 @@ function PurchasesView() {
     fetchPurchases();
   }, [user?.id]);
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+  
+  
 
   const statusMap = {
     Pending: 'Chờ xác nhận', Accepted: 'Đã chấp nhận', Meeting: 'Đang gặp mặt',
@@ -425,8 +424,8 @@ function SalesView() {
     fetchSales();
   }, [user?.id]);
 
-  const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+  
+  
 
   const completedSales = transactions.filter((tx) => ['Completed', 'AutoCompleted'].includes(tx.status));
   const totalRevenue = completedSales.reduce((sum, tx) => sum + (tx.amount || 0), 0);
@@ -502,7 +501,6 @@ function SalesView() {
 
 function SettingsView({ user }) {
   const { updateProfile } = useAuth();
-  const toast = useToast();
   const [form, setForm] = useState({
     username: user?.username || '',
     email: user?.email || '',

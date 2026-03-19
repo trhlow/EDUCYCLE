@@ -1,7 +1,8 @@
+import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import { transactionsApi } from '../api/endpoints';
 import './TransactionsPage.css';
 
@@ -34,7 +35,6 @@ const STATUS_FILTERS = [
 
 export default function TransactionsPage() {
   const { user } = useAuth();
-  const toast = useToast();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');

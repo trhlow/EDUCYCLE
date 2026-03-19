@@ -1,7 +1,8 @@
+import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import { transactionsApi, messagesApi, reviewsApi, productsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
 import './TransactionDetailPage.css';
@@ -27,7 +28,6 @@ const STEPS = [
 export default function TransactionDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const toast = useToast();
   const navigate = useNavigate();
 
   const [transaction, setTransaction] = useState(null);
@@ -227,7 +227,7 @@ export default function TransactionDetailPage() {
     if (!productId) return;
     try {
       await productsApi.delete(productId);
-      toast.info('📦 Sản phẩm đã được gỡ khỏi sàn sau giao dịch thành công.');
+      toast('📦 Sản phẩm đã được gỡ khỏi sàn sau giao dịch thành công.');
     } catch {
       // Silent fail — backend may handle this automatically
     }

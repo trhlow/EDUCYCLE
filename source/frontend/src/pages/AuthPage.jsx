@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import './AuthPage.css';
 
 /* ── SVG brand icons (inline to avoid extra deps) ── */
@@ -42,8 +42,6 @@ function OtpVerifyModal({ email, onVerified, onResend }) {
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const { verifyOtp, resendOtp } = useAuth();
-  const toast = useToast();
-
   const handleVerify = async () => {
     if (otp.length < 4) {
       toast.error('Vui lòng nhập mã OTP (6 số)');
@@ -131,7 +129,6 @@ export default function AuthPage() {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
   const { login, register, loginWithMicrosoft, loginWithGoogle, loginWithFacebook } = useAuth();
-  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -207,7 +204,7 @@ export default function AuthPage() {
         navigate('/products', { replace: true });
       } else {
         // Show OTP verification modal
-        toast.info(result.message || 'Vui lòng kiểm tra email để nhập mã OTP');
+        toast(result.message || 'Vui lòng kiểm tra email để nhập mã OTP');
         setShowOtpModal(true);
       }
     } catch (err) {

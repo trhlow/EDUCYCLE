@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import './ContactPage.css';
 
 export default function ContactPage() {
-  const toast = useToast();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sending, setSending] = useState(false);
 

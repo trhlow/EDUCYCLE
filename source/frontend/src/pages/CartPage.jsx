@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { useToast } from '../components/Toast';
+import toast from 'react-hot-toast';
 import './CartPage.css';
 
 export default function CartPage() {
   const { items: cartItems, removeItem, clearCart } = useCart();
-  const toast = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState('cart');
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
@@ -17,7 +16,7 @@ export default function CartPage() {
 
   const handleRemoveItem = (id, name) => {
     removeItem(id);
-    toast.info(`Đã xóa "${name}" khỏi giỏ hàng`);
+    toast(`Đã xóa "${name}" khỏi giỏ hàng`);
   };
 
   const handleCheckout = () => {
