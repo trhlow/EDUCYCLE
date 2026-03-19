@@ -52,7 +52,7 @@ RES_ROOT="$CODEBASE/educycle-java/src/main/resources"
 |------|-------------|-----------------|------------------------------------------------------|--------|
 | **17/03** | – | `chore: init project with .gitignore and README.md` | `.gitignore`, `educycle-java/README.md` | ✅ DONE |
 | **18/03** | `v0.1.0` | `feat: project skeleton (v0.1.0)` | Xem **[DAY-18]** | ⬜ |
-| **19/03** | `v0.2.0` | `feat: database schema - Flyway migration (v0.2.0)` | Xem **[DAY-19]** | ⬜ |
+| **19/03** | `v0.2.0` | `feat: database schema - Flyway migration (v0.2.0)` | Xem **[DAY-19]** | ✅ DONE |
 | **20/03** | `v0.3.0` | `feat: entity models and enums (v0.3.0)` | Xem **[DAY-20]** | ⬜ |
 | **21/03** | `v0.4.0` | `feat: security config and JWT authentication (v0.4.0)` | Xem **[DAY-21]** | ⬜ |
 | **22/03** | `v0.5.0` | `feat: global exception handling (v0.5.0)` | Xem **[DAY-22]** | ⬜ |
