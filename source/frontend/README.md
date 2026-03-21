@@ -1,3 +1,5 @@
+📍 Vị trí trong monorepo: `source/frontend/`
+
 # 🎓 EduCycle Frontend
 
 > **Nền tảng trao đổi sách & tài liệu học tập P2P dành cho sinh viên**
@@ -131,11 +133,11 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 - **npm** ≥ 9
 - **Backend** đang chạy tại `http://localhost:5171` (tùy chọn — có mock fallback)
 
-### Cài đặt
+### Clone & install
 
 ```bash
-git clone https://github.com/trhlow/educycle-frontend.git
-cd educycle-frontend
+git clone https://github.com/trhlow/EDUCYCLE.git
+cd EDUCYCLE/source/frontend
 npm install
 ```
 

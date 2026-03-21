@@ -40,6 +40,19 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    // POST /api/auth/refresh — no JWT (access token may be expired)
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
+    }
+
+    // POST /api/auth/logout — clears refresh token server-side
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
     // POST /api/auth/social-login
     @PostMapping("/social-login")
     public ResponseEntity<AuthResponse> socialLogin(@Valid @RequestBody SocialLoginRequest request) {

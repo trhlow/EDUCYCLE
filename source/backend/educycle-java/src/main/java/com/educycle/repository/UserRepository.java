@@ -23,4 +23,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByFacebookId(String facebookId);
 
     Optional<User> findByMicrosoftId(String microsoftId);
+
+    Optional<User> findByRefreshToken(String refreshToken);
 }

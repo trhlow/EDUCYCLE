@@ -1,0 +1,15 @@
+# Local Postgres for backend tests (host port 5433 → avoids clashing with a system Postgres on 5432)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: educycledb
+      POSTGRES_USER: educycle
+      POSTGRES_PASSWORD: educycle123
+    ports:
+      - "5433:5432"
+    volumes:
+      - educycle_pg_data:/var/lib/postgresql/data
+
+volumes:
+  educycle_pg_data:

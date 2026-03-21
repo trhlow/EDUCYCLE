@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -43,6 +45,15 @@ public class JwtTokenProvider {
                 .expiration(expiry)
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    /**
+     * Opaque refresh token — SecureRandom 64 bytes, URL-safe Base64 (no UUID).
+     */
+    public String generateRefreshToken() {
+        byte[] randomBytes = new byte[64];
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
     // ===== Validate & Extract =====

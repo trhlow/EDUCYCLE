@@ -37,6 +37,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final CorsProperties corsProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,7 +45,7 @@ public class SecurityConfig {
             // Disable CSRF — stateless REST API
             .csrf(AbstractHttpConfigurer::disable)
 
-            // CORS — AllowAll (matches C# AllowAll policy)
+            // CORS — whitelist from application.yml
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
             // Stateless sessions — JWT, no HttpSession
@@ -55,6 +56,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/social-login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/verify-otp").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/resend-otp").permitAll()
@@ -64,6 +67,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/api/categories/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/api/reviews/**").permitAll()
+                // WebSocket (STOMP) — auth handled by WebSocketAuthInterceptor
+                .requestMatchers("/ws/**").permitAll()
                 // Swagger / Actuator
                 .requestMatchers(
                     "/swagger-ui/**",
@@ -90,16 +95,17 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS — replaces C# AllowAll policy (AllowAnyOrigin / Method / Header).
-     * NOTE: In production, restrict AllowedOrigins to your frontend domain.
+     * CORS — whitelist origins from application.yml (cors.allowed-origins).
+     * allowCredentials(true) required for WebSocket (Module 4).
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

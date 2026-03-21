@@ -11,6 +11,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- sockjs-client expects Node's `global`; must run before any ES module imports it -->
+    <script>
+      window.global = window.global || globalThis;
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

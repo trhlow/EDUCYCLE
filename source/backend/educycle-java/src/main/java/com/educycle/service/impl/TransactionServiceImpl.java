@@ -13,6 +13,7 @@ import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
 import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
+import com.educycle.service.NotificationService;
 import com.educycle.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final ProductRepository     productRepository;
     private final UserRepository        userRepository;
+    private final NotificationService   notificationService;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -69,6 +71,14 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(transaction);
         log.info("Transaction created: {} buyer={} seller={}", transaction.getId(), buyerId, request.sellerId());
+
+        notificationService.create(
+                request.sellerId(),
+                "NEW_TRANSACTION_REQUEST",
+                "Yêu cầu mua mới",
+                "Bạn có yêu cầu mua mới cho sản phẩm '" + product.getName() + "'.",
+                transaction.getId());
+
         return mapToResponse(transaction);
     }
 
@@ -118,6 +128,14 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         transactionRepository.save(t);
+
+        notificationService.create(
+                t.getBuyer().getId(),
+                "TRANSACTION_STATUS_CHANGED",
+                "Giao dịch được cập nhật",
+                "Giao dịch của bạn đã được cập nhật sang trạng thái: " + request.status(),
+                t.getId());
+
         return mapToResponse(t);
     }
 

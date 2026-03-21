@@ -1,54 +1,37 @@
 import { createContext, useContext, useState } from 'react';
 import { authApi } from '../api/endpoints';
+import { clearAuthStorage, loadAuthSession } from '../utils/safeSession';
 
 const AuthContext = createContext(null);
 
-// Mock accounts for development/demo (when backend is unavailable)
-const MOCK_ACCOUNTS = [
-  {
-    id: 'admin-001',
-    username: 'admin',
-    email: 'admin@educycle.com',
-    password: 'admin@1',
-    role: 'Admin',
-  },
-];
-
-function saveSession(tokenValue, userData, setToken, setUser) {
+function persistSession(userData, tokenValue, refreshTokenValue = null) {
   localStorage.setItem('token', tokenValue);
   localStorage.setItem('user', JSON.stringify(userData));
-  setToken(tokenValue);
-  setUser(userData);
+  if (refreshTokenValue) {
+    localStorage.setItem('refreshToken', refreshTokenValue);
+  } else {
+    localStorage.removeItem('refreshToken');
+  }
 }
 
 export function AuthProvider({ children }) {
-  // Restore session from localStorage on initialization
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser);
-      } catch {
-        localStorage.removeItem('user');
-        return null;
-      }
-    }
-    return null;
-  });
-
-  const [token, setToken] = useState(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken && localStorage.getItem('user')) {
-      return savedToken;
-    }
-    localStorage.removeItem('token');
-    return null;
-  });
+  const [session, setSession] = useState(() => loadAuthSession());
+  const { user, token } = session;
 
   const loading = false;
 
+  const applySession = (nextUser, nextToken, refreshTokenValue = null) => {
+    if (!nextUser || !nextToken) {
+      clearAuthStorage();
+      setSession({ user: null, token: null });
+      return;
+    }
+    persistSession(nextUser, nextToken, refreshTokenValue);
+    setSession({ user: nextUser, token: nextToken });
+  };
+
   /**
-   * Login — try real backend first, fall back to mock accounts on network error
+   * Login — backend only (no mock bypass)
    */
   const login = async (email, password) => {
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
@@ -56,7 +39,6 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.login({ email, password });
       const data = res.data;
-      // Backend AuthResponse: { userId, username, email, token, role }
       const jwt = data.token;
       const userData = {
         id: data.userId,
@@ -65,49 +47,13 @@ export function AuthProvider({ children }) {
         role: data.role || 'User',
       };
 
-      saveSession(jwt, userData, setToken, setUser);
+      applySession(userData, jwt, data.refreshToken || null);
       return userData;
     } catch (err) {
-      // If backend is unreachable or broken → try mock accounts
-      const isNetworkError =
-        err.code === 'ERR_NETWORK' ||
-        err.message?.includes('Network Error') ||
-        !err.response;
-      const isServerError = err.response?.status >= 500;
-
-      if (isNetworkError || isServerError) {
-        const mockAccount = MOCK_ACCOUNTS.find(
-          (a) => (a.email === email || a.username === email) && a.password === password
-        );
-
-        if (mockAccount) {
-          const mockToken = 'mock-jwt-' + Date.now();
-          const userData = {
-            id: mockAccount.id,
-            username: mockAccount.username,
-            email: mockAccount.email,
-            role: mockAccount.role,
-          };
-          saveSession(mockToken, userData, setToken, setUser);
-          return userData;
-        }
-
-        // Allow any email/password as regular user when backend is down (dev/demo)
-        const mockToken = 'mock-jwt-' + Date.now();
-        const userData = {
-          id: 'user-' + Date.now(),
-          username: email.split('@')[0],
-          email,
-          role: 'User',
-        };
-        saveSession(mockToken, userData, setToken, setUser);
-        return userData;
-      }
-
-      // Backend returned an actual error (e.g. 401)
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
+        (err.code === 'ERR_NETWORK' ? 'Không thể kết nối server. Vui lòng thử lại sau.' : null) ||
         err.response?.data ||
         'Đăng nhập thất bại. Kiểm tra lại email và mật khẩu.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
@@ -115,7 +61,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Register — try real backend first, fall back to mock on network error
+   * Register — backend only (no mock bypass)
    */
   const register = async (username, email, password) => {
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
@@ -123,7 +69,6 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
-      // Backend AuthResponse: { userId, username, email, token, role }
       if (data.token) {
         const jwt = data.token;
         const userData = {
@@ -133,59 +78,97 @@ export function AuthProvider({ children }) {
           role: data.role || 'User',
         };
 
-        saveSession(jwt, userData, setToken, setUser);
+        applySession(userData, jwt, data.refreshToken || null);
         return userData;
       }
 
       return await login(email, password);
     } catch (err) {
-      const isNetworkError =
-        err.code === 'ERR_NETWORK' ||
-        err.message?.includes('Network Error') ||
-        !err.response;
-      const isServerError = err.response?.status >= 500;
-
-      if (isNetworkError || isServerError) {
-        // Mock register when backend is down or broken
-        const mockToken = 'mock-jwt-' + Date.now();
-        const userData = {
-          id: 'user-' + Date.now(),
-          username,
-          email,
-          role: 'User',
-        };
-        saveSession(mockToken, userData, setToken, setUser);
-        return userData;
-      }
-
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
+        (err.code === 'ERR_NETWORK' ? 'Không thể kết nối server. Vui lòng thử lại sau.' : null) ||
         err.response?.data ||
         'Đăng ký thất bại. Vui lòng thử lại.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+  const verifyOtp = async (email, otpCode) => {
+    if (!email || !otpCode) throw new Error('Email và mã OTP là bắt buộc');
+    const res = await authApi.verifyOtp({ email, otpCode });
+    return res.data;
+  };
+
+  const resendOtp = async (email) => {
+    if (!email) throw new Error('Email là bắt buộc');
+    const res = await authApi.resendOtp({ email });
+    return res.data;
+  };
+
+  const socialLogin = async (provider, idToken) => {
+    if (!provider || !idToken) throw new Error('Provider và idToken là bắt buộc');
+
+    const res = await authApi.socialLogin({ provider, idToken });
+    const data = res.data;
+    const jwt = data.token;
+    const userData = {
+      id: data.userId,
+      username: data.username,
+      email: data.email,
+      role: data.role || 'User',
+    };
+
+    applySession(userData, jwt, data.refreshToken || null);
+    return userData;
+  };
+
+  const verifyPhone = async (phoneNumber, otpCode) => {
+    if (!phoneNumber || !otpCode) throw new Error('Số điện thoại và mã OTP là bắt buộc');
+    const res = await authApi.verifyPhone({ phoneNumber, otpCode });
+    return res.data;
+  };
+
+  const logout = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        await authApi.logout({ refreshToken });
+      } catch {
+        // best-effort
+      }
+    }
+    clearAuthStorage();
+    setSession({ user: null, token: null });
   };
 
   const updateProfile = (updates) => {
+    if (!user) return;
     const updated = { ...user, ...updates };
-    setUser(updated);
     localStorage.setItem('user', JSON.stringify(updated));
+    setSession((s) => ({ ...s, user: updated }));
   };
 
-  const isAdmin = user?.role === 'Admin';
-  const isAuthenticated = !!token;
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
+  const isAuthenticated = !!(token && user?.id);
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, updateProfile, isAdmin, isAuthenticated }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        verifyOtp,
+        resendOtp,
+        socialLogin,
+        verifyPhone,
+        logout,
+        updateProfile,
+        isAdmin,
+        isAuthenticated,
+      }}
     >
       {children}
     </AuthContext.Provider>

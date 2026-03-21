@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/educycledb
-    username: postgres
-    password: postgres
+    username: educycle
+    password: educycle123
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -22,6 +22,11 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+
+cors:
+  allowed-origins:
+    - "http://localhost:5173"
+    - "http://localhost:3000"
 
 jwt:
   secret: THIS_IS_A_SUPER_SECRET_KEY_123456_MUST_BE_AT_LEAST_32_CHARS

@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { readStoredArray } from '../utils/safeStorage';
 
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem('wishlist');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [items, setItems] = useState(() => readStoredArray('wishlist'));
 
   useEffect(() => {
     localStorage.setItem('wishlist', JSON.stringify(items));

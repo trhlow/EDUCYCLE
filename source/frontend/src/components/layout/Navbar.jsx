@@ -1,19 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import './Navbar.css';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const notifList = Array.isArray(notifications) ? notifications : [];
   const navigate = useNavigate();
   const userMenuRef = useRef(null);
+  const notifMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
+      }
+      if (notifMenuRef.current && !notifMenuRef.current.contains(e.target)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -67,6 +75,49 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
+          {isAuthenticated && (
+            <div className="navbar-notif-menu" ref={notifMenuRef}>
+              <button
+                className="navbar-icon-btn navbar-notif-btn"
+                onClick={() => setNotifOpen(!notifOpen)}
+                aria-label="Thông báo"
+              >
+                🔔
+                {unreadCount > 0 && <span className="navbar-notif-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+              </button>
+              {notifOpen && (
+                <div className="navbar-notif-dropdown">
+                  <div className="navbar-notif-header">
+                    <span className="navbar-notif-title">Thông báo</span>
+                    {unreadCount > 0 && (
+                      <button className="navbar-notif-mark-all" onClick={() => markAllAsRead()}>
+                        Đánh dấu tất cả đã đọc
+                      </button>
+                    )}
+                  </div>
+                  <div className="navbar-notif-list">
+                    {notifList.length === 0 ? (
+                      <div className="navbar-notif-empty">Không có thông báo</div>
+                    ) : (
+                      notifList.slice(0, 20).map(n => (
+                        <div
+                          key={n.id}
+                          className={`navbar-notif-item ${!n.read ? 'unread' : ''}`}
+                          onClick={() => { if (!n.read) markAsRead(n.id); setNotifOpen(false); }}
+                        >
+                          <div className="navbar-notif-item-title">{n.title}</div>
+                          <div className="navbar-notif-item-msg">{n.message}</div>
+                          <div className="navbar-notif-item-time">
+                            {n.createdAt ? new Date(n.createdAt).toLocaleString('vi-VN') : ''}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {!isAdmin && (
             <Link to="/wishlist" className="navbar-icon-btn" aria-label="Yêu thích">
               ❤️

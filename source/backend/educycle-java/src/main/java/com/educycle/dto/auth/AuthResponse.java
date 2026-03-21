@@ -1,5 +1,6 @@
 package com.educycle.dto.auth;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record AuthResponse(
@@ -9,5 +10,7 @@ public record AuthResponse(
         String token,
         String role,
         boolean emailVerified,
-        String message
+        String message,
+        String refreshToken,
+        Instant refreshTokenExpiry
 ) {}

@@ -89,4 +89,10 @@ public class User {
     @Column(name = "phone_verified", nullable = false)
     @Builder.Default
     private boolean phoneVerified = false;
+
+    @Column(name = "refresh_token", length = 200)
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expiry")
+    private Instant refreshTokenExpiry;
 }

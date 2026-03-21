@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { readStoredArray } from '../utils/safeStorage';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem('cart');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [items, setItems] = useState(() => readStoredArray('cart'));
   const [lastAction, setLastAction] = useState(null);
 
   useEffect(() => {

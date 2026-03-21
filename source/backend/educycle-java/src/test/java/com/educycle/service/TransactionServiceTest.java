@@ -43,6 +43,7 @@ class TransactionServiceTest {
     @Mock private TransactionRepository transactionRepository;
     @Mock private ProductRepository     productRepository;
     @Mock private UserRepository        userRepository;
+    @Mock private NotificationService   notificationService;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;

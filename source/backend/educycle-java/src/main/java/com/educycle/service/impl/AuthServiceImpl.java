@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
@@ -63,7 +65,6 @@ public class AuthServiceImpl implements AuthService {
     // ===== LOGIN =====
 
     @Override
-    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -131,9 +132,49 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
+    // ===== REFRESH TOKEN =====
+
+    @Override
+    public AuthResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BadRequestException("Refresh token is required");
+        }
+
+        User user = userRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
+
+        if (user.getRefreshTokenExpiry() == null
+                || user.getRefreshTokenExpiry().isBefore(Instant.now())) {
+            user.setRefreshToken(null);
+            user.setRefreshTokenExpiry(null);
+            userRepository.save(user);
+            throw new UnauthorizedException("Refresh token expired. Please login again.");
+        }
+
+        return buildAuthResponse(user, null);
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
+        userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
+            user.setRefreshToken(null);
+            user.setRefreshTokenExpiry(null);
+            userRepository.save(user);
+        });
+    }
+
     // ===== Private Helpers =====
 
     private AuthResponse buildAuthResponse(User user, String message) {
+        String refreshToken = jwtTokenProvider.generateRefreshToken();
+        Instant refreshExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
+        user.setRefreshToken(refreshToken);
+        user.setRefreshTokenExpiry(refreshExpiry);
+        userRepository.save(user);
+
         return new AuthResponse(
                 user.getId(),
                 user.getUsername(),
@@ -141,7 +182,9 @@ public class AuthServiceImpl implements AuthService {
                 jwtTokenProvider.generateToken(user),
                 user.getRole().name(),
                 user.isEmailVerified(),
-                message
+                message,
+                refreshToken,
+                refreshExpiry
         );
     }
 

@@ -63,6 +63,9 @@ Flyway will automatically run `V1__initial_schema.sql` on first startup, creatin
 ```
 http://localhost:8080/swagger-ui.html
 ```
+Profile **`docker`** (Postgres trong Docker Compose + HTTP **8081** để tránh xung đột với Apache trên 8080):  
+`mvn spring-boot:run "-Dspring-boot.run.profiles=docker"` → Swagger tại **http://localhost:8081/swagger-ui.html** (xem `application-docker.yml`).
+
 Click **Authorize** and enter: `Bearer <your-jwt-token>`
 
 ### 5. Run tests
