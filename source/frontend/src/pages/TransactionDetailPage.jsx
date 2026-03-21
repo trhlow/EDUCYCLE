@@ -1,21 +1,20 @@
-import { formatPrice, formatDate } from '../utils/format';
-import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
-import { transactionsApi, messagesApi, reviewsApi, productsApi } from '../api/endpoints';
-import { maskUsername } from '../utils/maskUsername';
+import { useToast } from '../components/Toast';
+import { transactionsApi, messagesApi, reviewsApi } from '../api/endpoints';
+import { createChatClient, sendChatMessage } from '../api/websocket';
 import './TransactionDetailPage.css';
 
 const STATUS_CONFIG = {
-  Pending: { label: 'Chờ xác nhận', color: 'warning', icon: '⏳', step: 1 },
-  Accepted: { label: 'Đã chấp nhận', color: 'info', icon: '✅', step: 2 },
-  Meeting: { label: 'Đang gặp mặt', color: 'primary', icon: '🤝', step: 3 },
-  Completed: { label: 'Hoàn thành', color: 'success', icon: '🎉', step: 4 },
-  AutoCompleted: { label: 'Tự động hoàn thành', color: 'success', icon: '⏰', step: 4 },
-  Rejected: { label: 'Từ chối', color: 'error', icon: '❌', step: -1 },
-  Cancelled: { label: 'Đã hủy', color: 'neutral', icon: '🚫', step: -1 },
-  Disputed: { label: 'Tranh chấp', color: 'error', icon: '⚠️', step: -1 },
+  PENDING: { label: 'Chờ xác nhận', color: 'warning', icon: '⏳', step: 1 },
+  ACCEPTED: { label: 'Đã chấp nhận', color: 'info', icon: '✅', step: 2 },
+  MEETING: { label: 'Đang gặp mặt', color: 'primary', icon: '🤝', step: 3 },
+  COMPLETED: { label: 'Hoàn thành', color: 'success', icon: '🎉', step: 4 },
+  AUTOCOMPLETED: { label: 'Tự động hoàn thành', color: 'success', icon: '⏰', step: 4 },
+  REJECTED: { label: 'Từ chối', color: 'error', icon: '❌', step: -1 },
+  CANCELLED: { label: 'Đã hủy', color: 'neutral', icon: '🚫', step: -1 },
+  DISPUTED: { label: 'Tranh chấp', color: 'error', icon: '⚠️', step: -1 },
 };
 
 const STEPS = [
@@ -28,7 +27,7 @@ const STEPS = [
 export default function TransactionDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const toast = useToast();
 
   const [transaction, setTransaction] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -36,17 +35,38 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [otpInput, setOtpInput] = useState('');
   const [otpGenerated, setOtpGenerated] = useState(false);
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [hasReviewed, setHasReviewed] = useState(false);
   const [activeSection, setActiveSection] = useState('chat');
 
   const chatEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const stompClientRef = useRef(null);
 
   useEffect(() => {
     fetchTransaction();
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // WebSocket: connect when transaction loads, disconnect on unmount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !id) return;
+
+    const client = createChatClient(token, id, (newMsg) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
+    });
+    client.activate();
+    stompClientRef.current = client;
+
+    return () => {
+      client.deactivate();
+      stompClientRef.current = null;
+    };
   }, [id]);
 
   // Polling messages every 1s when chat is open and active
@@ -95,18 +115,19 @@ export default function TransactionDetailPage() {
       : 'unknown';
 
   const otherUser = role === 'buyer' ? transaction?.seller : transaction?.buyer;
-  const config = STATUS_CONFIG[transaction?.status] || STATUS_CONFIG.Pending;
+  const statusKey = transaction?.status?.toUpperCase() || 'PENDING';
+  const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.PENDING;
 
   // ─── Actions ──────────────────────────
   const handleStatusUpdate = async (newStatus) => {
     try {
       await transactionsApi.updateStatus(id, { status: newStatus });
       toast.success(
-        newStatus === 'Accepted' ? 'Đã chấp nhận yêu cầu mua!' :
-          newStatus === 'Rejected' ? 'Đã từ chối yêu cầu.' :
-            newStatus === 'Cancelled' ? 'Đã hủy giao dịch.' :
-              newStatus === 'Meeting' ? 'Chuyển sang trạng thái gặp mặt!' :
-                'Cập nhật thành công!'
+        newStatus === 'ACCEPTED' ? 'Đã chấp nhận yêu cầu mua!' :
+        newStatus === 'REJECTED' ? 'Đã từ chối yêu cầu.' :
+        newStatus === 'CANCELLED' ? 'Đã hủy giao dịch.' :
+        newStatus === 'MEETING' ? 'Chuyển sang trạng thái gặp mặt!' :
+        'Cập nhật thành công!'
       );
       fetchTransaction();
     } catch {
@@ -116,29 +137,33 @@ export default function TransactionDetailPage() {
     }
   };
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = useCallback(async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const msgData = { content: newMessage.trim() };
-
-    try {
-      await messagesApi.send(id, msgData);
-      fetchMessages();
-    } catch {
-      // Mock message
-      const mockMsg = {
-        id: Date.now(),
-        senderId: user?.id,
-        senderName: user?.username,
-        content: newMessage.trim(),
-        createdAt: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, mockMsg]);
-    }
-
+    const content = newMessage.trim();
     setNewMessage('');
-  };
+
+    // Prefer WebSocket; fall back to HTTP if not connected
+    if (stompClientRef.current?.connected) {
+      sendChatMessage(stompClientRef.current, id, content);
+    } else {
+      try {
+        await messagesApi.send(id, { content });
+        fetchMessages();
+      } catch {
+        const mockMsg = {
+          id: Date.now(),
+          senderId: user?.id,
+          senderName: user?.username,
+          content,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, mockMsg]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newMessage, id, user]);
 
   const handleGenerateOtp = async () => {
     try {
@@ -170,9 +195,7 @@ export default function TransactionDetailPage() {
         if (role === 'buyer') updatedTx.buyerConfirmed = true;
         if (role === 'seller') updatedTx.sellerConfirmed = true;
         if (updatedTx.buyerConfirmed && updatedTx.sellerConfirmed) {
-          updatedTx.status = 'Completed';
-          // Auto delete product from listing
-          handleAutoDeleteProduct(updatedTx);
+          updatedTx.status = 'COMPLETED';
         }
         setTransaction(updatedTx);
         toast.success('Xác nhận thành công!');
@@ -212,12 +235,10 @@ export default function TransactionDetailPage() {
       });
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-      setShowReviewForm(false);
     } catch {
       // Mock fallback
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-      setShowReviewForm(false);
     }
   };
 
@@ -274,10 +295,10 @@ export default function TransactionDetailPage() {
     );
   }
 
-  const isTerminal = ['Completed', 'AutoCompleted', 'Rejected', 'Cancelled'].includes(transaction.status);
-  const canChat = ['Accepted', 'Meeting'].includes(transaction.status);
-  const canOtp = transaction.status === 'Meeting';
-  const canReview = ['Completed', 'AutoCompleted'].includes(transaction.status) && !hasReviewed;
+  const isTerminal = ['COMPLETED', 'AUTOCOMPLETED', 'REJECTED', 'CANCELLED'].includes(statusKey);
+  const canChat = ['ACCEPTED', 'MEETING'].includes(statusKey);
+  const canOtp = statusKey === 'MEETING';
+  const canReview = ['COMPLETED', 'AUTOCOMPLETED'].includes(statusKey) && !hasReviewed;
 
   return (
     <div className="txd-page">
@@ -369,14 +390,14 @@ export default function TransactionDetailPage() {
             {/* Action Buttons */}
             <div className="txd-actions-card">
               {/* Seller: Accept/Reject when Pending */}
-              {role === 'seller' && transaction.status === 'Pending' && (
+              {role === 'seller' && statusKey === 'PENDING' && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Bạn có yêu cầu mua mới từ @{maskUsername(transaction.buyer?.username)}</p>
                   <div className="txd-actions-btns">
-                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('Accepted')}>
+                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('ACCEPTED')}>
                       ✅ Chấp nhận
                     </button>
-                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('Rejected')}>
+                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('REJECTED')}>
                       ❌ Từ chối
                     </button>
                   </div>
@@ -384,22 +405,22 @@ export default function TransactionDetailPage() {
               )}
 
               {/* Buyer: Cancel when Pending */}
-              {role === 'buyer' && transaction.status === 'Pending' && (
+              {role === 'buyer' && statusKey === 'PENDING' && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Đang chờ người bán xác nhận...</p>
-                  <button className="txd-btn txd-btn-cancel" onClick={() => handleStatusUpdate('Cancelled')}>
+                  <button className="txd-btn txd-btn-cancel" onClick={() => handleStatusUpdate('CANCELLED')}>
                     🚫 Hủy yêu cầu
                   </button>
                 </div>
               )}
 
               {/* Both: Move to Meeting when Accepted */}
-              {transaction.status === 'Accepted' && (
+              {statusKey === 'ACCEPTED' && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">
                     Hãy nhắn tin để hẹn địa điểm gặp mặt, sau đó nhấn "Bắt đầu gặp mặt"
                   </p>
-                  <button className="txd-btn txd-btn-meeting" onClick={() => handleStatusUpdate('Meeting')}>
+                  <button className="txd-btn txd-btn-meeting" onClick={() => handleStatusUpdate('MEETING')}>
                     🤝 Bắt đầu gặp mặt
                   </button>
                 </div>
@@ -409,7 +430,7 @@ export default function TransactionDetailPage() {
               {canReview && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Giao dịch đã hoàn thành! Hãy đánh giá đối tác của bạn.</p>
-                  <button className="txd-btn txd-btn-review" onClick={() => setShowReviewForm(true)}>
+                  <button className="txd-btn txd-btn-review" onClick={() => setActiveSection('review')}>
                     ⭐ Viết đánh giá
                   </button>
                 </div>
@@ -444,7 +465,7 @@ export default function TransactionDetailPage() {
               <button
                 className={`txd-section-tab ${activeSection === 'otp' ? 'active' : ''}`}
                 onClick={() => setActiveSection('otp')}
-                disabled={!canOtp && transaction.status !== 'Completed'}
+                disabled={!canOtp && statusKey !== 'COMPLETED'}
               >
                 🔐 OTP
               </button>
@@ -519,8 +540,8 @@ export default function TransactionDetailPage() {
                   </form>
                 ) : (
                   <div className="txd-chat-disabled">
-                    {transaction.status === 'Pending' ? 'Chat sẽ mở khi người bán chấp nhận yêu cầu' :
-                      'Trò chuyện đã đóng'}
+                    {statusKey === 'PENDING' ? 'Chat sẽ mở khi người bán chấp nhận yêu cầu' :
+                     'Trò chuyện đã đóng'}
                   </div>
                 )}
               </div>
@@ -607,7 +628,7 @@ export default function TransactionDetailPage() {
                   </div>
                 )}
 
-                {transaction.status === 'Completed' && (
+                {statusKey === 'COMPLETED' && (
                   <div className="txd-otp-complete">
                     <div className="txd-otp-complete-icon">🎉</div>
                     <h4>Giao dịch đã hoàn thành!</h4>

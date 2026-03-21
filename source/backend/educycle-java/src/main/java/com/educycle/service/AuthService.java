@@ -20,4 +20,8 @@ public interface AuthService {
     boolean verifyOtp(VerifyOtpRequest request);
 
     boolean resendOtp(ResendOtpRequest request);
+
+    AuthResponse refreshToken(String refreshToken);
+
+    void logout(String refreshToken);
 }

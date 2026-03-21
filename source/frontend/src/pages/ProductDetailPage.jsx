@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -15,9 +14,8 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
-  const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -57,9 +55,8 @@ export default function ProductDetailPage() {
 
   // Fetch reviews for the seller (user-to-user reviews)
   useEffect(() => {
-    const fetchSellerReviews = async () => {
-      if (!product?.sellerId) return;
-      setReviewsLoading(true);
+    const fetchReviews = async () => {
+      if (!id) return;
       try {
         const res = await reviewsApi.getByUser(product.sellerId);
         const data = Array.isArray(res.data) ? res.data : [];
@@ -72,8 +69,6 @@ export default function ProductDetailPage() {
         })));
       } catch {
         setReviews([]);
-      } finally {
-        setReviewsLoading(false);
       }
     };
     fetchSellerReviews();

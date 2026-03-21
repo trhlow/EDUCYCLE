@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
 import './CartPage.css';
 
 export default function CartPage() {
   const { items: cartItems, removeItem, clearCart } = useCart();
-  const navigate = useNavigate();
+  const toast = useToast();
   const [step, setStep] = useState('cart');
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
 

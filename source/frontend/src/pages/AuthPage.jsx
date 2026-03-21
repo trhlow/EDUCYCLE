@@ -126,9 +126,11 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpStep, setOtpStep] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
-  const { login, register, loginWithMicrosoft, loginWithGoogle, loginWithFacebook } = useAuth();
+  const [otpCode, setOtpCode] = useState('');
+  const { login, register, verifyOtp, resendOtp } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -181,8 +183,8 @@ export default function AuthPage() {
     try {
       const userData = await login(loginForm.email, loginForm.password);
       toast.success('Đăng nhập thành công!');
-      const isAdminUser = userData?.role === 'Admin';
-      const from = location.state?.from?.pathname || (isAdminUser ? '/dashboard' : '/products');
+      const isAdminUser = userData?.role?.toUpperCase() === 'ADMIN';
+      const from = location.state?.from?.pathname || (isAdminUser ? '/admin' : '/products');
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(err.message || 'Đăng nhập thất bại');
@@ -195,18 +197,13 @@ export default function AuthPage() {
     if (!validateRegister()) return;
     setIsSubmitting(true);
     try {
-      const result = await register(registerForm.username, registerForm.email, registerForm.password);
-      setPendingEmail(result.email || registerForm.email);
-
-      if (result.isEmailVerified) {
-        // Already verified (shouldn't happen normally, but handle it)
-        toast.success('Đăng ký thành công! Chào mừng bạn!');
-        navigate('/products', { replace: true });
-      } else {
-        // Show OTP verification modal
-        toast(result.message || 'Vui lòng kiểm tra email để nhập mã OTP');
-        setShowOtpModal(true);
-      }
+      await register(registerForm.username, registerForm.email, registerForm.password);
+      setPendingEmail(registerForm.email);
+      setOtpStep(true);
+      setOtpCode('');
+      setErrors({});
+      toast.success('Đăng ký thành công! Vui lòng nhập mã OTP đã gửi qua email.');
+      setIsSubmitting(false);
     } catch (err) {
       toast.error(err.message || 'Đăng ký thất bại');
     } finally {
@@ -214,16 +211,48 @@ export default function AuthPage() {
     }
   };
 
-  /* ── Social login handlers ── */
-  const handleSocialLogin = (provider, loginFn) => {
-    // Real OAuth: redirect to backend (page leaves, no async needed)
-    loginFn();
+  const handleVerifyOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length < 4) {
+      setErrors((prev) => ({ ...prev, registerOtp: 'Vui lòng nhập mã OTP hợp lệ' }));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await verifyOtp(pendingEmail, otpCode);
+      toast.success('Xác thực email thành công! Mời bạn đăng nhập.');
+      setOtpStep(false);
+      setActiveTab('login');
+      setLoginForm((prev) => ({ ...prev, email: pendingEmail }));
+      setOtpCode('');
+      setPendingEmail('');
+      setErrors({});
+      setIsSubmitting(false);
+    } catch (err) {
+      toast.error(err.message || 'Xác thực OTP thất bại');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingEmail) return;
+    try {
+      await resendOtp(pendingEmail);
+      toast.success('Đã gửi lại OTP. Vui lòng kiểm tra email.');
+    } catch (err) {
+      toast.error(err.message || 'Không thể gửi lại OTP');
+    }
   };
 
   const switchTab = (tab) => {
     setActiveTab(tab);
     setErrors({});
-    setShowOtpModal(false);
+    if (tab !== 'register') {
+      setOtpStep(false);
+      setOtpCode('');
+      setPendingEmail('');
+    }
   };
 
   /* ── Shared social buttons component ── */
@@ -353,7 +382,7 @@ export default function AuthPage() {
             </form>
           )}
 
-          {activeTab === 'register' && (
+          {activeTab === 'register' && !otpStep && (
             <form className="auth-form" onSubmit={handleRegisterSubmit}>
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="register-username">Tên người dùng</label>
@@ -438,6 +467,46 @@ export default function AuthPage() {
                 Đã có tài khoản?{' '}
                 <button type="button" onClick={() => switchTab('login')}>
                   Đăng nhập
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'register' && otpStep && (
+            <form className="auth-form" onSubmit={handleVerifyOtpSubmit}>
+              <div className="auth-form-group">
+                <label className="auth-label">Xác thực email</label>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                  Mã OTP đã được gửi đến <strong>{pendingEmail}</strong>.
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="register-otp">Mã OTP</label>
+                <input
+                  type="text"
+                  id="register-otp"
+                  className={`auth-input ${errors.registerOtp ? 'error' : ''}`}
+                  placeholder="Nhập mã OTP..."
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                />
+                <div className={`auth-error ${errors.registerOtp ? 'show' : ''}`}>
+                  {errors.registerOtp}
+                </div>
+              </div>
+
+              <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Đang xác thực...' : 'Xác thực OTP'}
+              </button>
+
+              <div className="auth-footer" style={{ marginTop: 'var(--space-6)' }}>
+                <button type="button" onClick={handleResendOtp}>
+                  Gửi lại OTP
+                </button>
+                {' · '}
+                <button type="button" onClick={() => setOtpStep(false)}>
+                  Đổi thông tin đăng ký
                 </button>
               </div>
             </form>

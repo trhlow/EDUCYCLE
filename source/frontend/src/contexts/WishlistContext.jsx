@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { readStoredArray } from '../utils/safeStorage';
 
 const WishlistContext = createContext(null);
 
@@ -8,8 +8,7 @@ function getStorageKey(userId) {
 }
 
 export function WishlistProvider({ children }) {
-  const { user, isAuthenticated } = useAuth();
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => readStoredArray('wishlist'));
 
   // Load wishlist when user changes (login/logout)
   useEffect(() => {
@@ -77,6 +76,7 @@ export function WishlistProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useWishlist() {
   const context = useContext(WishlistContext);
   if (!context) {

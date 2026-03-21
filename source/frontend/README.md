@@ -1,6 +1,6 @@
-<p align="center">
-  <span style="font-size:3rem">🎓</span>
-</p>
+📍 Vị trí trong monorepo: `source/frontend/`
+
+# 🎓 EduCycle Frontend
 
 <h1 align="center">EduCycle</h1>
 
@@ -40,12 +40,117 @@
 
 ---
 
-## ⚡ Quick Start
+## 🛠️ Công Nghệ
+
+| Layer | Stack |
+|-------|-------|
+| **Framework** | React 19.2 + Vite 7 |
+| **Language** | JavaScript (JSX) |
+| **Routing** | React Router v7.13 |
+| **State** | React Context API (Auth, Cart, Wishlist) |
+| **HTTP Client** | Axios 1.13 |
+| **Styling** | Pure CSS + CSS Variables (Design Tokens) |
+| **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
+| **Backend** | .NET Web API + SQL Server + JWT (repo riêng) |
+| **Proxy** | Vite dev server → `http://localhost:5171/api` |
+
+---
+
+## 📂 Cấu Trúc Dự Án
+
+```
+src/
+├── api/
+│   ├── axios.js              # Axios instance + JWT interceptor
+│   └── endpoints.js          # authApi, productsApi, categoriesApi,
+│                              # transactionsApi, messagesApi, reviewsApi, adminApi
+├── components/
+│   ├── PageLoader.jsx/.css   # Loading screen (React.lazy fallback)
+│   ├── ProtectedRoute.jsx    # Route guard (auth + adminOnly)
+│   ├── Toast.jsx/.css        # Toast notification system
+│   └── layout/
+│       ├── Layout.jsx/.css   # App shell + Footer
+│       └── Navbar.jsx/.css   # Top navigation bar
+├── contexts/
+│   ├── AuthContext.jsx       # JWT auth + mock fallback khi offline
+│   ├── CartContext.jsx       # Giỏ hàng (localStorage)
+│   └── WishlistContext.jsx   # Yêu thích (localStorage)
+├── pages/                    # 16 pages — tất cả lazy-loaded
+│   ├── HomePage.jsx          # Landing page
+│   ├── AuthPage.jsx          # Đăng nhập / Đăng ký
+│   ├── ProductListingPage.jsx # Danh sách sản phẩm + bộ lọc
+│   ├── ProductDetailPage.jsx  # Chi tiết + đánh giá + yêu cầu mua
+│   ├── PostProductPage.jsx    # Form đăng bán (categories từ API)
+│   ├── TransactionsPage.jsx   # Danh sách giao dịch + nội quy
+│   ├── TransactionDetailPage.jsx # Chat + OTP + đánh giá
+│   ├── TransactionGuidePage.jsx  # Hướng dẫn quy trình
+│   ├── DashboardPage.jsx     # Dashboard cá nhân (API thực)
+│   ├── AdminPage.jsx         # Quản trị viên (API thực)
+│   ├── ProfilePage.jsx       # Hồ sơ cá nhân
+│   ├── WishlistPage.jsx      # Danh sách yêu thích
+│   ├── CartPage.jsx          # Giỏ hàng
+│   ├── AboutPage.jsx         # Giới thiệu
+│   ├── ContactPage.jsx       # Liên hệ
+│   └── NotFoundPage.jsx      # 404
+├── styles/
+│   └── tokens.css            # CSS Design Tokens
+├── App.jsx                   # Routes + Suspense wrapper
+├── main.jsx                  # Entry point + Context Providers
+└── index.css                 # Global styles
+```
+
+---
+
+## 🔗 Tích Hợp Backend
+
+Frontend giao tiếp hoàn toàn với .NET Web API thông qua Vite proxy:
+
+```
+Frontend /api/*  →  http://localhost:5171/api/*
+```
+
+### API Endpoints đã tích hợp
+
+| Module | Endpoints |
+|--------|-----------|
+| **Auth** | `POST /auth/register`, `POST /auth/login` |
+| **Products** | `GET /products`, `GET /products/:id`, `POST /products`, `PUT /products/:id`, `DELETE /products/:id`, `GET /products/mine`, `GET /products/pending`, `GET /products/admin/all`, `PATCH /products/:id/approve`, `PATCH /products/:id/reject` |
+| **Categories** | `GET /categories`, `GET /categories/:id`, `POST /categories`, `PUT /categories/:id`, `DELETE /categories/:id` |
+| **Transactions** | `GET /transactions`, `GET /transactions/mine`, `GET /transactions/:id`, `POST /transactions`, `PATCH /transactions/:id/status`, `POST /transactions/:id/otp`, `POST /transactions/:id/verify-otp`, `POST /transactions/:id/confirm` |
+| **Messages** | `GET /transactions/:id/messages`, `POST /transactions/:id/messages` |
+| **Reviews** | `GET /reviews`, `POST /reviews`, `DELETE /reviews/:id`, `GET /reviews/product/:productId` |
+| **Admin** | `GET /admin/stats`, `GET /admin/users` |
+
+### Backend Data Shapes
+
+```
+AuthResponse     → { userId, username, email, token, role }
+ProductResponse  → { id, name, description, price, imageUrl, imageUrls, category,
+                     categoryName, categoryId, condition, contactNote, sellerId,
+                     sellerName, status, averageRating, reviewCount, createdAt }
+TransactionResponse → { id, buyer: {id, username, email},
+                         seller: {id, username, email},
+                         product: {id, name, price, imageUrl},
+                         amount, status, createdAt }
+ReviewResponse   → { id, userId, username, productId, rating, content, createdAt }
+MessageResponse  → { id, transactionId, senderId, senderName, content, createdAt }
+```
+
+---
+
+## 🚀 Cài Đặt & Chạy
+
+### Yêu cầu
+
+- **Node.js** ≥ 18
+- **npm** ≥ 9
+- **Backend** đang chạy tại `http://localhost:5171` (tùy chọn — có mock fallback)
+
+### Clone & install
 
 ```bash
-# 1. Clone & install
-git clone https://github.com/trhlow/educycle-frontend.git
-cd educycle-frontend
+git clone https://github.com/trhlow/EDUCYCLE.git
+cd EDUCYCLE/source/frontend
 npm install
 
 # 2. Configure

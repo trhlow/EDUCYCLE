@@ -10,6 +10,7 @@ import com.educycle.repository.MessageRepository;
 import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.MessageService;
+import com.educycle.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository     messageRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository        userRepository;
+    private final NotificationService   notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -52,6 +54,20 @@ public class MessageServiceImpl implements MessageService {
                 .build();
 
         messageRepository.save(message);
+
+        UUID recipientId = senderId.equals(transaction.getBuyer().getId())
+                ? transaction.getSeller().getId()
+                : transaction.getBuyer().getId();
+        String preview = request.content().length() > 50
+                ? request.content().substring(0, 50) + "..."
+                : request.content();
+        notificationService.create(
+                recipientId,
+                "NEW_MESSAGE",
+                "Tin nhắn mới",
+                sender.getUsername() + ": " + preview,
+                transactionId);
+
         return mapToResponse(message);
     }
 

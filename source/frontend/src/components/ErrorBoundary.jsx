@@ -1,52 +1,56 @@
 import { Component } from 'react';
 
-export default class ErrorBoundary extends Component {
-  state = { hasError: false, error: null };
+export class ErrorBoundary extends Component {
+  state = { error: null };
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    return { error };
   }
 
   componentDidCatch(error, info) {
-    console.error('[ErrorBoundary]', error, info.componentStack);
+    console.error('[EduCycle] Uncaught render error:', error, info?.componentStack);
   }
 
   render() {
-    if (this.state.hasError) {
+    if (this.state.error) {
       return (
-        <div style={{
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          minHeight: '60vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-          <h2 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-            Đã xảy ra lỗi
-          </h2>
-          <p style={{
-            color: 'var(--text-secondary)',
-            marginBottom: '1.5rem',
-            maxWidth: '400px',
-          }}>
-            {this.state.error?.message || 'Đã xảy ra lỗi không mong muốn.'}
+        <div
+          style={{
+            minHeight: '100vh',
+            padding: '2rem',
+            fontFamily: 'system-ui, sans-serif',
+            background: '#fef2f2',
+            color: '#991b1b',
+          }}
+        >
+          <h1 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Đã xảy ra lỗi giao diện</h1>
+          <p style={{ marginBottom: '1rem', maxWidth: '42rem' }}>
+            Ứng dụng gặp lỗi khi hiển thị. Bạn có thể tải lại trang hoặc xóa dữ liệu trình duyệt cho site này
+            (localStorage) nếu vừa đăng nhập / cập nhật phiên bản.
           </p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
+          <pre
             style={{
-              padding: '0.75rem 2rem',
-              background: 'var(--primary-600)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              fontSize: 'var(--text-base)',
-              cursor: 'pointer',
+              padding: '1rem',
+              background: '#fff',
+              borderRadius: 8,
+              overflow: 'auto',
+              fontSize: '0.8rem',
+              border: '1px solid #fecaca',
             }}
           >
-            Thử lại
+            {this.state.error?.message || String(this.state.error)}
+          </pre>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1rem',
+              padding: '0.5rem 1rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            Tải lại trang
           </button>
         </div>
       );

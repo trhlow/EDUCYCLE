@@ -12,6 +12,7 @@ import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
 import com.educycle.repository.ReviewRepository;
 import com.educycle.repository.UserRepository;
+import com.educycle.service.NotificationService;
 import com.educycle.service.ProductService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -45,10 +46,11 @@ import static com.educycle.util.PrivacyHelper.maskUsername;
 @Transactional
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
-    private final ReviewRepository  reviewRepository;
-    private final UserRepository    userRepository;
-    private final ObjectMapper      objectMapper;
+    private final ProductRepository    productRepository;
+    private final ReviewRepository     reviewRepository;
+    private final UserRepository       userRepository;
+    private final ObjectMapper         objectMapper;
+    private final NotificationService  notificationService;
 
     // ===== CREATE =====
 
@@ -183,6 +185,14 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.APPROVED);
         productRepository.save(product);
         log.info("Product approved: {}", id);
+
+        notificationService.create(
+                product.getUser().getId(),
+                "PRODUCT_APPROVED",
+                "Sản phẩm được duyệt",
+                "Sản phẩm '" + product.getName() + "' đã được duyệt và hiển thị trên sàn.",
+                product.getId());
+
         return mapToResponse(product, Collections.emptyList());
     }
 
@@ -196,6 +206,14 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.REJECTED);
         productRepository.save(product);
         log.info("Product rejected: {}", id);
+
+        notificationService.create(
+                product.getUser().getId(),
+                "PRODUCT_REJECTED",
+                "Sản phẩm bị từ chối",
+                "Sản phẩm '" + product.getName() + "' đã bị từ chối. Vui lòng chỉnh sửa và đăng lại.",
+                product.getId());
+
         return mapToResponse(product, Collections.emptyList());
     }
 

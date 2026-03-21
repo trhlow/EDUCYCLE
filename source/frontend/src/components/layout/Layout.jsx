@@ -1,8 +1,11 @@
 import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
 
 export default function Layout() {
+  const { isAdmin, isAuthenticated } = useAuth();
+
   return (
     <div className="app-layout">
       <Navbar />
@@ -24,9 +27,25 @@ export default function Layout() {
             </div>
             <div className="footer-section">
               <h4 className="footer-section-title">Tài khoản</h4>
-              <Link to="/dashboard" className="footer-link">Bảng điều khiển</Link>
-              <Link to="/profile" className="footer-link">Hồ sơ</Link>
-              <Link to="/wishlist" className="footer-link">Yêu thích</Link>
+              {isAuthenticated && (
+                <>
+                  {isAdmin ? (
+                    <Link to="/admin" className="footer-link">Quản trị</Link>
+                  ) : (
+                    <>
+                      <Link to="/profile" className="footer-link">Hồ sơ</Link>
+                      <Link to="/wishlist" className="footer-link">Yêu thích</Link>
+                      <Link to="/transactions" className="footer-link">Giao dịch</Link>
+                    </>
+                  )}
+                </>
+              )}
+              {!isAuthenticated && (
+                <>
+                  <Link to="/auth" className="footer-link">Đăng nhập</Link>
+                  <Link to="/auth" className="footer-link">Đăng ký</Link>
+                </>
+              )}
             </div>
             <div className="footer-section">
               <h4 className="footer-section-title">Liên hệ</h4>

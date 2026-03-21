@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { readStoredArray } from '../utils/safeStorage';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem('cart');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [items, setItems] = useState(() => readStoredArray('cart'));
   const [lastAction, setLastAction] = useState(null);
 
   useEffect(() => {
@@ -64,6 +62,7 @@ export function CartProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {

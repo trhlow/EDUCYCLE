@@ -72,6 +72,7 @@ class AuthServiceTest {
             given(userRepository.existsByEmail("test@example.com")).willReturn(false);
             given(passwordEncoder.encode("Password123")).willReturn("hashed_password");
             given(jwtTokenProvider.generateToken(any(User.class))).willReturn("fake-jwt-token");
+            given(jwtTokenProvider.generateRefreshToken()).willReturn("fake-refresh-token");
 
             // Act
             AuthResponse result = authService.register(request);
@@ -81,7 +82,10 @@ class AuthServiceTest {
             assertThat(result.email()).isEqualTo("test@example.com");
             assertThat(result.token()).isEqualTo("fake-jwt-token");
             assertThat(result.role()).isEqualTo("USER");
-            verify(userRepository, times(1)).save(any(User.class));
+            assertThat(result.refreshToken()).isEqualTo("fake-refresh-token");
+            assertThat(result.refreshTokenExpiry()).isNotNull();
+            // register() save + buildAuthResponse() save (refresh token)
+            verify(userRepository, times(2)).save(any(User.class));
         }
 
         @Test
@@ -134,6 +138,7 @@ class AuthServiceTest {
                     .willReturn(Optional.of(existingUser));
             given(passwordEncoder.matches("Password123", "hashed_password")).willReturn(true);
             given(jwtTokenProvider.generateToken(existingUser)).willReturn("fake-jwt-token");
+            given(jwtTokenProvider.generateRefreshToken()).willReturn("fake-refresh-token");
 
             // Act
             AuthResponse result = authService.login(request);
@@ -142,6 +147,8 @@ class AuthServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.token()).isEqualTo("fake-jwt-token");
             assertThat(result.userId()).isEqualTo(existingUser.getId());
+            assertThat(result.refreshToken()).isEqualTo("fake-refresh-token");
+            verify(userRepository, times(1)).save(existingUser);
         }
 
         @Test

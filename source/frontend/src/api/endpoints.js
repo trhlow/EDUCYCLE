@@ -4,10 +4,12 @@ import api from './axios';
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  refresh: (data) => api.post('/auth/refresh', data),
+  logout: (data) => api.post('/auth/logout', data),
   verifyOtp: (data) => api.post('/auth/verify-otp', data),
   resendOtp: (data) => api.post('/auth/resend-otp', data),
-  verifyPhone: (data) => api.post('/auth/verify-phone', data),
   socialLogin: (data) => api.post('/auth/social-login', data),
+  verifyPhone: (data) => api.post('/auth/verify-phone', data),
 };
 
 // ─── Products ────────────────────────────────────────
@@ -72,6 +74,14 @@ export const reviewsApi = {
   // User-to-user reviews
   getByUser: (userId) => api.get(`/reviews/user/${userId}`),
   createUserReview: (data) => api.post('/reviews', data),
+};
+
+// ─── Notifications ──────────────────────────────────
+export const notificationsApi = {
+  getRecent: () => api.get('/notifications'),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
 };
 
 // ─── Admin ───────────────────────────────────────────

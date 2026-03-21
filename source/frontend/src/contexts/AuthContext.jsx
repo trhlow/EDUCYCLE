@@ -1,15 +1,17 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { authApi } from '../api/endpoints';
+import { clearAuthStorage, loadAuthSession } from '../utils/safeSession';
 
 const AuthContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
-function saveSession(tokenValue, userData, setToken, setUser) {
+function persistSession(userData, tokenValue, refreshTokenValue = null) {
   localStorage.setItem('token', tokenValue);
   localStorage.setItem('user', JSON.stringify(userData));
-  setToken(tokenValue);
-  setUser(userData);
+  if (refreshTokenValue) {
+    localStorage.setItem('refreshToken', refreshTokenValue);
+  } else {
+    localStorage.removeItem('refreshToken');
+  }
 }
 
 function decodeJwtPayload(token) {
@@ -27,28 +29,23 @@ function decodeJwtPayload(token) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(() => loadAuthSession());
+  const { user, token } = session;
 
-  // Restore session from localStorage on mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+  const loading = false;
+
+  const applySession = (nextUser, nextToken, refreshTokenValue = null) => {
+    if (!nextUser || !nextToken) {
+      clearAuthStorage();
+      setSession({ user: null, token: null });
+      return;
     }
-    setLoading(false);
-  }, []);
+    persistSession(nextUser, nextToken, refreshTokenValue);
+    setSession({ user: nextUser, token: nextToken });
+  };
 
   /**
-   * Login — authenticate via backend API
+   * Login — backend only (no mock bypass)
    */
   const login = async (email, password) => {
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
@@ -65,21 +62,13 @@ export function AuthProvider({ children }) {
         isEmailVerified: data.isEmailVerified ?? true,
       };
 
-      saveSession(jwt, userData, setToken, setUser);
+      applySession(userData, jwt, data.refreshToken || null);
       return userData;
     } catch (err) {
-      const isNetworkError =
-        err.code === 'ERR_NETWORK' ||
-        err.message?.includes('Network Error') ||
-        !err.response;
-
-      if (isNetworkError) {
-        throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối.');
-      }
-
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
+        (err.code === 'ERR_NETWORK' ? 'Không thể kết nối server. Vui lòng thử lại sau.' : null) ||
         err.response?.data ||
         'Đăng nhập thất bại. Kiểm tra lại email và mật khẩu.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
@@ -87,8 +76,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Register — returns user data WITHOUT auto-navigating.
-   * After register, the UI should show OTP verification form.
+   * Register — backend only (no mock bypass)
    */
   const register = async (username, email, password) => {
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
@@ -96,8 +84,6 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
-
-      // Save session but mark as unverified
       if (data.token) {
         const jwt = data.token;
         const userData = {
@@ -107,8 +93,9 @@ export function AuthProvider({ children }) {
           role: data.role || 'User',
           isEmailVerified: data.isEmailVerified ?? false,
         };
-        saveSession(jwt, userData, setToken, setUser);
-        return { ...userData, message: data.message };
+
+        applySession(userData, jwt, data.refreshToken || null);
+        return userData;
       }
 
       // Fallback: backend might not return token until verified
@@ -119,128 +106,90 @@ export function AuthProvider({ children }) {
         message: data.message || 'Vui lòng kiểm tra email để xác thực OTP.',
       };
     } catch (err) {
-      const isNetworkError =
-        err.code === 'ERR_NETWORK' ||
-        err.message?.includes('Network Error') ||
-        !err.response;
-
-      if (isNetworkError) {
-        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
-      }
-
       const message =
         err.response?.data?.message ||
         err.response?.data?.title ||
+        (err.code === 'ERR_NETWORK' ? 'Không thể kết nối server. Vui lòng thử lại sau.' : null) ||
         err.response?.data ||
         'Đăng ký thất bại. Vui lòng thử lại.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
   };
 
-  /**
-   * Verify OTP — complete email verification
-   */
-  const verifyOtp = async (email, otp) => {
-    try {
-      await authApi.verifyOtp({ email, otp });
-      // Update local user state
-      const updated = { ...user, isEmailVerified: true };
-      setUser(updated);
-      localStorage.setItem('user', JSON.stringify(updated));
-      return true;
-    } catch (err) {
-      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
-      if (isNetworkError) {
-        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-      }
-      const message = err.response?.data?.message || err.response?.data || 'OTP không hợp lệ';
-      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
-    }
+  const verifyOtp = async (email, otpCode) => {
+    if (!email || !otpCode) throw new Error('Email và mã OTP là bắt buộc');
+    const res = await authApi.verifyOtp({ email, otpCode });
+    return res.data;
   };
 
-  /**
-   * Resend OTP
-   */
   const resendOtp = async (email) => {
-    try {
-      await authApi.resendOtp({ email });
-      return true;
-    } catch (err) {
-      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
-      if (isNetworkError) {
-        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    if (!email) throw new Error('Email là bắt buộc');
+    const res = await authApi.resendOtp({ email });
+    return res.data;
+  };
+
+  const socialLogin = async (provider, idToken) => {
+    if (!provider || !idToken) throw new Error('Provider và idToken là bắt buộc');
+
+    const res = await authApi.socialLogin({ provider, idToken });
+    const data = res.data;
+    const jwt = data.token;
+    const userData = {
+      id: data.userId,
+      username: data.username,
+      email: data.email,
+      role: data.role || 'User',
+    };
+
+    applySession(userData, jwt, data.refreshToken || null);
+    return userData;
+  };
+
+  const verifyPhone = async (phoneNumber, otpCode) => {
+    if (!phoneNumber || !otpCode) throw new Error('Số điện thoại và mã OTP là bắt buộc');
+    const res = await authApi.verifyPhone({ phoneNumber, otpCode });
+    return res.data;
+  };
+
+  const logout = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        await authApi.logout({ refreshToken });
+      } catch {
+        // best-effort
       }
-      throw new Error(err.response?.data?.message || 'Gửi lại OTP thất bại');
     }
-  };
-
-  /**
-   * Social Logins — redirect to backend OAuth endpoint
-   */
-  const loginWithGoogle = () => {
-    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/google-login`;
-  };
-  const loginWithFacebook = () => {
-    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/facebook-login`;
-  };
-  const loginWithMicrosoft = () => {
-    window.location.href = `${API_BASE.replace('/api', '')}/api/oauth/microsoft-login`;
-  };
-
-  /**
-   * Handle OAuth callback — parse JWT from redirect URL
-   */
-  const handleOAuthCallback = (jwtToken) => {
-    const decoded = decodeJwtPayload(jwtToken);
-    if (decoded) {
-      saveSession(jwtToken, { ...decoded, isEmailVerified: true }, setToken, setUser);
-    }
-  };
-
-  /**
-   * Phone Verification — in Profile page
-   */
-  const verifyPhone = async (phone, otp) => {
-    try {
-      await authApi.verifyPhone({ phone, otp });
-      const updated = { ...user, phoneVerified: true, phone };
-      setUser(updated);
-      localStorage.setItem('user', JSON.stringify(updated));
-      return true;
-    } catch (err) {
-      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
-      if (isNetworkError) {
-        throw new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-      }
-      return false;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+    clearAuthStorage();
+    setSession({ user: null, token: null });
   };
 
   const updateProfile = (updates) => {
+    if (!user) return;
     const updated = { ...user, ...updates };
-    setUser(updated);
     localStorage.setItem('user', JSON.stringify(updated));
+    setSession((s) => ({ ...s, user: updated }));
   };
 
-  const isAdmin = user?.role === 'Admin';
-  const isAuthenticated = !!token;
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
+  const isAuthenticated = !!(token && user?.id);
 
   return (
     <AuthContext.Provider
       value={{
-        user, token, loading,
-        login, register, logout, updateProfile,
-        loginWithMicrosoft, loginWithGoogle, loginWithFacebook,
-        handleOAuthCallback,
-        verifyOtp, resendOtp, verifyPhone,
-        isAdmin, isAuthenticated,
+        user,
+        token,
+        loading,
+        login,
+        register,
+        verifyOtp,
+        resendOtp,
+        socialLogin,
+        verifyPhone,
+        logout,
+        updateProfile,
+        isAdmin,
+        isAuthenticated,
       }}
     >
       {children}
@@ -248,6 +197,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
