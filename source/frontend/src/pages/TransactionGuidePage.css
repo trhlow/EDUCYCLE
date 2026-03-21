@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════════════
+   TransactionGuidePage.css - Hướng dẫn giao dịch
+   ═══════════════════════════════════════════════════ */
+
+.guide-page {
+  min-height: 80vh;
+}
+
+.guide-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+/* ─── Hero ──────────────────────── */
+.guide-hero {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  background: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-8);
+}
+
+.guide-hero-title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.guide-hero-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.guide-back-btn {
+  display: inline-flex;
+  padding: var(--space-2) var(--space-4);
+  color: var(--primary-600);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.guide-back-btn:hover {
+  color: var(--primary-700);
+  text-decoration: underline;
+}
+
+/* ─── Section Titles ──────────────── */
+.guide-section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+/* ═══ Steps ═══ */
+.guide-steps-section {
+  margin-bottom: var(--space-12);
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-5);
+}
+
+.guide-step-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  transition: var(--transition);
+}
+
+.guide-step-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.guide-step-number {
+  position: absolute;
+  top: -12px;
+  left: var(--space-4);
+  width: 28px;
+  height: 28px;
+  background: var(--primary-500);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.guide-step-icon {
+  font-size: 2rem;
+  margin-bottom: var(--space-3);
+}
+
+.guide-step-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.guide-step-desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-3);
+}
+
+.guide-step-tips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.guide-step-tips li {
+  font-size: var(--text-xs);
+  color: var(--primary-700);
+  background: var(--primary-50);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+/* ═══ Flow Diagram ═══ */
+.guide-flow-section {
+  margin-bottom: var(--space-12);
+}
+
+.guide-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+}
+
+.guide-flow-item {
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-lg);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  text-align: center;
+  border: 2px solid;
+}
+
+.guide-flow-pending { background: var(--warning-light); border-color: #fbbf24; color: #92400e; }
+.guide-flow-accepted { background: var(--info-light); border-color: #60a5fa; color: #1e40af; }
+.guide-flow-meeting { background: var(--primary-100); border-color: var(--primary-400); color: var(--primary-800); }
+.guide-flow-completed { background: var(--success-light); border-color: #4ade80; color: #166534; }
+.guide-flow-rejected { background: var(--error-light); border-color: #f87171; color: #991b1b; }
+.guide-flow-cancelled { background: var(--neutral-200); border-color: var(--neutral-400); color: var(--neutral-700); }
+
+.guide-flow-arrow {
+  font-size: var(--text-xl);
+  color: var(--text-tertiary);
+}
+
+.guide-flow-branch {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.guide-flow-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.guide-flow-alt {
+  gap: var(--space-3);
+  opacity: 0.85;
+}
+
+/* ═══ Rules ═══ */
+.guide-rules-section {
+  margin-bottom: var(--space-12);
+}
+
+.guide-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.guide-rule-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.guide-rule-icon {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.guide-rule-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.guide-rule-items {
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.guide-rule-items li {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* ═══ FAQ ═══ */
+.guide-faq-section {
+  margin-bottom: var(--space-12);
+}
+
+.guide-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.guide-faq-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.guide-faq-item[open] {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-200);
+}
+
+.guide-faq-question {
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.guide-faq-question::after {
+  content: '▸';
+  transition: var(--transition);
+  font-size: var(--text-lg);
+  color: var(--text-tertiary);
+}
+
+.guide-faq-item[open] .guide-faq-question::after {
+  transform: rotate(90deg);
+}
+
+.guide-faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.guide-faq-answer {
+  padding: 0 var(--space-5) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  border-top: 1px solid var(--border-light);
+  padding-top: var(--space-3);
+}
+
+/* ═══ CTA ═══ */
+.guide-cta {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+  border-radius: var(--radius-xl);
+  color: white;
+}
+
+.guide-cta h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-2);
+}
+
+.guide-cta p {
+  font-size: var(--text-base);
+  opacity: 0.9;
+  margin-bottom: var(--space-6);
+}
+
+.guide-cta-btns {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.guide-cta-primary,
+.guide-cta-secondary {
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition: var(--transition);
+  font-size: var(--text-sm);
+}
+
+.guide-cta-primary {
+  background: white;
+  color: var(--primary-600);
+}
+
+.guide-cta-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: var(--primary-700);
+}
+
+.guide-cta-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.guide-cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  color: white;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .guide-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-rules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-flow-branch {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}

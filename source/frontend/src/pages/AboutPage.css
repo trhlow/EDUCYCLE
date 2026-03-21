@@ -1,0 +1,66 @@
+.about-page { }
+.about-hero {
+  text-align: center; padding: var(--space-16) var(--space-4);
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+  color: white;
+}
+.about-hero-title { font-size: var(--text-4xl); font-weight: var(--weight-extrabold); font-family: var(--font-display); }
+.about-hero-subtitle { font-size: var(--text-lg); opacity: 0.9; max-width: 600px; margin: var(--space-4) auto 0; }
+
+.about-section { max-width: 1000px; margin: 0 auto; padding: var(--space-16) var(--space-4); }
+.about-section-title { text-align: center; font-size: var(--text-3xl); font-weight: var(--weight-bold); margin-bottom: var(--space-10); }
+
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-10); align-items: center; }
+.about-text h2 { font-size: var(--text-2xl); font-weight: var(--weight-bold); margin-bottom: var(--space-4); }
+.about-text p { color: var(--text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-4); }
+.about-image img { width: 100%; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+
+.about-stats-section { background: var(--bg-secondary); padding: var(--space-12) var(--space-4); }
+.about-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6); max-width: 800px; margin: 0 auto; text-align: center; }
+.about-stat-value { font-size: var(--text-3xl); font-weight: var(--weight-extrabold); color: var(--primary-600); font-family: var(--font-display); }
+.about-stat-label { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+
+.about-values { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6); }
+.about-value-card {
+  text-align: center; padding: var(--space-6); background: var(--bg-elevated);
+  border: 1px solid var(--border-light); border-radius: var(--radius-xl); transition: var(--transition);
+}
+.about-value-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.about-value-icon { font-size: 2.5rem; margin-bottom: var(--space-4); }
+.about-value-card h3 { font-weight: var(--weight-bold); margin-bottom: var(--space-2); }
+.about-value-card p { font-size: var(--text-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+.about-team { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6); }
+.about-team-card {
+  text-align: center; padding: var(--space-6); background: var(--bg-elevated);
+  border: 1px solid var(--border-light); border-radius: var(--radius-xl);
+}
+.about-team-avatar { font-size: 3rem; margin-bottom: var(--space-3); }
+.about-team-card h3 { font-weight: var(--weight-semibold); }
+.about-team-card p { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+
+.about-cta {
+  text-align: center; padding: var(--space-16) var(--space-4);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700)); color: white;
+}
+.about-cta h2 { font-size: var(--text-3xl); font-weight: var(--weight-bold); }
+.about-cta p { opacity: 0.9; margin: var(--space-4) 0 var(--space-8); font-size: var(--text-lg); }
+.about-cta-actions { display: flex; gap: var(--space-4); justify-content: center; }
+.about-cta-primary, .about-cta-secondary {
+  padding: var(--space-3) var(--space-8); border-radius: var(--radius-lg); font-weight: var(--weight-semibold);
+  text-decoration: none; transition: var(--transition);
+}
+.about-cta-primary { background: white; color: var(--accent-700); }
+.about-cta-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.about-cta-secondary { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); }
+.about-cta-secondary:hover { background: rgba(255,255,255,0.1); border-color: white; }
+
+@media (max-width: 768px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .about-stats { grid-template-columns: repeat(2, 1fr); }
+  .about-values, .about-team { grid-template-columns: 1fr 1fr; }
+  .about-hero-title { font-size: var(--text-3xl); }
+}
+@media (max-width: 480px) {
+  .about-values, .about-team { grid-template-columns: 1fr; }
+}
