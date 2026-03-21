@@ -1,0 +1,15 @@
+# EduCycle — Cursor Rules (compatibility fallback)
+# Full rules: .cursor/rules/educycle.mdc
+# Project notes & status: NOTES.md
+
+## Stack
+- Backend: Java 17 + Spring Boot 3.2.5 + PostgreSQL + Flyway | port 8080
+- Frontend: React 19 + Vite 7 + JavaScript + CSS Variables (tokens.css) | port 5173
+
+## Non-negotiable rules
+1. Status from backend is always UPPERCASE: "PENDING" "ACCEPTED" "APPROVED" "ADMIN" → use .toUpperCase() in FE
+2. Flyway: V1/V2/V3 exist — next is V4, never edit existing migrations
+3. Refresh token: SecureRandom 64 bytes — never UUID.randomUUID()
+4. CSS: var(--token-name) only — never hardcode hex or px values
+5. AuthContext: no mock fallback — throw real errors when backend is down
+6. Git: never `git add .` — use Conventional Commits

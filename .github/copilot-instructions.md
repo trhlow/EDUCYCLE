@@ -1,30 +1,54 @@
-# Copilot / AI — Quy tắc làm việc (EduCycle Monorepo)
+# EduCycle — AI / Copilot Instructions
+
+## Stack thực tế (không dùng .NET)
+- **Backend**: Java 17 + Spring Boot 3.2.5 + PostgreSQL + Flyway
+- **Frontend**: React 19 + Vite 7 + Axios + Context API
+- **Backend path**: `source/backend/educycle-java/` (build: `pom.xml`, run: `mvn spring-boot:run`)
+- **Frontend path**: `source/frontend/` (run: `npm run dev`)
+- **API port**: `http://localhost:8080` (không phải 5171)
 
 ## Quy trình Git (bắt buộc)
+- Làm xong mỗi feature → commit trước rồi mới làm tiếp
+- Dùng **feature branch workflow**: `feature/be-<tên>` hoặc `feature/fe-<tên>` → `dev` → `main`
+- **Không bao giờ** `git add .` — stage từng file cụ thể
 
-Khi làm thêm bất kỳ tính năng nào, **phải dừng lại, commit feature đã lên git** trước rồi mới tiếp tục làm phần tiếp theo. Dùng **feature branch workflow** (không gom nhiều feature không liên quan trong một commit lớn).
+## Commit message format
+```
+<type>(<scope>): <mô tả>
+```
+- `type`: feat | fix | refactor | docs | chore | security | test
+- `scope`: be | fe | db | ws | auth | docs
 
-## Đường dẫn quan trọng trong monorepo
+## Rules bắt buộc
+- Status enums từ backend luôn **UPPERCASE**: `"PENDING"` `"ADMIN"` `"APPROVED"` — dùng `.toUpperCase()` khi compare
+- Flyway: V1, V2, V3 đã có → thêm **V4** nếu cần. Không sửa file cũ
+- Refresh token: dùng `SecureRandom` — không dùng `UUID.randomUUID()`
+- CSS: dùng `var(--token-name)` — không hardcode màu hex
+- Không có mock bypass trong `AuthContext`
 
-| Thành phần | Đường dẫn |
-|------------|-----------|
-| Backend (.NET 10) | `source/backend/EduCycle.Api/` |
-| Backend (Java / Spring Boot, nếu có trong repo) | `source/backend/educycle-java/` — file build: `pom.xml` |
-| Project file .NET | `source/backend/EduCycle.Api/*.csproj` (tên file cụ thể theo solution) |
-| Frontend | `source/frontend/` — `package.json`, `vite.config.*` |
+## Paths quan trọng
+| Thứ | Đường dẫn |
+|-----|-----------|
+| Backend Java | `source/backend/educycle-java/` |
+| Frontend React | `source/frontend/` |
+| DB migrations | `source/backend/educycle-java/src/main/resources/db/migration/` |
+| API config | `source/backend/educycle-java/src/main/resources/application.yml` |
 | CI/CD | `.github/workflows/ci.yml` |
-| Quy tắc AI (file này) | `.github/copilot-instructions.md` |
+| Cursor rules | `.cursor/rules/` |
 
-## Branch naming
+## Build / verify trước khi push
+```powershell
+# Backend
+cd source\backend\educycle-java
+mvn clean compile -q
 
-- `feature/<ten-tinh-nang>` — tính năng mới  
-- `fix/<ten-loi>` — sửa lỗi  
-- `docs/<noi-dung>` — chỉ tài liệu  
+# Frontend
+cd source\frontend
+npm run build
+```
 
-Luồng gợi ý: `feature/*` → `dev` → `main` (theo quy ước team).
-
-## Gợi ý khi chỉnh code
-
-- Backend: ưu tiên chạy test / build local (`dotnet build` hoặc `mvn verify`) trước khi push.  
-- Frontend: `npm run lint` / `npm run build` khi đụng cấu hình hoặc dependency.  
-- Không commit secret, connection string production, hoặc file `.env` thật — dùng `.env.example` và biến môi trường CI.
+## Không commit
+- `source/backend/educycle-java/target/`
+- `source/frontend/dist/`
+- `source/frontend/node_modules/`
+- `.env` thật — dùng `.env.example`

@@ -14,10 +14,9 @@ Nền tảng **P2P trao đổi sách giáo trình và tài liệu học tập** 
 
 | Tài liệu | Mô tả |
 |----------|--------|
-| [Backend](source/backend/README.md) | API, stack, endpoint, chạy local |
+| [Backend (Java)](source/backend/educycle-java/README.md) | API, stack, endpoint, chạy local |
 | [Frontend](source/frontend/README.md) | UI, design system, tích hợp API |
-| [CHANGELOG](CHANGELOG.md) | Lịch sử thay đổi & migration |
-| [AI_CONTEXT](AI_CONTEXT.md) | Bản đồ project cho AI |
+| [NOTES](NOTES.md) | Trạng thái dự án, changelog (mục 7), git, prompt AI |
 
 ---
 
@@ -32,9 +31,7 @@ EDUCYCLE/
 ├── .github/
 │   ├── workflows/               # CI/CD (ci.yml)
 │   └── copilot-instructions.md
-├── AI_CONTEXT.md                # Bản đồ project cho AI
-├── GITFLOW.md                   # Commit convention + branching
-├── CHANGELOG.md
+├── NOTES.md                     # Trạng thái, changelog, git, prompt AI
 └── README.md
 ```
 
@@ -53,7 +50,7 @@ git clone https://github.com/trhlow/EDUCYCLE.git
 cd EDUCYCLE/source/backend/educycle-java
 
 # Cần PostgreSQL chạy trước
-# Xem hướng dẫn: source/backend/README.md
+# Xem hướng dẫn: source/backend/educycle-java/README.md
 
 mvn spring-boot:run
 ```
@@ -112,7 +109,7 @@ Workflow GitHub Actions: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
 ## Changelog
 
-Xem chi tiết tại **[CHANGELOG.md](CHANGELOG.md)**.
+Xem chi tiết tại **[NOTES.md — mục 7. CHANGELOG](NOTES.md#7-changelog)**.
 
 ---
 

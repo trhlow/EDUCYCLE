@@ -25,6 +25,12 @@ build/
 *.swp
 *.swo
 
+# === Cursor — commit rules, ignore user-specific settings ===
+.cursor/mcp.json
+.cursor/settings.json
+.cursor/chat/
+# .cursor/rules/ is intentionally committed and shared with the team
+
 # === OS ===
 .DS_Store
 Thumbs.db

@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "gitnexus:analyze": "gitnexus analyze . --skills"
   },
   "lint-staged": {
     "src/**/*.{js,jsx}": [
@@ -44,6 +45,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "gitnexus": "^1.4.7",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "jsdom": "^29.0.0",
