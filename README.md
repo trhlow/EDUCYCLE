@@ -1,129 +1,211 @@
-# EduCycle Monorepo
+# EduCycle
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vite.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-Nền tảng **P2P trao đổi sách giáo trình và tài liệu học tập** dành cho sinh viên — gồm REST API (Java 17 + Spring Boot 3.2.5) và SPA (React 19 + Vite 7).
-
----
-
-## Quick Links
-
-| Tài liệu | Mô tả |
-|----------|--------|
-| [Backend (Java)](source/backend/educycle-java/README.md) | API, stack, endpoint, chạy local |
-| [Frontend](source/frontend/README.md) | UI, design system, tích hợp API |
-| [NOTES](NOTES.md) | Trạng thái dự án, changelog (mục 7), git, prompt AI |
+**EduCycle** là nền tảng trao đổi sách và tài liệu học tập dành cho sinh viên — dự án cá nhân do **Trần Hoàng Long** thiết kế và phát triển.
 
 ---
 
-## Monorepo Structure
+## Tổng quan
+
+EduCycle giúp sinh viên tìm, đăng bán và trao đổi sách giáo trình, tài liệu học tập một cách nhanh gọn, minh bạch và tiết kiệm chi phí. Hệ thống bao gồm REST API (Java 17 + Spring Boot) và giao diện SPA (React 19 + Vite 7).
+
+### Tính năng chính
+
+- Đăng ký / đăng nhập bằng email `.edu.vn`, Google hoặc Microsoft
+- Xác thực email qua OTP
+- Đăng bán, tìm kiếm và duyệt sản phẩm
+- Giao dịch P2P với OTP xác nhận khi gặp mặt
+- Chat thời gian thực qua WebSocket (STOMP)
+- Hệ thống thông báo (database + STOMP)
+- Đánh giá người bán / người mua
+- Trang quản trị duyệt sản phẩm, quản lý người dùng
+
+---
+
+## Cấu trúc dự án
 
 ```
 EDUCYCLE/
 ├── source/
-│   ├── backend/educycle-java/   # Java 17 + Spring Boot 3.2.5
-│   └── frontend/                # React 19 + Vite 7 SPA
-├── docs/                        # Documentation
-├── .github/
-│   ├── workflows/               # CI/CD (ci.yml)
-│   └── copilot-instructions.md
-├── NOTES.md                     # Trạng thái, changelog, git, prompt AI
+│   ├── backend/educycle-java/   # REST API — Java 17 + Spring Boot 3.2.5
+│   └── frontend/                # SPA — React 19 + Vite 7
+├── .github/workflows/           # CI/CD
+├── NOTES.md                     # Trạng thái dự án, changelog, quy tắc
 └── README.md
 ```
 
 ---
 
-## Quick Start
+## Công nghệ sử dụng
 
-**Cổng chuẩn khi dev full-stack (Docker Postgres + tránh XAMPP/Apache chiếm 8080):**
+| Thành phần | Công nghệ |
+|------------|-----------|
+| Backend | Java 17, Spring Boot 3.2.5, Spring Security, Spring Data JPA |
+| Cơ sở dữ liệu | PostgreSQL 16, Flyway migrations |
+| Xác thực | JWT (JJWT 0.12.5), Refresh Token rotation, OAuth2 (Google, Microsoft) |
+| Thời gian thực | WebSocket STOMP + SockJS |
+| Giới hạn truy cập | Bucket4j (per-IP rate limiting) |
+| Frontend | React 19, Vite 7, Axios, Context API, React Router 7 |
+| OAuth SDK | @react-oauth/google, @azure/msal-browser |
+| Build | Maven (BE), npm + Vite (FE) |
+| Container | Docker Compose (PostgreSQL) |
 
-| Thành phần | URL / cổng |
-|------------|------------|
-| Frontend (Vite) | [http://localhost:5173](http://localhost:5173) |
-| Backend profile **`docker`** | **http://localhost:8081** (proxy `/api` + `/ws` từ Vite trỏ vào đây) |
-| Backend **mặc định** (không profile) | http://localhost:8080 |
+---
 
-Chi tiết: `source/backend/educycle-java/docker-compose.yml` (Postgres host **5433**), `application-docker.yml` (**8081**).  
-Vite đọc `VITE_DEV_PROXY_TARGET` (mặc định trong `.env.development`: **8080**, khớp `mvn spring-boot:run` không profile). Chạy BE profile **docker** (8081) thì đặt trong `source/frontend/.env.local`: `VITE_DEV_PROXY_TARGET=http://localhost:8081`.
+## Hướng dẫn chạy
 
-<table>
-<tr>
-<td width="50%" valign="top">
+### Yêu cầu
 
-### Backend (Java 17 + Spring Boot)
+- Java 17+
+- Node.js 18+
+- Docker Desktop (để chạy PostgreSQL qua Docker)
+- Maven 3.9+
+
+### 1. Clone dự án
 
 ```bash
 git clone https://github.com/trhlow/EDUCYCLE.git
-cd EDUCYCLE/source/backend/educycle-java
+cd EDUCYCLE
+```
 
-# Khuyến nghị: Postgres Docker + profile docker (port 8081)
+### 2. Khởi động PostgreSQL
+
+```bash
+cd source/backend/educycle-java
 docker compose up -d
+```
+
+PostgreSQL sẽ chạy trên port **5433** với database `educycledb`.
+
+### 3. Chạy Backend
+
+```bash
+cd source/backend/educycle-java
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
-- **Default (không profile):** Postgres tại `localhost:5432`, API **8080** — xem `application.yml`
-- **Profile `docker`:** Postgres `localhost:5433`, API **8081** — xem `application-docker.yml`
-- Flyway chạy migration khi khởi động
-- Swagger: **8080** → `http://localhost:8080/swagger-ui.html` · **docker** → `http://localhost:8081/swagger-ui.html`
+API sẽ chạy trên **http://localhost:8081**. Flyway tự động tạo schema khi khởi động.
 
-</td>
-<td width="50%" valign="top">
+Swagger UI: http://localhost:8081/swagger-ui.html
 
-### Frontend (React 19 + Vite 7)
+### 4. Chạy Frontend
 
 ```bash
-git clone https://github.com/trhlow/EDUCYCLE.git
-cd EDUCYCLE/source/frontend
-
+cd source/frontend
 npm install
 npm run dev
 ```
 
-- Dev server: [http://localhost:5173](http://localhost:5173)
-- Proxy dev: `/api` và `/ws` → backend (mặc định **8081**, đồng bộ profile `docker`)
-- Copy `.env.example` → `.env.local` nếu cần đổi cổng backend
+Ứng dụng sẽ chạy trên **http://localhost:5173**. Vite proxy tự động chuyển `/api` và `/ws` về backend.
 
-</td>
-</tr>
-</table>
+### 5. Đăng nhập thử
+
+| Tài khoản | Email | Mật khẩu |
+|-----------|-------|----------|
+| Admin | `admin@educycle.com` | `admin@1` |
 
 ---
 
-## Tech Stack
+## Cổng mặc định
 
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | Java 17 + Spring Boot 3.2.5 + Spring Security |
-| **Database** | PostgreSQL 15 + Flyway migrations |
-| **Auth** | JWT (JJWT 0.12.5) + Refresh Token rotation |
-| **Real-time** | WebSocket STOMP + SockJS |
-| **Rate Limiting** | Bucket4j 8.10.1 (per-IP) |
-| **Frontend** | React 19 + Vite 7 + Axios + Context API |
-| **Build (BE)** | Maven 3.9+ |
-| **Build (FE)** | npm + Vite |
+| Thành phần | URL |
+|------------|-----|
+| Frontend (Vite dev) | http://localhost:5173 |
+| Backend (profile `docker`) | http://localhost:8081 |
+| PostgreSQL (Docker) | localhost:5433 |
+| Swagger UI | http://localhost:8081/swagger-ui.html |
+
+> Nếu chạy backend không dùng profile `docker` (port 8080), tạo file `source/frontend/.env.local` với nội dung:
+> ```
+> VITE_DEV_PROXY_TARGET=http://localhost:8080
+> ```
+
+---
+
+## API Endpoints
+
+### Auth
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/auth/register` | Đăng ký (gửi OTP qua email) |
+| POST | `/api/auth/login` | Đăng nhập |
+| POST | `/api/auth/verify-otp` | Xác thực OTP |
+| POST | `/api/auth/resend-otp` | Gửi lại OTP |
+| POST | `/api/auth/social-login` | Đăng nhập Google / Microsoft |
+| POST | `/api/auth/refresh` | Làm mới JWT |
+| POST | `/api/auth/logout` | Đăng xuất |
+| POST | `/api/auth/verify-phone` | Xác thực số điện thoại |
+
+### Products
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/products` | Danh sách sản phẩm |
+| GET | `/api/products/{id}` | Chi tiết sản phẩm |
+| POST | `/api/products` | Đăng sản phẩm mới |
+| PUT | `/api/products/{id}` | Cập nhật sản phẩm |
+| DELETE | `/api/products/{id}` | Xóa sản phẩm |
+
+### Transactions
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| POST | `/api/transactions` | Tạo giao dịch |
+| GET | `/api/transactions/mine` | Giao dịch của tôi |
+| PATCH | `/api/transactions/{id}/status` | Cập nhật trạng thái |
+| POST | `/api/transactions/{id}/otp` | Tạo mã OTP |
+| POST | `/api/transactions/{id}/verify-otp` | Xác nhận OTP |
+| POST | `/api/transactions/{id}/confirm` | Xác nhận nhận hàng |
+
+### Khác
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/categories` | Danh mục |
+| POST | `/api/reviews` | Đánh giá |
+| GET | `/api/notifications` | Thông báo |
+| GET | `/ws/**` | WebSocket (STOMP/SockJS) |
+
+---
+
+## Luồng giao dịch
+
+```
+PENDING → ACCEPTED → MEETING → COMPLETED
+                    ↘ DISPUTED  (người mua báo tranh chấp)
+         ↘ REJECTED             (người bán từ chối)
+         ↘ CANCELLED            (người mua hủy)
+```
+
+**Xác nhận OTP khi gặp mặt:**
+1. Người mua tạo mã OTP 6 số
+2. Người mua đọc mã cho người bán
+3. Người bán nhập mã → giao dịch hoàn thành, sản phẩm chuyển trạng thái SOLD
 
 ---
 
 ## CI/CD
 
-Workflow GitHub Actions: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+GitHub Actions workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
-- **Trigger:** `push` và `pull_request` tới `main` và `dev`
+- **Trigger:** push và pull request tới `main`, `dev`
 - **Backend:** `mvn clean compile` trong `source/backend/educycle-java`
 - **Frontend:** `npm ci && npm run build` trong `source/frontend`
 
 ---
 
-## Changelog
+## Tác giả
 
-Xem chi tiết tại **[NOTES.md — mục 7. CHANGELOG](NOTES.md#7-changelog)**.
+**Trần Hoàng Long** — thiết kế, phát triển và hoàn thiện toàn bộ dự án EduCycle.
 
 ---
 
-## License
+## Giấy phép
 
-Đồ án / mục đích học tập — không sử dụng cho mục đích thương mại trừ khi có thỏa thuận khác.
+Dự án phục vụ mục đích học tập — không sử dụng cho mục đích thương mại trừ khi có thỏa thuận riêng.
