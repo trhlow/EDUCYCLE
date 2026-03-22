@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse create(CreateProductRequest request, UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
 
         String imageUrlsJson = serializeImageUrls(request.imageUrls());
         String primaryImage  = request.imageUrl() != null
@@ -89,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductResponse getById(UUID id) {
         Product product = productRepository.findByIdWithUser(id)
-                .orElseThrow(() -> new NotFoundException("Product with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         List<Review> reviews = reviewRepository.findByProductId(id);
         return mapToResponse(product, reviews);
@@ -135,10 +135,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse update(UUID id, UpdateProductRequest request, UUID userId) {
         Product product = productRepository.findByIdWithUser(id)
-                .orElseThrow(() -> new NotFoundException("Product with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         if (!product.getUser().getId().equals(userId)) {
-            throw new UnauthorizedException("You can only update your own products");
+            throw new UnauthorizedException("Bạn chỉ có thể chỉnh sửa sản phẩm của mình");
         }
 
         String primaryImage = request.imageUrl() != null
@@ -165,10 +165,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void delete(UUID id, UUID userId) {
         Product product = productRepository.findByIdWithUser(id)
-                .orElseThrow(() -> new NotFoundException("Product with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         if (!product.getUser().getId().equals(userId)) {
-            throw new UnauthorizedException("You can only delete your own products");
+            throw new UnauthorizedException("Bạn chỉ có thể xóa sản phẩm của mình");
         }
 
         productRepository.delete(product);
@@ -180,7 +180,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse approve(UUID id) {
         Product product = productRepository.findByIdWithUser(id)
-                .orElseThrow(() -> new NotFoundException("Product with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         product.setStatus(ProductStatus.APPROVED);
         productRepository.save(product);
@@ -201,7 +201,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse reject(UUID id) {
         Product product = productRepository.findByIdWithUser(id)
-                .orElseThrow(() -> new NotFoundException("Product with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         product.setStatus(ProductStatus.REJECTED);
         productRepository.save(product);

@@ -3,6 +3,7 @@ package com.educycle.service.impl;
 import com.educycle.dto.auth.*;
 import com.educycle.enums.Role;
 import com.educycle.exception.BadRequestException;
+import com.educycle.exception.NotFoundException;
 import com.educycle.exception.UnauthorizedException;
 import com.educycle.model.User;
 import com.educycle.repository.UserRepository;
@@ -14,20 +15,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.UUID;
 
-/**
- * Maps C# AuthService.cs
- *
- * Key differences:
- *  - BCrypt.Net.BCrypt.HashPassword()   → passwordEncoder.encode()
- *  - BCrypt.Net.BCrypt.Verify()         → passwordEncoder.matches()
- *  - _jwtTokenGenerator.GenerateToken() → jwtTokenProvider.generateToken()
- *  - Task<T> async                      → synchronous (Spring MVC thread-per-request)
- *  - throw new BadRequestException()    → same custom exception, different package
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,45 +31,51 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-    // ===== REGISTER =====
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Override
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new BadRequestException("Email already exists");
+        String email = normalizeEmail(request.email());
+        if (userRepository.existsByEmail(email)) {
+            throw new BadRequestException("Email này đã được đăng ký");
         }
 
+        String otpToken = generateOtp();
+
         User user = User.builder()
-                .id(UUID.randomUUID())
                 .username(request.username())
-                .email(request.email())
+                .email(email)
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .role(Role.USER)
                 .emailVerified(false)
                 .phoneVerified(false)
+                .emailVerificationToken(otpToken)
+                .emailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES))
                 .build();
 
+        populateRefreshToken(user);
         userRepository.save(user);
-        log.info("New user registered: {}", user.getEmail());
 
-        return buildAuthResponse(user, null);
+        log.info("Đăng ký thành công: {} | OTP (dev-only): {}", email, otpToken);
+
+        return toAuthResponse(user, "Vui lòng xác thực email bằng mã OTP đã gửi.");
     }
-
-    // ===== LOGIN =====
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+        String email = normalizeEmail(request.email());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedException("Email hoặc mật khẩu không đúng"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new UnauthorizedException("Invalid credentials");
+            throw new UnauthorizedException("Email hoặc mật khẩu không đúng");
         }
 
-        return buildAuthResponse(user, null);
-    }
+        populateRefreshToken(user);
+        userRepository.save(user);
 
-    // ===== SOCIAL LOGIN =====
+        return toAuthResponse(user, null);
+    }
 
     @Override
     public AuthResponse socialLogin(SocialLoginRequest request) {
@@ -85,29 +84,31 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = User.builder()
-                    .id(UUID.randomUUID())
                     .username(username)
                     .email(email)
-                    // Random unhashable password — OAuth users cannot use password login
                     .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(Role.USER)
-                    .emailVerified(true)  // social login = email trusted
+                    .emailVerified(true)
                     .phoneVerified(false)
                     .build();
+            populateRefreshToken(newUser);
             userRepository.save(newUser);
-            log.info("Social login: new user created for provider={} email={}", request.provider(), email);
+            log.info("Đăng nhập xã hội: tạo user mới provider={} email={}", request.provider(), email);
             return newUser;
         });
 
-        return buildAuthResponse(user, null);
-    }
+        if (user.getId() != null) {
+            populateRefreshToken(user);
+            userRepository.save(user);
+        }
 
-    // ===== VERIFY PHONE =====
+        return toAuthResponse(user, null);
+    }
 
     @Override
     public boolean verifyPhone(UUID userId, VerifyPhoneRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
 
         user.setPhone(request.phone());
         user.setPhoneVerified(true);
@@ -115,47 +116,79 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-    // ===== OTP — requires email service integration =====
-
     @Override
     public boolean verifyOtp(VerifyOtpRequest request) {
-        // TODO: Integrate with email service for real OTP verification
-        throw new BadRequestException("OTP verification is not yet configured. Contact admin.");
+        String email = normalizeEmail(request.email());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy email này"));
+
+        String storedToken = user.getEmailVerificationToken();
+        Instant expiry = user.getEmailVerificationTokenExpiry();
+
+        boolean valid = storedToken != null
+                && storedToken.equals(request.otp())
+                && expiry != null
+                && expiry.isAfter(Instant.now());
+
+        if (!valid) {
+            log.warn("OTP sai cho {}: expected={}, got={}", email, storedToken, request.otp());
+            throw new BadRequestException("Mã OTP không hợp lệ hoặc đã hết hạn.");
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationTokenExpiry(null);
+        userRepository.save(user);
+
+        log.info("Xác thực email thành công: {}", email);
+        return true;
     }
 
     @Override
     public boolean resendOtp(ResendOtpRequest request) {
-        // TODO: Resend OTP via email service
-        throw new BadRequestException("OTP resend is not yet configured. Contact admin.");
-    }
+        String email = normalizeEmail(request.email());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy email này"));
 
-    // ===== REFRESH TOKEN =====
+        if (user.isEmailVerified()) {
+            throw new BadRequestException("Email đã được xác thực rồi.");
+        }
+
+        String otp = generateOtp();
+        user.setEmailVerificationToken(otp);
+        user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
+        userRepository.save(user);
+
+        log.info("Gửi lại OTP cho: {} | OTP (dev-only): {}", email, otp);
+        return true;
+    }
 
     @Override
     public AuthResponse refreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new BadRequestException("Refresh token is required");
+            throw new BadRequestException("Thiếu refresh token");
         }
 
         User user = userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
+                .orElseThrow(() -> new UnauthorizedException("Refresh token không hợp lệ"));
 
         if (user.getRefreshTokenExpiry() == null
                 || user.getRefreshTokenExpiry().isBefore(Instant.now())) {
             user.setRefreshToken(null);
             user.setRefreshTokenExpiry(null);
             userRepository.save(user);
-            throw new UnauthorizedException("Refresh token expired. Please login again.");
+            throw new UnauthorizedException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         }
 
-        return buildAuthResponse(user, null);
+        populateRefreshToken(user);
+        userRepository.save(user);
+
+        return toAuthResponse(user, null);
     }
 
     @Override
     public void logout(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            return;
-        }
+        if (refreshToken == null || refreshToken.isBlank()) return;
         userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
             user.setRefreshToken(null);
             user.setRefreshTokenExpiry(null);
@@ -163,15 +196,12 @@ public class AuthServiceImpl implements AuthService {
         });
     }
 
-    // ===== Private Helpers =====
+    private void populateRefreshToken(User user) {
+        user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
+        user.setRefreshTokenExpiry(Instant.now().plus(7, ChronoUnit.DAYS));
+    }
 
-    private AuthResponse buildAuthResponse(User user, String message) {
-        String refreshToken = jwtTokenProvider.generateRefreshToken();
-        Instant refreshExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
-        user.setRefreshToken(refreshToken);
-        user.setRefreshTokenExpiry(refreshExpiry);
-        userRepository.save(user);
-
+    private AuthResponse toAuthResponse(User user, String message) {
         return new AuthResponse(
                 user.getId(),
                 user.getUsername(),
@@ -180,16 +210,24 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().name(),
                 user.isEmailVerified(),
                 message,
-                refreshToken,
-                refreshExpiry
+                user.getRefreshToken(),
+                user.getRefreshTokenExpiry()
         );
+    }
+
+    private static String generateOtp() {
+        return String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
     }
 
     private String resolveEmail(SocialLoginRequest request) {
         if (request.email() == null || request.email().isBlank()) {
-            throw new BadRequestException(
-                    "Email is required for social login. Provider: " + request.provider());
+            throw new BadRequestException("Đăng nhập xã hội cần có email. Provider: " + request.provider());
         }
-        return request.email();
+        return normalizeEmail(request.email());
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null) return null;
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

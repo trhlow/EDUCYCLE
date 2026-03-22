@@ -42,10 +42,10 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public MessageResponse send(UUID transactionId, SendMessageRequest request, UUID senderId) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new NotFoundException("Transaction not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
 
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
 
         Message message = Message.builder()
                 .transaction(transaction)

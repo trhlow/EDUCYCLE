@@ -17,5 +17,14 @@ public record TransactionResponse(
         Instant updatedAt
 ) {
     public record TransactionUserDto(String id, String username, String email) {}
-    public record TransactionProductDto(String id, String name, BigDecimal price, String imageUrl) {}
+
+    // FIX: added description and category — FE accesses both fields in TransactionDetailPage
+    public record TransactionProductDto(
+            String id,
+            String name,
+            BigDecimal price,
+            String imageUrl,
+            String description,
+            String category
+    ) {}
 }

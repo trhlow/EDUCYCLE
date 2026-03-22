@@ -36,7 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public CategoryResponse getById(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
         return mapToResponse(category);
     }
 
@@ -52,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse update(Integer id, CreateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
         category.setName(request.name());
         categoryRepository.save(category);
         return mapToResponse(category);
@@ -61,7 +61,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
         categoryRepository.delete(category);
     }
 

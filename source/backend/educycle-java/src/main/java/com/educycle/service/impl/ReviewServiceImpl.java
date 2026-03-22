@@ -34,18 +34,18 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponse create(CreateReviewRequest request, UUID userId) {
         User reviewer = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
 
         Product product = null;
         if (request.productId() != null) {
             product = productRepository.findById(request.productId())
-                    .orElseThrow(() -> new NotFoundException("Product not found"));
+                    .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
         }
 
         User targetUser = null;
         if (request.targetUserId() != null) {
             targetUser = userRepository.findById(request.targetUserId())
-                    .orElseThrow(() -> new NotFoundException("Target user not found"));
+                    .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng được đánh giá"));
         }
 
         Review review = Review.builder()
@@ -65,7 +65,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewResponse getById(UUID id) {
         Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Review with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đánh giá"));
         return mapToResponse(review);
     }
 
@@ -93,10 +93,10 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public void delete(UUID id, UUID userId) {
         Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Review with id '" + id + "' not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đánh giá"));
 
         if (!review.getUser().getId().equals(userId)) {
-            throw new UnauthorizedException("You can only delete your own reviews");
+            throw new UnauthorizedException("Bạn chỉ có thể xóa đánh giá của mình");
         }
 
         reviewRepository.delete(review);
