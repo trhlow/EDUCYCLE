@@ -10,9 +10,9 @@ public record CreateReviewRequest(
         UUID targetUserId,
         UUID transactionId,
 
-        @Min(value = 1, message = "Rating must be at least 1")
-        @Max(value = 5, message = "Rating must be at most 5")
+        @Min(value = 1, message = "Đánh giá tối thiểu là 1 sao")
+        @Max(value = 5, message = "Đánh giá tối đa là 5 sao")
         int rating,
 
-        @NotBlank(message = "Review content is required") String content
+        @NotBlank(message = "Nội dung đánh giá là bắt buộc") String content
 ) {}

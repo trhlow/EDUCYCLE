@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record CreateProductRequest(
-        @NotBlank(message = "Product name is required") String name,
+        @NotBlank(message = "Tên sản phẩm là bắt buộc") String name,
         String description,
 
-        @NotNull(message = "Price is required")
-        @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+        @NotNull(message = "Giá là bắt buộc")
+        @DecimalMin(value = "0.0", inclusive = false, message = "Giá phải lớn hơn 0")
         BigDecimal price,
 
         String imageUrl,
