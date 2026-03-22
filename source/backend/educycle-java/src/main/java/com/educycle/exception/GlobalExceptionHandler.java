@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.educycle.util.MessageConstants;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of("Dữ liệu không hợp lệ", errors));
+                .body(ErrorResponse.of(MessageConstants.VALIDATION_FAILED, errors));
     }
 
     @ExceptionHandler(AppException.class)
@@ -47,11 +48,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
         String detail = ex.getMostSpecificCause().getMessage();
-        log.warn("Vi phạm ràng buộc dữ liệu: {}", detail);
+        log.warn("Data integrity violation: {}", detail);
 
-        String message = "Dữ liệu bị trùng hoặc vi phạm ràng buộc";
+        String message = MessageConstants.DUPLICATE_DATA;
         if (detail != null && detail.contains("uq_users_email")) {
-            message = "Email này đã được đăng ký";
+            message = MessageConstants.EMAIL_ALREADY_EXISTS;
         }
 
         return ResponseEntity
@@ -61,9 +62,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        log.error("Lỗi không xác định", ex);
+        log.error("Unhandled exception", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of("Đã xảy ra lỗi không mong muốn"));
+                .body(ErrorResponse.of(MessageConstants.UNEXPECTED_ERROR));
     }
 }

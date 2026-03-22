@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "User not found with email: " + email));
+                        "Không tìm thấy người dùng với email: " + email));
 
         // Spring Security expects "ROLE_" prefix — matches JwtAuthenticationFilter
         String authority = "ROLE_" + user.getRole().name();

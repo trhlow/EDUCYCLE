@@ -15,6 +15,7 @@ import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.NotificationService;
 import com.educycle.service.TransactionService;
+import com.educycle.util.MessageConstants;
 import com.educycle.util.OtpHasher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,18 +45,19 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse create(CreateTransactionRequest request, UUID buyerId) {
         if (buyerId.equals(request.sellerId())) {
-            throw new BadRequestException("Người mua không thể trùng với người bán");
+            throw new BadRequestException(MessageConstants.BUYER_SAME_AS_SELLER);
         }
 
         User buyer  = userRepository.findById(buyerId)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy người mua"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.BUYER_NOT_FOUND));
         User seller = userRepository.findById(request.sellerId())
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy người bán"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.SELLER_NOT_FOUND));
         Product product = productRepository.findByIdWithUser(request.productId())
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.PRODUCT_NOT_FOUND));
 
         if (product.getStatus() != ProductStatus.APPROVED) {
-            throw new BadRequestException("Sản phẩm không khả dụng để giao dịch (trạng thái: " + product.getStatus() + ")");
+            throw new BadRequestException(
+                    MessageConstants.PRODUCT_NOT_AVAILABLE_PREFIX + product.getStatus() + ")");
         }
 
         Transaction transaction = Transaction.builder()
@@ -85,7 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(readOnly = true)
     public TransactionResponse getById(UUID id) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
         return mapToResponse(t);
     }
 
@@ -110,12 +112,13 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse updateStatus(UUID id, UpdateTransactionStatusRequest request) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
         try {
             t.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Trạng thái giao dịch không hợp lệ: " + request.status());
+            throw new BadRequestException(
+                    MessageConstants.INVALID_TRANSACTION_STATUS_PREFIX + request.status());
         }
 
         transactionRepository.save(t);
@@ -133,7 +136,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Map<String, String> generateOtp(UUID id) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         t.setOtpCode(OtpHasher.hash(otp));
@@ -147,13 +150,13 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void verifyOtp(UUID id, String otp) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
         if (t.getOtpCode() == null
                 || !OtpHasher.verify(otp, t.getOtpCode())
                 || t.getOtpExpiresAt() == null
                 || t.getOtpExpiresAt().isBefore(Instant.now())) {
-            throw new BadRequestException("Mã OTP không hợp lệ hoặc đã hết hạn");
+            throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
         }
 
         t.setOtpCode(null);
@@ -167,7 +170,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse confirmReceipt(UUID id) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
         t.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(t);

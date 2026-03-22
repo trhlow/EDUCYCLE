@@ -1,6 +1,7 @@
 package com.educycle.config;
 
 import jakarta.validation.constraints.NotBlank;
+import com.educycle.util.MessageConstants;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
-    @NotBlank(message = "JWT secret must be configured via JWT_SECRET environment variable")
+    @NotBlank(message = MessageConstants.JWT_SECRET_REQUIRED)
     private String secret;
     private String issuer;
     private String audience;

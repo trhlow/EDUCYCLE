@@ -1,5 +1,6 @@
 package com.educycle.config;
 
+import com.educycle.util.MessageConstants;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
@@ -33,8 +34,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return authBuckets.computeIfAbsent(ip, k ->
                 Bucket.builder()
                         .addLimit(Bandwidth.builder()
-                                .capacity(5)
-                                .refillIntervally(5, Duration.ofMinutes(1))
+                                .capacity(10)
+                                .refillGreedy(10, Duration.ofMinutes(1))
                                 .build())
                         .build()
         );
@@ -49,6 +50,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                 .build())
                         .build()
         );
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "OPTIONS".equalsIgnoreCase(request.getMethod());
     }
 
     @Override
@@ -72,7 +78,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.setStatus(429);
             response.setContentType("application/json");
             response.getWriter().write(
-                    "{\"error\":\"Too many requests. Please try again later.\",\"retryAfter\":60}"
+                    "{\"error\":\"" + MessageConstants.TOO_MANY_REQUESTS + "\",\"retryAfter\":60}"
             );
         }
     }

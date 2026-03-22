@@ -2,6 +2,7 @@ package com.educycle.controller;
 
 import com.educycle.dto.auth.*;
 import com.educycle.service.AuthService;
+import com.educycle.util.MessageConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -63,14 +64,14 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, String>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
         authService.verifyOtp(request);
-        return ResponseEntity.ok(Map.of("message", "Email verified successfully!"));
+        return ResponseEntity.ok(Map.of("message", MessageConstants.EMAIL_VERIFIED_SUCCESS));
     }
 
     // POST /api/auth/resend-otp
     @PostMapping("/resend-otp")
     public ResponseEntity<Map<String, String>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
         authService.resendOtp(request);
-        return ResponseEntity.ok(Map.of("message", "OTP resent successfully!"));
+        return ResponseEntity.ok(Map.of("message", MessageConstants.OTP_RESENT_SUCCESS));
     }
 
     // POST /api/auth/verify-phone  [Authorize]

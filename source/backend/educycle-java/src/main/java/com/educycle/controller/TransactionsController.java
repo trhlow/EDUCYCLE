@@ -82,7 +82,7 @@ public class TransactionsController {
             @Valid @RequestBody TransactionVerifyOtpRequest request) {
 
         transactionService.verifyOtp(id, request.otp());
-        return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
+        return ResponseEntity.ok(Map.of("message", "Xác thực mã OTP thành công"));
     }
 
     // POST /api/transactions/{id}/confirm

@@ -6,6 +6,7 @@ import com.educycle.exception.NotFoundException;
 import com.educycle.model.Category;
 import com.educycle.repository.CategoryRepository;
 import com.educycle.service.CategoryService;
+import com.educycle.util.MessageConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public CategoryResponse getById(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
         return mapToResponse(category);
     }
 
@@ -52,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse update(Integer id, CreateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
         category.setName(request.name());
         categoryRepository.save(category);
         return mapToResponse(category);
@@ -61,7 +62,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
         categoryRepository.delete(category);
     }
 
