@@ -35,94 +35,6 @@ function FacebookIcon() {
   );
 }
 
-/* ── OTP Verification Modal ── */
-function OtpVerifyModal({ email, onVerified, onResend }) {
-  const [otp, setOtp] = useState('');
-  const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-  const { verifyOtp, resendOtp } = useAuth();
-  const toast = useToast();
-  const handleVerify = async () => {
-    if (otp.length < 4) {
-      toast.error('Vui lòng nhập mã OTP (6 số)');
-      return;
-    }
-    setVerifying(true);
-    try {
-      await verifyOtp(email, otp);
-      toast.success('Xác thực email thành công! 🎉');
-      onVerified();
-    } catch (err) {
-      toast.error(err.message || 'Mã OTP không đúng!');
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    try {
-      await resendOtp(email);
-      toast.success('Đã gửi lại mã OTP!');
-      setCooldown(60);
-      const timer = setInterval(() => {
-        setCooldown((prev) => {
-          if (prev <= 1) { clearInterval(timer); return 0; }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch (err) {
-      toast.error(err.message || 'Gửi lại thất bại');
-    } finally {
-      setResending(false);
-    }
-  };
-
-  return (
-    <div className="otp-modal-overlay">
-      <div className="otp-modal">
-        <div className="otp-modal-icon">📧</div>
-        <h3 className="otp-modal-title">Xác Thực Email</h3>
-        <p className="otp-modal-desc">
-          Chúng tôi đã gửi mã OTP 6 số đến <strong>{email}</strong>.
-          Vui lòng kiểm tra hộp thư (và thư rác) để lấy mã.
-        </p>
-
-        <div className="otp-modal-form">
-          <input
-            type="text"
-            className="otp-input"
-            placeholder="Nhập mã OTP 6 số"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            maxLength={6}
-            autoFocus
-          />
-          <button
-            className="otp-verify-btn"
-            onClick={handleVerify}
-            disabled={verifying || otp.length < 4}
-          >
-            {verifying ? '⏳ Đang xác thực...' : '✅ Xác Thực'}
-          </button>
-        </div>
-
-        <div className="otp-resend">
-          <span>Không nhận được mã? </span>
-          <button
-            className="otp-resend-btn"
-            onClick={handleResend}
-            disabled={resending || cooldown > 0}
-          >
-            {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : 'Gửi lại mã'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -256,6 +168,12 @@ export default function AuthPage() {
     }
   };
 
+  const handleSocialLogin = (providerName) => {
+    toast.info(
+      `Đăng nhập ${providerName} sẽ được kết nối khi cấu hình OAuth. Hiện tại vui lòng dùng email và mật khẩu.`,
+    );
+  };
+
   /* ── Shared social buttons component ── */
   const SocialLoginButtons = () => (
     <>
@@ -264,7 +182,7 @@ export default function AuthPage() {
         <button
           type="button"
           className="auth-social-btn auth-social-btn--microsoft"
-          onClick={() => handleSocialLogin('Microsoft', loginWithMicrosoft)}
+          onClick={() => handleSocialLogin('Microsoft')}
           disabled={isSubmitting}
         >
           <MicrosoftIcon />
@@ -273,7 +191,7 @@ export default function AuthPage() {
         <button
           type="button"
           className="auth-social-btn auth-social-btn--google"
-          onClick={() => handleSocialLogin('Google', loginWithGoogle)}
+          onClick={() => handleSocialLogin('Google')}
           disabled={isSubmitting}
         >
           <GoogleIcon />
@@ -282,7 +200,7 @@ export default function AuthPage() {
         <button
           type="button"
           className="auth-social-btn auth-social-btn--facebook"
-          onClick={() => handleSocialLogin('Facebook', loginWithFacebook)}
+          onClick={() => handleSocialLogin('Facebook')}
           disabled={isSubmitting}
         >
           <FacebookIcon />
@@ -294,21 +212,6 @@ export default function AuthPage() {
       </p>
     </>
   );
-
-  // If showing OTP modal after registration
-  if (showOtpModal) {
-    return (
-      <div className="auth-page">
-        <OtpVerifyModal
-          email={pendingEmail}
-          onVerified={() => {
-            toast.success('Email đã xác thực! Chào mừng bạn đến EduCycle! 🎉');
-            navigate('/products', { replace: true });
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="auth-page">

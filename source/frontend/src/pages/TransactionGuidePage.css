@@ -167,6 +167,7 @@
 .guide-flow-completed { background: var(--success-light); border-color: #4ade80; color: #166534; }
 .guide-flow-rejected { background: var(--error-light); border-color: #f87171; color: #991b1b; }
 .guide-flow-cancelled { background: var(--neutral-200); border-color: var(--neutral-400); color: var(--neutral-700); }
+.guide-flow-disputed { background: var(--warning-light); border-color: #fb8c00; color: #e65100; }
 
 .guide-flow-arrow {
   font-size: var(--text-xl);

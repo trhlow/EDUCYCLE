@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, messagesApi, reviewsApi } from '../api/endpoints';
+import { maskUsername } from '../utils/maskUsername';
 import { createChatClient, sendChatMessage } from '../api/websocket';
 import './TransactionDetailPage.css';
 
@@ -43,11 +44,31 @@ export default function TransactionDetailPage() {
   const chatContainerRef = useRef(null);
   const stompClientRef = useRef(null);
 
+  const fetchTransaction = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await transactionsApi.getById(id);
+      setTransaction(res.data);
+    } catch {
+      setTransaction(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  const fetchMessages = useCallback(async () => {
+    try {
+      const res = await messagesApi.getByTransaction(id);
+      setMessages(res.data);
+    } catch {
+      setMessages([]);
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchTransaction();
     fetchMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, fetchTransaction, fetchMessages]);
 
   // WebSocket: connect when transaction loads, disconnect on unmount
   useEffect(() => {
@@ -73,13 +94,14 @@ export default function TransactionDetailPage() {
   useEffect(() => {
     let interval;
     if (activeSection === 'chat' && transaction) {
-      const canChat = ['Accepted', 'Meeting'].includes(transaction.status);
+      const st = transaction.status?.toUpperCase() ?? '';
+      const canChat = ['ACCEPTED', 'MEETING'].includes(st);
       if (canChat) {
         interval = setInterval(fetchMessages, 1000);
       }
     }
     return () => clearInterval(interval);
-  }, [id, activeSection, transaction]);
+  }, [activeSection, transaction, fetchMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -87,27 +109,6 @@ export default function TransactionDetailPage() {
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchTransaction = async () => {
-    setLoading(true);
-    try {
-      const res = await transactionsApi.getById(id);
-      setTransaction(res.data);
-    } catch {
-      setTransaction(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMessages = async () => {
-    try {
-      const res = await messagesApi.getByTransaction(id);
-      setMessages(res.data);
-    } catch {
-      setMessages([]);
-    }
   };
 
   const role = transaction?.buyer?.id === user?.id ? 'buyer'
@@ -239,18 +240,6 @@ export default function TransactionDetailPage() {
       // Mock fallback
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-    }
-  };
-
-  /* ── Auto-delete product after successful transaction ── */
-  const handleAutoDeleteProduct = async (tx) => {
-    const productId = tx?.product?.id || tx?.product?.Id;
-    if (!productId) return;
-    try {
-      await productsApi.delete(productId);
-      toast('📦 Sản phẩm đã được gỡ khỏi sàn sau giao dịch thành công.');
-    } catch {
-      // Silent fail — backend may handle this automatically
     }
   };
 

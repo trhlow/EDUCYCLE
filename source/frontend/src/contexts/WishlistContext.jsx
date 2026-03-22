@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useAuth } from './AuthContext';
 import { readStoredArray } from '../utils/safeStorage';
 
 const WishlistContext = createContext(null);
@@ -8,6 +9,7 @@ function getStorageKey(userId) {
 }
 
 export function WishlistProvider({ children }) {
+  const { user, isAuthenticated } = useAuth();
   const [items, setItems] = useState(() => readStoredArray('wishlist'));
 
   // Load wishlist when user changes (login/logout)
@@ -17,6 +19,7 @@ export function WishlistProvider({ children }) {
       if (key) {
         try {
           const saved = localStorage.getItem(key);
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from per-user storage
           setItems(saved ? JSON.parse(saved) : []);
         } catch {
           setItems([]);

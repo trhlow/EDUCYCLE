@@ -8,6 +8,8 @@ export default function RouteTransition({ children }) {
     const [transitionKey, setTransitionKey] = useState(location.key);
 
     useEffect(() => {
+        // Sync transition UI to route changes (progress bar); intentional sync setState
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- route transition feedback
         setShowBar(true);
         setTransitionKey(location.key);
         const timer = setTimeout(() => setShowBar(false), 750);

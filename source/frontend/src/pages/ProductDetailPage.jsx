@@ -15,7 +15,6 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviews, setReviews] = useState([]);
-  const [submittingReview, setSubmittingReview] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { user, isAuthenticated } = useAuth();
@@ -54,10 +53,9 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  // Fetch reviews for the seller (user-to-user reviews)
   useEffect(() => {
     const fetchReviews = async () => {
-      if (!id) return;
+      if (!product?.sellerId) return;
       try {
         const res = await reviewsApi.getByUser(product.sellerId);
         const data = Array.isArray(res.data) ? res.data : [];
@@ -72,18 +70,14 @@ export default function ProductDetailPage() {
         setReviews([]);
       }
     };
-    fetchSellerReviews();
+    fetchReviews();
   }, [product?.sellerId]);
-
-  const allReviews = reviews;
 
   if (loading) {
     return (
       <div className="pdp-container" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
         <h2>⏳ Đang tải...</h2>
-        <p style={{ color: 'var(--text-secondary)', margin: '1rem 0' }}>
-          Vui lòng chờ trong giây lát.
-        </p>
+        <p style={{ color: 'var(--text-secondary)', margin: '1rem 0' }}>Vui lòng chờ trong giây lát.</p>
       </div>
     );
   }
@@ -104,9 +98,13 @@ export default function ProductDetailPage() {
 
   const thumbImages = product.imageUrls && product.imageUrls.length > 0
     ? product.imageUrls
-    : product.imageUrl
-      ? [product.imageUrl]
-      : [];
+    : product.imageUrl ? [product.imageUrl] : [];
+
+  // BUG FIX: BE trả UPPERCASE — dùng toUpperCase() trước khi so sánh
+  const productStatus = product.status?.toUpperCase();
+  const isSold = productStatus === 'SOLD';
+
+  const allReviews = reviews;
 
   return (
     <div className="pdp-container">
@@ -158,11 +156,8 @@ export default function ProductDetailPage() {
 
           {/* Transaction Request Button */}
           <div className="pdp-actions">
-            {/* Sold status */}
-            {(product.status === 'Sold' || product.status === 'Completed') ? (
-              <div className="pdp-sold-notice">
-                ✅ Sản phẩm đã được bán
-              </div>
+            {isSold ? (
+              <div className="pdp-sold-notice">✅ Sản phẩm đã được bán</div>
             ) : isAuthenticated && product.sellerId !== user?.id ? (
               <button
                 className="pdp-btn-buy pdp-btn-request"
@@ -202,9 +197,7 @@ export default function ProductDetailPage() {
                 Đăng nhập để mua
               </button>
             ) : (
-              <div className="pdp-own-product-notice">
-                📌 Đây là sản phẩm của bạn
-              </div>
+              <div className="pdp-own-product-notice">📌 Đây là sản phẩm của bạn</div>
             )}
             <button
               className={`pdp-btn-wishlist ${isInWishlist(product.id) ? 'active' : ''}`}
@@ -212,7 +205,6 @@ export default function ProductDetailPage() {
                 toggleWishlist(product);
                 toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
               }}
-              title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
             >
               {isInWishlist(product.id) ? '❤️' : '🤍'}
             </button>
@@ -226,10 +218,7 @@ export default function ProductDetailPage() {
             <div className="pdp-seller-avatar">👤</div>
             <div className="pdp-seller-info">
               <div className="pdp-seller-info-name">{maskUsername(product.seller)}</div>
-              <div className="pdp-seller-info-meta">
-                Người bán trên EduCycle
-              </div>
-              {/* Shopee-style seller rating */}
+              <div className="pdp-seller-info-meta">Người bán trên EduCycle</div>
               {allReviews.length > 0 ? (() => {
                 const avgR = (allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length).toFixed(1);
                 return (
@@ -268,14 +257,12 @@ export default function ProductDetailPage() {
             {activeTab === 'description' && (
               <div>
                 <p className="pdp-description">{product.description}</p>
-
                 {product.condition && (
                   <>
                     <h3 className="pdp-section-title">Tình Trạng</h3>
                     <p>{product.condition}</p>
                   </>
                 )}
-
                 {product.contactNote && (
                   <>
                     <h3 className="pdp-section-title">Ghi Chú Giao Dịch</h3>
@@ -289,16 +276,14 @@ export default function ProductDetailPage() {
               <div>
                 <h3 className="pdp-section-title">Đánh Giá Người Bán ({allReviews.length})</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>
-                  Đánh giá từ những người đã giao dịch với người bán này. Bạn chỉ có thể đánh giá sau khi hoàn thành giao dịch.
+                  Đánh giá từ những người đã giao dịch với người bán này.
                 </p>
-
                 {allReviews.length === 0 && (
                   <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--text-tertiary)' }}>
                     <div style={{ fontSize: '2rem', marginBottom: 'var(--space-2)' }}>⭐</div>
                     <p>Chưa có đánh giá nào về người bán này.</p>
                   </div>
                 )}
-
                 {allReviews.map((review) => (
                   <div key={review.id} className="pdp-review-card">
                     <div className="pdp-review-header">

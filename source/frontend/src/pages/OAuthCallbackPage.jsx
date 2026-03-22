@@ -8,15 +8,16 @@ export default function OAuthCallbackPage() {
     const navigate = useNavigate();
     const { handleOAuthCallback } = useAuth();
 
+    const token = params.get('token');
+
     useEffect(() => {
-        const token = params.get('token');
         if (token) {
             handleOAuthCallback(token);
             navigate('/products', { replace: true });
         } else {
             navigate('/auth', { replace: true });
         }
-    }, []);
+    }, [token, navigate, handleOAuthCallback]);
 
     return <PageLoader />;
 }

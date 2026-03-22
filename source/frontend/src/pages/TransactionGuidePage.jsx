@@ -27,26 +27,47 @@ const STEPS = [
     number: 4,
     icon: '🤝',
     title: 'Gặp mặt giao dịch',
-    description: 'Gặp nhau tại địa điểm đã hẹn. Kiểm tra sản phẩm thực tế trước khi xác nhận.',
-    tips: ['Kiểm tra tình trạng sách/sản phẩm kỹ lưỡng', 'Gặp mặt ở nơi có nhiều người qua lại'],
+    description: 'Gặp nhau tại địa điểm đã hẹn. Kiểm tra sản phẩm thực tế KỸ LƯỠNG trước khi xác nhận.',
+    tips: [
+      'Kiểm tra tình trạng sách/sản phẩm so với mô tả và hình ảnh đã đăng',
+      'Gặp mặt ở nơi có nhiều người qua lại để đảm bảo an toàn',
+      'Không đưa OTP nếu chưa hài lòng với sản phẩm',
+    ],
   },
   {
     number: 5,
     icon: '🔐',
-    title: 'Xác nhận OTP',
-    description: 'Người BÁN tạo mã OTP trên ứng dụng → Người MUA nhập mã → Cả hai xác nhận → Giao dịch hoàn tất.',
+    title: 'Xác nhận bằng OTP',
+    description:
+      'Người MUA bấm "Tạo mã OTP" trên app → Đọc mã 6 số cho người BÁN → Người BÁN nhập mã vào app → Giao dịch hoàn tất. ' +
+      'Nếu sản phẩm không đúng mô tả, người MUA bấm "Báo tranh chấp" thay vì đưa mã.',
     tips: [
-      'Cả hai phải bấm xác nhận TẠI CHỖ, không về nhà mới xác nhận',
-      'Mã OTP có thời hạn 15 phút',
-      'Nếu không xác nhận trong 24h, hệ thống tự động hoàn thành',
+      'Người MUA tạo mã — người BÁN nhập mã (không làm ngược lại)',
+      'Mã OTP có hiệu lực 10 phút, chỉ dùng được 1 lần',
+      'Chưa đưa mã OTP = giao dịch chưa hoàn tất — người mua được bảo vệ',
+      'Tuyệt đối không nhập OTP nếu chưa kiểm tra sản phẩm kỹ',
     ],
   },
   {
     number: 6,
+    icon: '⚠️',
+    title: 'Báo tranh chấp (nếu có)',
+    description:
+      'Nếu sản phẩm thực tế không đúng mô tả: người MUA bấm "Báo tranh chấp" ' +
+      'TRƯỚC KHI đưa mã OTP. Giao dịch chuyển sang trạng thái Tranh chấp — ' +
+      'Admin sẽ xem xét chat, ảnh sản phẩm và lịch sử giao dịch để phán quyết.',
+    tips: [
+      'Chỉ báo tranh chấp khi có lý do chính đáng (ảnh/mô tả sai sự thật)',
+      'Admin xem xét toàn bộ lịch sử chat — hãy trao đổi rõ ràng trong chat',
+      'Báo tranh chấp ác ý nhiều lần sẽ bị khóa tài khoản',
+    ],
+  },
+  {
+    number: 7,
     icon: '⭐',
     title: 'Đánh giá đối tác',
     description: 'Sau khi giao dịch hoàn tất, cả hai bên có thể đánh giá nhau bằng hệ thống 5 sao. Điểm đánh giá giúp xây dựng uy tín trên nền tảng.',
-    tips: ['Đánh giá trung thực giúp cộng đồng phát triển', 'Đánh giá cao cho giao dịch thuận lợi'],
+    tips: ['Đánh giá trung thực giúp cộng đồng phát triển', 'Điểm sao chỉ xuất hiện sau giao dịch đầu tiên hoàn thành'],
   },
 ];
 
@@ -55,51 +76,67 @@ const RULES = [
     icon: '⚠️',
     title: 'Quy định bắt buộc',
     items: [
-      'Xác nhận OTP phải thực hiện TẠI ĐỊA ĐIỂM giao dịch',
-      'Không xác nhận qua tin nhắn hoặc về nhà mới xác nhận',
-      'Kiểm tra sản phẩm trước khi bấm xác nhận nhận hàng',
+      'Người MUA tạo OTP — người BÁN nhập OTP (không làm ngược)',
+      'Xác nhận OTP phải thực hiện TẠI ĐỊA ĐIỂM gặp mặt',
+      'Kiểm tra sản phẩm KỸ LƯỠNG trước khi đưa mã OTP cho người bán',
+      'Không chia sẻ mã OTP qua chat hoặc trước khi kiểm tra hàng',
     ],
   },
   {
     icon: '⏰',
     title: 'Quy định thời gian',
     items: [
-      'Người bán có 48 giờ để phản hồi yêu cầu mua (nếu không → tự động hủy)',
+      'Người bán có 48 giờ để phản hồi yêu cầu (quá hạn → tự động hủy)',
       'Sau khi chấp nhận, hai bên có 7 ngày để hoàn thành giao dịch',
-      'Nếu người mua không xác nhận nhận hàng trong 24h sau khi gặp → hệ thống tự động hoàn thành',
+      'Mã OTP có hiệu lực 10 phút kể từ lúc tạo',
+      'Người mua không xác nhận trong 24h sau trạng thái MEETING → tự động hoàn thành',
     ],
   },
   {
     icon: '🛡️',
     title: 'Bảo vệ người dùng',
     items: [
-      'Thông tin cá nhân (SĐT, email riêng) được bảo mật',
-      'Liên lạc chỉ qua chat nội bộ của hệ thống',
-      'Tranh chấp được xử lý bởi quản trị viên',
+      'Mọi trao đổi qua chat nội bộ — không cần chia sẻ SĐT hay email cá nhân',
+      'Tranh chấp được xử lý bởi Admin dựa trên bằng chứng chat',
+      'Người mua được bảo vệ: OTP chưa nhập = giao dịch chưa chốt',
+    ],
+  },
+  {
+    icon: '🚫',
+    title: 'Vi phạm & Xử lý',
+    items: [
+      'Hủy giao dịch liên tục không lý do: cảnh cáo → khóa tạm → khóa vĩnh viễn',
+      'Đăng sản phẩm giả / sai mô tả cố ý: khóa tài khoản vĩnh viễn',
+      'Báo tranh chấp ác ý nhiều lần: khóa tài khoản',
+      'Điểm uy tín chỉ hiển thị sau giao dịch đầu tiên hoàn thành — người mới là "Chưa có đánh giá"',
     ],
   },
 ];
 
 const FAQS = [
   {
-    q: 'Nếu người mua nhận sách rồi nhưng không bấm xác nhận thì sao?',
-    a: 'Hệ thống có cơ chế "Auto-Complete": Nếu sau 24h kể từ khi chuyển sang trạng thái "Gặp mặt" mà người mua không xác nhận, giao dịch sẽ tự động hoàn thành. Tuy nhiên, người mua sẽ bị trừ điểm uy tín.',
+    q: 'Ai tạo mã OTP — người mua hay người bán?',
+    a: 'Người MUA tạo mã OTP trên app. Sau đó đọc mã cho người BÁN nhập. Logic này đảm bảo người mua kiểm soát thời điểm xác nhận — chưa hài lòng với sản phẩm thì không đưa mã.',
   },
   {
-    q: 'Nếu sản phẩm thực tế không giống mô tả thì sao?',
-    a: 'Bạn có quyền TỪ CHỐI nhận hàng tại chỗ và mở "Tranh chấp" (Dispute). Quản trị viên sẽ xem xét và xử lý.',
-  },
-  {
-    q: 'Tại sao phải xác nhận OTP tại chỗ?',
-    a: 'Để đảm bảo cả hai bên thực sự đã gặp nhau và sản phẩm đã được kiểm tra. Tránh tình trạng xác nhận ảo hoặc gian lận.',
+    q: 'Sản phẩm thực tế không đúng mô tả thì làm gì?',
+    a: 'Bấm "Báo tranh chấp" TRƯỚC KHI đưa mã OTP cho người bán. Giao dịch sẽ chuyển sang trạng thái Tranh chấp và Admin sẽ xem xét dựa trên ảnh sản phẩm đã đăng và lịch sử chat.',
   },
   {
     q: 'Tôi có thể hủy giao dịch không?',
-    a: 'Người MUA có thể hủy khi giao dịch đang ở trạng thái "Chờ xác nhận". Sau khi người bán chấp nhận, việc hủy sẽ ảnh hưởng đến điểm uy tín.',
+    a: 'Người MUA có thể hủy khi giao dịch đang ở trạng thái PENDING (chờ xác nhận). Sau khi người bán chấp nhận (ACCEPTED), việc hủy sẽ ảnh hưởng đến điểm uy tín.',
   },
   {
-    q: 'Làm sao liên lạc với đối tác giao dịch?',
-    a: 'Sử dụng hệ thống chat nội bộ có sẵn trong mỗi giao dịch. Chat chỉ mở khi người bán đã chấp nhận yêu cầu mua.',
+    q: 'Nếu người mua nhận hàng rồi nhưng không bấm xác nhận?',
+    a: 'Sau 24 giờ kể từ trạng thái MEETING, hệ thống sẽ tự động hoàn thành giao dịch. Người mua không xác nhận đúng hạn sẽ bị trừ điểm uy tín.',
+  },
+  {
+    q: 'Điểm uy tín mặc định của người mới là bao nhiêu?',
+    a: 'Người dùng mới chưa có điểm — hiển thị là "Chưa có đánh giá". Điểm sao chỉ xuất hiện sau khi hoàn thành ít nhất 1 giao dịch.',
+  },
+  {
+    q: 'Chat có bảo mật không? Admin có đọc được không?',
+    a: 'Admin chỉ xem nội dung chat khi có tranh chấp hoặc báo cáo vi phạm. Dữ liệu chat được lưu và dùng làm bằng chứng xử lý khiếu nại.',
   },
 ];
 
@@ -120,7 +157,7 @@ export default function TransactionGuidePage() {
 
         {/* Steps */}
         <section className="guide-steps-section">
-          <h2 className="guide-section-title">Quy trình 6 bước</h2>
+          <h2 className="guide-section-title">Quy trình 7 bước</h2>
           <div className="guide-steps">
             {STEPS.map((step) => (
               <div key={step.number} className="guide-step-card">
@@ -149,6 +186,7 @@ export default function TransactionGuidePage() {
             </div>
             <div className="guide-flow-arrow">↓</div>
             <div className="guide-flow-branch">
+              {/* Nhánh chính: thành công */}
               <div className="guide-flow-path">
                 <div className="guide-flow-item guide-flow-accepted">
                   <span className="guide-flow-label">✅ Chấp nhận</span>
@@ -162,12 +200,17 @@ export default function TransactionGuidePage() {
                   <span className="guide-flow-label">🎉 Hoàn thành</span>
                 </div>
               </div>
+
+              {/* Nhánh phụ: từ chối / hủy / tranh chấp */}
               <div className="guide-flow-path guide-flow-alt">
                 <div className="guide-flow-item guide-flow-rejected">
                   <span className="guide-flow-label">❌ Từ chối</span>
                 </div>
                 <div className="guide-flow-item guide-flow-cancelled">
                   <span className="guide-flow-label">🚫 Hủy</span>
+                </div>
+                <div className="guide-flow-item guide-flow-disputed">
+                  <span className="guide-flow-label">🔍 Tranh chấp</span>
                 </div>
               </div>
             </div>

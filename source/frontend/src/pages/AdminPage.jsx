@@ -1,7 +1,7 @@
 import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { useToast } from '../components/Toast';
-import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi, messagesApi } from '../api/endpoints';
+import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api/endpoints';
 import './AdminPage.css';
 
 const ADMIN_MENU = [
@@ -624,6 +624,7 @@ function AdminMessages() {
 }
 
 function AdminModeration() {
+  const toast = useToast();
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
 

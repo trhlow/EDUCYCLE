@@ -30,6 +30,7 @@ export default function PostProductPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
+  const isPhoneVerified = user?.phoneVerified ?? false;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -534,7 +535,10 @@ export default function PostProductPage() {
               <button
                 type="button"
                 className="post-btn-verify"
-                onClick={() => setShowPhoneModal(true)}
+                onClick={() => {
+                  toast.info('Vui lòng xác thực số điện thoại trong Hồ sơ.');
+                  navigate('/profile');
+                }}
               >
                 📱 Xác thực SĐT để đăng bán
               </button>
@@ -549,14 +553,6 @@ export default function PostProductPage() {
           </div>
         </form>
       </div>
-
-      {/* Phone Verification Modal */}
-      {showPhoneModal && (
-        <PhoneVerifyModal
-          onVerified={() => setShowPhoneModal(false)}
-          onClose={() => setShowPhoneModal(false)}
-        />
-      )}
     </div>
   );
 }

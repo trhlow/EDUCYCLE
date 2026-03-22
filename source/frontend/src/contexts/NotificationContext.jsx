@@ -3,10 +3,9 @@ import { notificationsApi } from '../api/endpoints';
 import { useAuth } from './AuthContext';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { resolveWsOrigin } from '../utils/apiBase';
 
 const NotificationContext = createContext(null);
-
-const WS_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
 export function NotificationProvider({ children }) {
   const { isAuthenticated, user } = useAuth();
@@ -36,6 +35,7 @@ export function NotificationProvider({ children }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset when logged out
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -51,7 +51,7 @@ export function NotificationProvider({ children }) {
     if (userId && token && !token.startsWith('mock-')) {
       try {
         const client = new Client({
-          webSocketFactory: () => new SockJS(`${WS_BASE}/ws`),
+          webSocketFactory: () => new SockJS(`${resolveWsOrigin()}/ws`),
           connectHeaders: { Authorization: `Bearer ${token}` },
           reconnectDelay: 5000,
           onConnect: () => {

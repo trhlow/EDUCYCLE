@@ -247,6 +247,7 @@ function OverviewView({ user }) {
 }
 
 function ProductsView() {
+  const toast = useToast();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -507,6 +508,7 @@ function SalesView() {
 }
 
 function SettingsView({ user }) {
+  const toast = useToast();
   const { updateProfile } = useAuth();
   const [form, setForm] = useState({
     username: user?.username || '',
