@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
 import PageLoader from './components/PageLoader';
@@ -8,7 +8,7 @@ import RouteTransition from './components/RouteTransition';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
-const ProductListingPage = lazy(() => import('./pages/ProductListingPage'));
+// ProductListingPage vẫn giữ như standalone (dùng cho redirect nội bộ nếu cần)
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -23,13 +23,23 @@ const TransactionGuidePage = lazy(() => import('./pages/TransactionGuidePage'));
 const PostProductPage = lazy(() => import('./pages/PostProductPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
+// Redirect /products → trang chủ section #products
+function ProductsRedirect() {
+  useEffect(() => {
+    // Sau khi navigate về '/', scroll xuống section #products
+    const t = setTimeout(() => {
+      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+    return () => clearTimeout(t);
+  }, []);
+  return <Navigate to="/" replace />;
+}
+
 function SuspenseWrapper({ children }) {
   const location = useLocation();
   return (
     <Suspense key={location.pathname} fallback={<PageLoader />}>
-      <RouteTransition>
-        {children}
-      </RouteTransition>
+      <RouteTransition>{children}</RouteTransition>
     </Suspense>
   );
 }
@@ -41,14 +51,17 @@ export default function App() {
         <Route index element={<SuspenseWrapper><HomePage /></SuspenseWrapper>} />
         <Route path="auth" element={<SuspenseWrapper><GuestRoute><AuthPage /></GuestRoute></SuspenseWrapper>} />
         <Route path="oauth-callback" element={<SuspenseWrapper><OAuthCallbackPage /></SuspenseWrapper>} />
-        <Route path="products" element={<SuspenseWrapper><ProductListingPage /></SuspenseWrapper>} />
+
+        {/* /products → redirect về trang chủ và scroll xuống section sản phẩm */}
+        <Route path="products" element={<ProductsRedirect />} />
+
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="cart" element={<SuspenseWrapper><CartPage /></SuspenseWrapper>} />
         <Route path="transactions" element={<SuspenseWrapper><ProtectedRoute><TransactionsPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="transactions/guide" element={<SuspenseWrapper><TransactionGuidePage /></SuspenseWrapper>} />
         <Route path="transactions/:id" element={<SuspenseWrapper><ProtectedRoute><TransactionDetailPage /></ProtectedRoute></SuspenseWrapper>} />
-        <Route path="dashboard" element={<SuspenseWrapper><ProtectedRoute adminOnly><DashboardPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="dashboard" element={<SuspenseWrapper><ProtectedRoute><DashboardPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="admin" element={<SuspenseWrapper><ProtectedRoute adminOnly><AdminPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="profile" element={<SuspenseWrapper><ProtectedRoute><ProfilePage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="wishlist" element={<SuspenseWrapper><ProtectedRoute><WishlistPage /></ProtectedRoute></SuspenseWrapper>} />
