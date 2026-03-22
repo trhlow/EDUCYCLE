@@ -1,7 +1,8 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { resolveWsOrigin } from '../utils/apiBase';
 
-const WS_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+const wsOrigin = () => resolveWsOrigin();
 
 /**
  * Create a STOMP client subscribed to a transaction's chat room.
@@ -14,7 +15,7 @@ const WS_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
  */
 export function createChatClient(token, transactionId, onMessage) {
   const client = new Client({
-    webSocketFactory: () => new SockJS(`${WS_BASE}/ws`),
+    webSocketFactory: () => new SockJS(`${wsOrigin()}/ws`),
     connectHeaders: {
       Authorization: `Bearer ${token}`,
     },

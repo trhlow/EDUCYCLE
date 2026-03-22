@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 
 // Create src/utils/format.js if it doesn't exist
 const utilsDir = 'src/utils';
