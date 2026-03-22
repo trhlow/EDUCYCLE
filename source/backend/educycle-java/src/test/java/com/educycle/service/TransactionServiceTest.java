@@ -15,6 +15,7 @@ import com.educycle.repository.ProductRepository;
 import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.impl.TransactionServiceImpl;
+import com.educycle.util.OtpHasher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -102,7 +103,7 @@ class TransactionServiceTest {
         @DisplayName("should complete transaction when OTP is valid")
         void shouldComplete_whenOtpValid() {
             Transaction t = buildTransaction(TransactionStatus.PENDING);
-            t.setOtpCode("123456");
+            t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -119,7 +120,7 @@ class TransactionServiceTest {
         @DisplayName("should throw BadRequestException when OTP is wrong")
         void shouldThrow_whenOtpWrong() {
             Transaction t = buildTransaction(TransactionStatus.PENDING);
-            t.setOtpCode("123456");
+            t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -133,7 +134,7 @@ class TransactionServiceTest {
         @DisplayName("should throw BadRequestException when OTP is expired")
         void shouldThrow_whenOtpExpired() {
             Transaction t = buildTransaction(TransactionStatus.PENDING);
-            t.setOtpCode("123456");
+            t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES)); // expired
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
