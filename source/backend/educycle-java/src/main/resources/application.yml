@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate          # Flyway manages schema; Hibernate only validates
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -26,6 +26,7 @@ spring:
 cors:
   allowed-origins:
     - "http://localhost:5173"
+    - "http://127.0.0.1:5173"
     - "http://localhost:3000"
 
 jwt:
@@ -33,6 +34,20 @@ jwt:
   issuer: EduCycle
   audience: EduCycleUsers
   expiration-hours: 2
+
+# ── OAuth2 Social Login ────────────────────────────────────────────────────
+# Điền Client ID từ Google Console và Azure Portal vào đây
+# HOẶC dùng biến môi trường để không commit credentials lên git
+oauth:
+  google:
+    client-id: 655696942996-23v3ded01q45mth3lufocjntei1mnfp9.apps.googleusercontent.com
+    jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+  microsoft:
+    client-id: 26196491-b38e-48fb-b900-72c05aaec7c0
+    # "common" cho phép cả tài khoản cá nhân + tổ chức (trường học)
+    # Nếu chỉ muốn tài khoản trường học: đổi thành tenant ID của tổ chức
+    tenant-id: common
+    jwks-uri: https://login.microsoftonline.com/common/discovery/v2.0/keys
 
 springdoc:
   api-docs:

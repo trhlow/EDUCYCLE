@@ -21,6 +21,8 @@
         <java.version>17</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.32</lombok.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
@@ -40,6 +42,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ===== OAUTH2 JOSE (JWT verification for Google/Microsoft tokens) ===== -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
         </dependency>
 
         <!-- ===== WEBSOCKET (STOMP) ===== -->
@@ -66,7 +74,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-
         <!-- ===== LOMBOK ===== -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -108,9 +115,6 @@
             <version>8.10.1</version>
         </dependency>
 
-        <!-- ===== BCRYPT ===== -->
-        <!-- Provided by spring-security (BCryptPasswordEncoder) -->
-
         <!-- ===== SPRINGDOC / SWAGGER ===== -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -151,7 +155,6 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <!-- MapStruct + Lombok annotation processors -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

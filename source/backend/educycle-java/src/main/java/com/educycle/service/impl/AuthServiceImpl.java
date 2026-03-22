@@ -9,6 +9,8 @@ import com.educycle.model.User;
 import com.educycle.repository.UserRepository;
 import com.educycle.security.JwtTokenProvider;
 import com.educycle.service.AuthService;
+import com.educycle.service.OAuthTokenVerifier;
+import com.educycle.util.MessageConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,17 +29,20 @@ import java.util.UUID;
 @Transactional
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository       userRepository;
+    private final JwtTokenProvider     jwtTokenProvider;
+    private final PasswordEncoder      passwordEncoder;
+    private final OAuthTokenVerifier   oAuthTokenVerifier; // NEW
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    // ── Register ───────────────────────────────────────────────────────────
 
     @Override
     public AuthResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
         if (userRepository.existsByEmail(email)) {
-            throw new BadRequestException("Email này đã được đăng ký");
+            throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
 
         String otpToken = generateOtp();
@@ -53,22 +58,25 @@ public class AuthServiceImpl implements AuthService {
                 .emailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES))
                 .build();
 
+        User savedUser = userRepository.save(user);
+        if (savedUser != null) user = savedUser;
         populateRefreshToken(user);
         userRepository.save(user);
 
-        log.info("Đăng ký thành công: {} | OTP (dev-only): {}", email, otpToken);
-
-        return toAuthResponse(user, "Vui lòng xác thực email bằng mã OTP đã gửi.");
+        log.info("Đăng ký thành công: {} | OTP (chỉ dùng khi phát triển, cần bỏ ở môi trường thật): {}", email, otpToken);
+        return toAuthResponse(user, MessageConstants.REGISTER_OTP_SENT);
     }
+
+    // ── Login ──────────────────────────────────────────────────────────────
 
     @Override
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UnauthorizedException("Email hoặc mật khẩu không đúng"));
+                .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new UnauthorizedException("Email hoặc mật khẩu không đúng");
+            throw new UnauthorizedException(MessageConstants.INVALID_CREDENTIALS);
         }
 
         populateRefreshToken(user);
@@ -77,26 +85,47 @@ public class AuthServiceImpl implements AuthService {
         return toAuthResponse(user, null);
     }
 
+    // ── Social Login (Google / Microsoft) ─────────────────────────────────
+    //
+    // Flow:
+    //  1. FE calls Google/Microsoft SDK → receives ID token
+    //  2. FE sends { provider, token } to POST /api/auth/social-login
+    //  3. OAuthTokenVerifier validates the token against Google/Microsoft JWKS
+    //  4. Extract email → find or create user → issue our own JWT
+    //
+    // Security: the token is cryptographically verified — we never trust
+    // the email from the request body directly.
+
     @Override
     public AuthResponse socialLogin(SocialLoginRequest request) {
-        String email = resolveEmail(request);
-        String username = email.split("@")[0];
+        if (request.token() == null || request.token().isBlank()) {
+            throw new BadRequestException(MessageConstants.OAUTH_TOKEN_REQUIRED);
+        }
 
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
+        // Verify token and extract email (throws BadRequestException on failure)
+        String verifiedEmail = oAuthTokenVerifier.verifyAndExtractEmail(
+                request.provider().toLowerCase().trim(),
+                request.token()
+        );
+
+        String username = verifiedEmail.split("@")[0];
+
+        User user = userRepository.findByEmail(verifiedEmail).orElseGet(() -> {
             User newUser = User.builder()
                     .username(username)
-                    .email(email)
+                    .email(verifiedEmail)
                     .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(Role.USER)
-                    .emailVerified(true)
+                    .emailVerified(true)   // email is verified by the OAuth provider
                     .phoneVerified(false)
                     .build();
             populateRefreshToken(newUser);
             userRepository.save(newUser);
-            log.info("Đăng nhập xã hội: tạo user mới provider={} email={}", request.provider(), email);
+            log.info("Đăng nhập mạng xã hội: đã tạo người dùng mới — nhà cung cấp={}, email={}", request.provider(), verifiedEmail);
             return newUser;
         });
 
+        // Refresh token on every login
         if (user.getId() != null) {
             populateRefreshToken(user);
             userRepository.save(user);
@@ -105,25 +134,28 @@ public class AuthServiceImpl implements AuthService {
         return toAuthResponse(user, null);
     }
 
+    // ── Phone verification ─────────────────────────────────────────────────
+
     @Override
     public boolean verifyPhone(UUID userId, VerifyPhoneRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
-
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
         user.setPhone(request.phone());
         user.setPhoneVerified(true);
         userRepository.save(user);
         return true;
     }
 
+    // ── Email OTP verification ─────────────────────────────────────────────
+
     @Override
     public boolean verifyOtp(VerifyOtpRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Không tìm thấy email này"));
+                .orElseThrow(() -> new BadRequestException(MessageConstants.EMAIL_NOT_FOUND));
 
         String storedToken = user.getEmailVerificationToken();
-        Instant expiry = user.getEmailVerificationTokenExpiry();
+        Instant expiry     = user.getEmailVerificationTokenExpiry();
 
         boolean valid = storedToken != null
                 && storedToken.equals(request.otp())
@@ -131,8 +163,8 @@ public class AuthServiceImpl implements AuthService {
                 && expiry.isAfter(Instant.now());
 
         if (!valid) {
-            log.warn("OTP sai cho {}: expected={}, got={}", email, storedToken, request.otp());
-            throw new BadRequestException("Mã OTP không hợp lệ hoặc đã hết hạn.");
+            log.warn("OTP không hợp lệ cho {}: expected={}, got={}", email, storedToken, request.otp());
+            throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
         }
 
         user.setEmailVerified(true);
@@ -140,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerificationTokenExpiry(null);
         userRepository.save(user);
 
-        log.info("Xác thực email thành công: {}", email);
+        log.info("Đã xác thực email cho: {}", email);
         return true;
     }
 
@@ -148,10 +180,10 @@ public class AuthServiceImpl implements AuthService {
     public boolean resendOtp(ResendOtpRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Không tìm thấy email này"));
+                .orElseThrow(() -> new BadRequestException(MessageConstants.EMAIL_NOT_FOUND));
 
         if (user.isEmailVerified()) {
-            throw new BadRequestException("Email đã được xác thực rồi.");
+            throw new BadRequestException(MessageConstants.EMAIL_ALREADY_VERIFIED);
         }
 
         String otp = generateOtp();
@@ -159,25 +191,27 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
 
-        log.info("Gửi lại OTP cho: {} | OTP (dev-only): {}", email, otp);
+        log.info("Đã gửi lại OTP cho {} | OTP (chỉ dùng khi phát triển): {}", email, otp);
         return true;
     }
+
+    // ── Refresh / Logout ───────────────────────────────────────────────────
 
     @Override
     public AuthResponse refreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new BadRequestException("Thiếu refresh token");
+            throw new BadRequestException(MessageConstants.REFRESH_TOKEN_REQUIRED);
         }
 
         User user = userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new UnauthorizedException("Refresh token không hợp lệ"));
+                .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_REFRESH_TOKEN));
 
         if (user.getRefreshTokenExpiry() == null
                 || user.getRefreshTokenExpiry().isBefore(Instant.now())) {
             user.setRefreshToken(null);
             user.setRefreshTokenExpiry(null);
             userRepository.save(user);
-            throw new UnauthorizedException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            throw new UnauthorizedException(MessageConstants.REFRESH_TOKEN_EXPIRED);
         }
 
         populateRefreshToken(user);
@@ -195,6 +229,8 @@ public class AuthServiceImpl implements AuthService {
             userRepository.save(user);
         });
     }
+
+    // ── Private helpers ────────────────────────────────────────────────────
 
     private void populateRefreshToken(User user) {
         user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
@@ -217,13 +253,6 @@ public class AuthServiceImpl implements AuthService {
 
     private static String generateOtp() {
         return String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
-    }
-
-    private String resolveEmail(SocialLoginRequest request) {
-        if (request.email() == null || request.email().isBlank()) {
-            throw new BadRequestException("Đăng nhập xã hội cần có email. Provider: " + request.provider());
-        }
-        return normalizeEmail(request.email());
     }
 
     private static String normalizeEmail(String email) {
