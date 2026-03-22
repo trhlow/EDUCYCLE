@@ -40,7 +40,10 @@ export function AuthProvider({ children }) {
         username: data.username,
         email: data.email,
         role: data.role || 'USER',
-        emailVerified: data.emailVerified ?? true,
+        // Issue #1: mặc định false thay vì true — không giả vờ email đã xác thực
+        emailVerified: data.emailVerified ?? false,
+        phoneVerified: data.phoneVerified ?? false,
+        phone: data.phone ?? null,
       };
       applySession(userData, data.token, data.refreshToken || null);
       return userData;
@@ -67,6 +70,8 @@ export function AuthProvider({ children }) {
           email: data.email || email,
           role: data.role || 'USER',
           emailVerified: data.emailVerified ?? false,
+          phoneVerified: data.phoneVerified ?? false,
+          phone: data.phone ?? null,
         };
         applySession(userData, data.token, data.refreshToken || null);
         return userData;
@@ -92,6 +97,8 @@ export function AuthProvider({ children }) {
   const verifyOtp = async (email, otpCode) => {
     if (!email || !otpCode) throw new Error('Email và mã OTP là bắt buộc');
     const res = await authApi.verifyOtp({ email, otp: otpCode });
+    // Cập nhật trạng thái email đã xác thực
+    updateProfile({ emailVerified: true });
     return res.data;
   };
 
@@ -103,7 +110,7 @@ export function AuthProvider({ children }) {
 
   // FIX: BE SocialLoginRequest expects { provider, token } — NOT { provider, idToken }
   const socialLogin = async (provider, idToken) => {
-    if (!provider || !idToken) throw new Error('Provider và token là bắt buộc');
+    if (!provider || !idToken) throw new Error('Nhà cung cấp và token là bắt buộc');
     const res = await authApi.socialLogin({ provider, token: idToken });
     const data = res.data;
     const userData = {
@@ -111,15 +118,21 @@ export function AuthProvider({ children }) {
       username: data.username,
       email: data.email,
       role: data.role || 'USER',
+      emailVerified: data.emailVerified ?? false,
+      phoneVerified: data.phoneVerified ?? false,
+      phone: data.phone ?? null,
     };
     applySession(userData, data.token, data.refreshToken || null);
     return userData;
   };
 
-  // FIX: BE VerifyPhoneRequest expects { phone } — NOT { phoneNumber, otpCode }
+  // Issue #1 FIX: verifyPhone gọi BE thật + cập nhật user.phoneVerified = true
+  // BE /auth/verify-phone nhận { phone } và đánh dấu verified trực tiếp (không OTP riêng)
   const verifyPhone = async (phoneNumber) => {
     if (!phoneNumber) throw new Error('Số điện thoại là bắt buộc');
     const res = await authApi.verifyPhone({ phone: phoneNumber });
+    // Cập nhật state: phone đã xác thực
+    updateProfile({ phone: phoneNumber, phoneVerified: true });
     return res.data;
   };
 
@@ -149,6 +162,8 @@ export function AuthProvider({ children }) {
         email: payload.email,
         role: payload.role || 'USER',
         emailVerified: payload.emailVerified ?? true,
+        phoneVerified: payload.phoneVerified ?? false,
+        phone: payload.phone ?? null,
       };
       applySession(userData, jwtToken, payload.refreshToken || null);
     } catch {
@@ -176,6 +191,6 @@ export function AuthProvider({ children }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  if (!ctx) throw new Error('useAuth phải được dùng bên trong AuthProvider');
   return ctx;
 }
