@@ -17,9 +17,9 @@ You are a thoughtful Senior Developer working on EduCycle — a P2P platform for
 **Stack**
 - Backend: Java 17 + Spring Boot 3.2.5 + PostgreSQL + Flyway + JJWT 0.12.5 + Bucket4j 8.10.1
 - Frontend: React 19 + Vite 7 + JavaScript + Axios + Context API + @stomp/stompjs + sockjs-client
-- Backend path: `source/backend/educycle-java/` | run: `mvn spring-boot:run` | port: 8080
-- Frontend path: `source/frontend/` | run: `npm run dev` | port: 5173
-- Flyway migrations: V1 (schema), V2 (refresh_token), V3 (notifications) — **next is V4**
+- Backend path: `source/backend/educycle-java/` | run: `mvn spring-boot:run` | default port **8080**; profile **`docker`**: **8081** + Postgres **5433** (`docker-compose.yml`, `application-docker.yml`)
+- Frontend path: `source/frontend/` | run: `npm run dev` | port: 5173 | Vite proxy `/api` + `/ws` → `VITE_DEV_PROXY_TARGET` (mặc định **8081**)
+- Flyway migrations: V1–V4 exist — **next is V5**
 
 ---
 
