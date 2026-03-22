@@ -52,7 +52,7 @@
 | **Styling** | Pure CSS + CSS Variables (Design Tokens) |
 | **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
 | **Backend** | Java 17 + Spring Boot 3.2.5 + PostgreSQL + JWT |
-| **Proxy** | Vite dev server → `http://localhost:8080/api` |
+| **Proxy** | Vite dev: `/api` + `/ws` → `VITE_DEV_PROXY_TARGET` (mặc định **8081**, đồng bộ Spring profile `docker`) |
 
 ---
 
@@ -103,11 +103,15 @@ src/
 
 ## 🔗 Tích Hợp Backend
 
-Frontend giao tiếp hoàn toàn với Java Spring Boot API thông qua Vite proxy:
+Frontend giao tiếp với Java Spring Boot qua Vite proxy (dev):
 
 ```
-Frontend /api/*  →  http://localhost:8080/api/*
+Frontend /api/*  →  {VITE_DEV_PROXY_TARGET}/api/*   (mặc định http://localhost:8081)
+Frontend /ws    →  {VITE_DEV_PROXY_TARGET}/ws      (SockJS + STOMP chat)
 ```
+
+`VITE_DEV_PROXY_TARGET` lấy từ `.env.development` (repo) hoặc `.env.local` (override local).  
+Chạy backend **không** profile docker (port **8080**): tạo `.env.local` với `VITE_DEV_PROXY_TARGET=http://localhost:8080`.
 
 ### API Endpoints đã tích hợp
 
@@ -144,7 +148,7 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 
 - **Node.js** ≥ 18
 - **npm** ≥ 9
-- **Backend** đang chạy tại `http://localhost:8080`
+- **Backend** khuyến nghị: profile **`docker`** tại `http://localhost:8081` (+ `docker compose` Postgres **5433**). Hoặc default **8080** nếu chỉ `mvn spring-boot:run` — khi đó chỉnh `VITE_DEV_PROXY_TARGET` như trên.
 
 ### Clone & install
 
@@ -153,9 +157,10 @@ git clone https://github.com/trhlow/EDUCYCLE.git
 cd EDUCYCLE/source/frontend
 npm install
 
-# 2. Configure
-#    Edit .env — set your backend API URL
-#    Default: VITE_API_URL=http://localhost:8080/api
+# 2. Configure (optional)
+#    Copy .env.example → .env.local nếu cần đổi cổng proxy
+#    Mặc định: VITE_DEV_PROXY_TARGET=http://localhost:8081 (profile docker)
+#    Tùy chọn tuyệt đối: VITE_API_URL=http://localhost:8081/api
 
 # 3. Run
 npm run dev
@@ -163,7 +168,7 @@ npm run dev
 
 Truy cập → **[http://localhost:5173](http://localhost:5173)** — Tự động proxy API requests đến backend.
 
-> **Yêu cầu**: Node.js ≥ 18 · Backend `source/backend/educycle-java/` chạy tại `localhost:8080`
+> **Yêu cầu**: Node.js ≥ 18 · Backend chạy tại cổng trùng `VITE_DEV_PROXY_TARGET` (mặc định **8081** / profile `docker`)
 
 ---
 
@@ -271,7 +276,8 @@ educycle-frontend/
 │   └── utils/
 │       └── maskUsername.js     # Privacy: "NguyenVanA" → "Ngu***A"
 │
-└── .env                       # VITE_API_URL=http://localhost:8080/api
+├── .env.development           # VITE_DEV_PROXY_TARGET=http://localhost:8081 (đồng bộ docker profile)
+└── .env.example               # Mẫu + gợi ý VITE_API_URL
 ```
 
 ---
@@ -402,7 +408,8 @@ Tất cả API calls đi qua một Axios instance duy nhất với **JWT interce
                                                    │
                                           ┌────────▼─────────┐
                                           │  Backend API     │
-                                          │  localhost:8080   │
+                                          │  localhost:8081   │
+                                          │  (hoặc 8080)      │
                                           └──────────────────┘
 ```
 

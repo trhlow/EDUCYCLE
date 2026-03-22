@@ -39,6 +39,17 @@ EDUCYCLE/
 
 ## Quick Start
 
+**Cổng chuẩn khi dev full-stack (Docker Postgres + tránh XAMPP/Apache chiếm 8080):**
+
+| Thành phần | URL / cổng |
+|------------|------------|
+| Frontend (Vite) | [http://localhost:5173](http://localhost:5173) |
+| Backend profile **`docker`** | **http://localhost:8081** (proxy `/api` + `/ws` từ Vite trỏ vào đây) |
+| Backend **mặc định** (không profile) | http://localhost:8080 |
+
+Chi tiết: `source/backend/educycle-java/docker-compose.yml` (Postgres host **5433**), `application-docker.yml` (**8081**).  
+Vite đọc `VITE_DEV_PROXY_TARGET` (mặc định trong `.env.development`: **8080**, khớp `mvn spring-boot:run` không profile). Chạy BE profile **docker** (8081) thì đặt trong `source/frontend/.env.local`: `VITE_DEV_PROXY_TARGET=http://localhost:8081`.
+
 <table>
 <tr>
 <td width="50%" valign="top">
@@ -49,16 +60,15 @@ EDUCYCLE/
 git clone https://github.com/trhlow/EDUCYCLE.git
 cd EDUCYCLE/source/backend/educycle-java
 
-# Cần PostgreSQL chạy trước
-# Xem hướng dẫn: source/backend/educycle-java/README.md
-
-mvn spring-boot:run
+# Khuyến nghị: Postgres Docker + profile docker (port 8081)
+docker compose up -d
+mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
-- Tạo DB trước: `CREATE DATABASE educycledb;`
-- Cấu hình trong `src/main/resources/application.yml`
-- Flyway tự chạy migration khi khởi động
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- **Default (không profile):** Postgres tại `localhost:5432`, API **8080** — xem `application.yml`
+- **Profile `docker`:** Postgres `localhost:5433`, API **8081** — xem `application-docker.yml`
+- Flyway chạy migration khi khởi động
+- Swagger: **8080** → `http://localhost:8080/swagger-ui.html` · **docker** → `http://localhost:8081/swagger-ui.html`
 
 </td>
 <td width="50%" valign="top">
@@ -74,7 +84,8 @@ npm run dev
 ```
 
 - Dev server: [http://localhost:5173](http://localhost:5173)
-- Đảm bảo backend đang chạy tại `http://localhost:8080`
+- Proxy dev: `/api` và `/ws` → backend (mặc định **8081**, đồng bộ profile `docker`)
+- Copy `.env.example` → `.env.local` nếu cần đổi cổng backend
 
 </td>
 </tr>

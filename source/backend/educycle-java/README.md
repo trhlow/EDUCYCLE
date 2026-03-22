@@ -28,11 +28,37 @@
 - Maven 3.9+
 - PostgreSQL 15+
 
-### 1. Create database
+### 1. Database (chọn một)
+
+**A — Postgres cài trên máy (port 5432), khớp `application.yml` mặc định**
+
+Kết nối bằng superuser (`postgres`), chạy:
+
 ```sql
-CREATE DATABASE educycledb;
+CREATE USER educycle WITH PASSWORD 'educycle123';
+CREATE DATABASE educycledb OWNER educycle;
+```
+
+Nếu DB đã tồn tại và thuộc `postgres`:
+
+```sql
 CREATE USER educycle WITH PASSWORD 'educycle123';
 GRANT ALL PRIVILEGES ON DATABASE educycledb TO educycle;
+\c educycledb
+GRANT ALL ON SCHEMA public TO educycle;
+ALTER SCHEMA public OWNER TO educycle;
+```
+
+Đổi mật khẩu user có sẵn: `ALTER USER educycle WITH PASSWORD 'educycle123';`
+
+**B — Docker Compose** (Postgres host **5433**, user/pass như trên): từ thư mục `educycle-java` chạy `docker compose up -d`, rồi start BE với profile **`docker`** (xem mục 4 bên dưới).
+
+**C — Mật khẩu / URL khác** (không sửa file trong repo): PowerShell trước khi `mvn spring-boot:run`:
+
+```powershell
+$env:SPRING_DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/educycledb'
+$env:SPRING_DATASOURCE_USERNAME = 'postgres'
+$env:SPRING_DATASOURCE_PASSWORD = 'mat_khau_cua_ban'
 ```
 
 ### 2. Configure `application.yml`
@@ -230,7 +256,7 @@ spring-boot-starter-security      <!-- JWT Auth -->
 spring-boot-starter-validation     <!-- Bean Validation -->
 spring-boot-starter-actuator       <!-- /actuator/health -->
 postgresql                         <!-- JDBC driver -->
-flyway-core + flyway-database-postgresql  <!-- DB migrations -->
+flyway-core                     <!-- DB migrations (PostgreSQL via JDBC) -->
 lombok                             <!-- Boilerplate reduction -->
 jjwt-api + jjwt-impl + jjwt-jackson     <!-- JWT generation/validation -->
 springdoc-openapi-starter-webmvc-ui      <!-- Swagger UI -->
