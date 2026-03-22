@@ -22,10 +22,10 @@ export default function ProfilePage() {
 
   const [activeSection, setActiveSection] = useState('profile');
 
-  // Phone verification state
-  const [phoneVerifyStep, setPhoneVerifyStep] = useState('idle'); // idle | input | otp
-  const [verifyPhone_number, setVerifyPhone_number] = useState('');
-  const [verifyOtp, setVerifyOtp] = useState('');
+  // Issue #1 FIX: Phone verification state — chỉ 2 bước: idle | input
+  // BE /auth/verify-phone không dùng OTP riêng — gửi phone là verify luôn
+  const [phoneVerifyStep, setPhoneVerifyStep] = useState('idle');
+  const [verifyPhoneNumber, setVerifyPhoneNumber] = useState('');
   const [verifySending, setVerifySending] = useState(false);
 
   const handleProfileSave = (e) => {
@@ -55,38 +55,28 @@ export default function ProfilePage() {
     }
   };
 
-  // Phone verification handlers
-  const handleSendPhoneOtp = () => {
-    if (!/^(0[3-9])[0-9]{8}$/.test(verifyPhone_number)) {
+  // Issue #1 FIX: Gọi BE thật — /auth/verify-phone nhận { phone } và mark verified
+  const handleVerifyPhoneDirect = async () => {
+    if (!/^(0[3-9])[0-9]{8}$/.test(verifyPhoneNumber)) {
       toast.error('Số điện thoại không hợp lệ (VD: 0912345678)');
       return;
     }
     setVerifySending(true);
-    setTimeout(() => {
-      setVerifySending(false);
-      setPhoneVerifyStep('otp');
-      toast.success('Mã OTP đã gửi đến ' + verifyPhone_number);
-    }, 1000);
-  };
-
-  const handleVerifyPhoneOtp = async () => {
-    if (verifyOtp.length < 4) {
-      toast.error('Vui lòng nhập mã OTP');
-      return;
-    }
-    setVerifySending(true);
-    const ok = await verifyPhone(verifyPhone_number, verifyOtp);
-    setVerifySending(false);
-    if (ok) {
+    try {
+      await verifyPhone(verifyPhoneNumber);
       toast.success('Xác thực số điện thoại thành công! ✅');
       setPhoneVerifyStep('idle');
-      setVerifyOtp('');
-    } else {
-      toast.error('Mã OTP không đúng!');
+      setVerifyPhoneNumber('');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Xác thực thất bại. Vui lòng thử lại.';
+      toast.error(msg);
+    } finally {
+      setVerifySending(false);
     }
   };
 
-  const isEmailVerified = user?.isEmailVerified ?? false;
+  // Issue #1: dùng user.emailVerified (không ?? true nữa — đã fix ở AuthContext)
+  const isEmailVerified = user?.emailVerified ?? false;
   const isPhoneVerified = user?.phoneVerified ?? false;
 
   return (
@@ -99,9 +89,8 @@ export default function ProfilePage() {
             </div>
             <h2 className="profile-name">{user?.username}</h2>
             <p className="profile-email">{user?.email}</p>
-            <span className="profile-role">{user?.role === 'Admin' ? 'Quản trị viên' : 'Thành viên'}</span>
+            <span className="profile-role">{user?.role?.toUpperCase() === 'ADMIN' ? 'Quản trị viên' : 'Thành viên'}</span>
 
-            {/* Verification badges */}
             <div className="profile-badges">
               <span className={`profile-badge ${isEmailVerified ? 'verified' : 'unverified'}`}>
                 {isEmailVerified ? '✅' : '⚠️'} Email
@@ -192,10 +181,10 @@ export default function ProfilePage() {
             <section className="profile-section">
               <h2 className="profile-section-title">Xác Thực Tài Khoản</h2>
               <p className="profile-section-desc">
-                Xác thực tài khoản giúp tăng độ tin cậy khi giao dịch trên EduCycle.
+                Xác thực tài khoản giúp tăng độ tin cậy và cho phép đăng bán sản phẩm trên EduCycle.
               </p>
 
-              {/* Email Verification Status */}
+              {/* Email Verification */}
               <div className="verify-card">
                 <div className="verify-card-header">
                   <div className="verify-card-icon">📧</div>
@@ -207,9 +196,17 @@ export default function ProfilePage() {
                     {isEmailVerified ? '✅ Đã xác thực' : '⚠️ Chưa xác thực'}
                   </span>
                 </div>
+                {!isEmailVerified && (
+                  <div className="verify-card-body">
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+                      Kiểm tra hộp thư của bạn và nhấp vào link xác thực đã được gửi lúc đăng ký.
+                      Nếu chưa nhận được, hãy liên hệ hỗ trợ.
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Phone Verification */}
+              {/* Phone Verification — Issue #1 FIX */}
               <div className="verify-card">
                 <div className="verify-card-header">
                   <div className="verify-card-icon">📱</div>
@@ -224,6 +221,10 @@ export default function ProfilePage() {
 
                 {!isPhoneVerified && (
                   <div className="verify-card-body">
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+                      Xác thực số điện thoại để có thể đăng bán sản phẩm trên EduCycle.
+                    </p>
+
                     {phoneVerifyStep === 'idle' && (
                       <button
                         className="verify-action-btn"
@@ -235,57 +236,31 @@ export default function ProfilePage() {
 
                     {phoneVerifyStep === 'input' && (
                       <div className="verify-form">
-                        <label>Số điện thoại</label>
+                        <label>Nhập số điện thoại của bạn</label>
                         <input
                           type="tel"
                           placeholder="0912 345 678"
-                          value={verifyPhone_number}
-                          onChange={(e) => setVerifyPhone_number(e.target.value.replace(/\s/g, ''))}
+                          value={verifyPhoneNumber}
+                          onChange={(e) => setVerifyPhoneNumber(e.target.value.replace(/\s/g, ''))}
                           maxLength={11}
+                          autoFocus
                         />
+                        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', margin: 'var(--space-2) 0' }}>
+                          Định dạng: 0912345678 (10 chữ số, bắt đầu bằng 03x–09x)
+                        </p>
                         <div className="verify-form-actions">
                           <button
                             className="verify-action-btn"
-                            onClick={handleSendPhoneOtp}
+                            onClick={handleVerifyPhoneDirect}
                             disabled={verifySending}
                           >
-                            {verifySending ? '⏳ Đang gửi...' : '📤 Gửi Mã OTP'}
+                            {verifySending ? '⏳ Đang xác thực...' : '✅ Xác Nhận'}
                           </button>
                           <button
                             className="verify-cancel-btn"
-                            onClick={() => setPhoneVerifyStep('idle')}
+                            onClick={() => { setPhoneVerifyStep('idle'); setVerifyPhoneNumber(''); }}
                           >
                             Hủy
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {phoneVerifyStep === 'otp' && (
-                      <div className="verify-form">
-                        <label>Nhập mã OTP (đã gửi đến {verifyPhone_number})</label>
-                        <input
-                          type="text"
-                          placeholder="• • • • • •"
-                          value={verifyOtp}
-                          onChange={(e) => setVerifyOtp(e.target.value.replace(/\D/g, ''))}
-                          maxLength={6}
-                          autoFocus
-                          className="otp-style-input"
-                        />
-                        <div className="verify-form-actions">
-                          <button
-                            className="verify-action-btn"
-                            onClick={handleVerifyPhoneOtp}
-                            disabled={verifySending}
-                          >
-                            {verifySending ? '⏳ Xác thực...' : '✅ Xác Nhận'}
-                          </button>
-                          <button
-                            className="verify-cancel-btn"
-                            onClick={() => { setPhoneVerifyStep('input'); setVerifyOtp(''); }}
-                          >
-                            ← Đổi số khác
                           </button>
                         </div>
                       </div>
@@ -337,9 +312,9 @@ export default function ProfilePage() {
               <div className="profile-notification-list">
                 {[
                   { id: 'email_orders', label: 'Thông báo đơn hàng qua email', desc: 'Nhận email khi có đơn hàng mới' },
-                  { id: 'email_promo', label: 'Khuyến mãi và ưu đãi', desc: 'Nhận thông tin về các khóa học giảm giá' },
-                  { id: 'email_updates', label: 'Cập nhật khóa học', desc: 'Thông báo khi khóa học bạn mua được cập nhật' },
-                  { id: 'email_newsletter', label: 'Bản tin hàng tuần', desc: 'Tổng hợp khóa học mới và phổ biến' },
+                  { id: 'email_promo', label: 'Khuyến mãi và ưu đãi', desc: 'Nhận thông tin về tài liệu được chia sẻ mới' },
+                  { id: 'email_updates', label: 'Cập nhật giao dịch', desc: 'Thông báo khi giao dịch có thay đổi trạng thái' },
+                  { id: 'email_newsletter', label: 'Bản tin hàng tuần', desc: 'Tổng hợp sản phẩm mới và phổ biến' },
                 ].map((item) => (
                   <div key={item.id} className="profile-notification-item">
                     <div>

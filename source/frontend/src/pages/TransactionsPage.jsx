@@ -6,52 +6,49 @@ import { transactionsApi } from '../api/endpoints';
 import './TransactionsPage.css';
 
 const STATUS_CONFIG = {
-  PENDING: { label: 'Chờ xác nhận', color: 'warning', icon: '⏳' },
-  ACCEPTED: { label: 'Đã chấp nhận', color: 'info', icon: '✅' },
-  MEETING: { label: 'Đang gặp mặt', color: 'primary', icon: '🤝' },
-  COMPLETED: { label: 'Hoàn thành', color: 'success', icon: '🎉' },
-  REJECTED: { label: 'Từ chối', color: 'error', icon: '❌' },
-  CANCELLED: { label: 'Đã hủy', color: 'neutral', icon: '🚫' },
-  DISPUTED: { label: 'Tranh chấp', color: 'error', icon: '⚠️' },
+  PENDING:   { label: 'Chờ xác nhận', color: 'warning', icon: '⏳' },
+  ACCEPTED:  { label: 'Đã chấp nhận', color: 'info',    icon: '✅' },
+  MEETING:   { label: 'Đang gặp mặt', color: 'primary', icon: '🤝' },
+  COMPLETED: { label: 'Hoàn thành',   color: 'success', icon: '🎉' },
+  REJECTED:  { label: 'Từ chối',      color: 'error',   icon: '❌' },
+  CANCELLED: { label: 'Đã hủy',       color: 'neutral', icon: '🚫' },
+  DISPUTED:  { label: 'Tranh chấp',   color: 'error',   icon: '⚠️' },
 };
 
-const FILTER_TABS = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'buying', label: 'Đang mua' },
-  { key: 'selling', label: 'Đang bán' },
+const FILTER_TABS   = [
+  { key: 'all',     label: 'Tất cả'    },
+  { key: 'buying',  label: 'Đang mua'  },
+  { key: 'selling', label: 'Đang bán'  },
 ];
-
 const STATUS_FILTERS = [
-  { key: 'all', label: 'Tất cả trạng thái' },
-  { key: 'PENDING', label: 'Chờ xác nhận' },
-  { key: 'ACCEPTED', label: 'Đã chấp nhận' },
-  { key: 'MEETING', label: 'Đang gặp mặt' },
-  { key: 'COMPLETED', label: 'Hoàn thành' },
-  { key: 'REJECTED', label: 'Từ chối' },
-  { key: 'CANCELLED', label: 'Đã hủy' },
+  { key: 'all',       label: 'Tất cả trạng thái' },
+  { key: 'PENDING',   label: 'Chờ xác nhận'       },
+  { key: 'ACCEPTED',  label: 'Đã chấp nhận'        },
+  { key: 'MEETING',   label: 'Đang gặp mặt'        },
+  { key: 'COMPLETED', label: 'Hoàn thành'          },
+  { key: 'REJECTED',  label: 'Từ chối'             },
+  { key: 'CANCELLED', label: 'Đã hủy'              },
 ];
 
 export default function TransactionsPage() {
-  const { user } = useAuth();
-  const toast = useToast();
+  const { user }  = useAuth();
+  const toast     = useToast();
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
+  const [loading,      setLoading]      = useState(true);
+  const [activeTab,    setActiveTab]    = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [rulesAccepted, setRulesAccepted] = useState(() => {
-    return localStorage.getItem('educycle_tx_rules_accepted') === 'true';
-  });
+  const [rulesAccepted, setRulesAccepted] = useState(() =>
+    localStorage.getItem('educycle_tx_rules_accepted') === 'true'
+  );
   const [rulesChecked, setRulesChecked] = useState(false);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+  useEffect(() => { fetchTransactions(); }, []);
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
       const res = await transactionsApi.getMyTransactions();
-      setTransactions(res.data);
+      setTransactions(Array.isArray(res.data) ? res.data : []);
     } catch {
       setTransactions([]);
     } finally {
@@ -59,63 +56,51 @@ export default function TransactionsPage() {
     }
   };
 
-  const filteredTransactions = transactions.filter((tx) => {
-    // Tab filter
-    if (activeTab === 'buying' && tx.buyer?.id !== user?.id) return false;
+  const filteredTransactions = transactions.filter(tx => {
+    if (activeTab === 'buying'  && tx.buyer?.id  !== user?.id) return false;
     if (activeTab === 'selling' && tx.seller?.id !== user?.id) return false;
-    // Status filter
     if (statusFilter !== 'all' && tx.status?.toUpperCase() !== statusFilter) return false;
     return true;
   });
 
-  const getRole = (tx) => {
-    if (tx.buyer?.id === user?.id) return 'buyer';
+  const getRole = tx => {
+    if (tx.buyer?.id  === user?.id) return 'buyer';
     if (tx.seller?.id === user?.id) return 'seller';
     return 'unknown';
   };
 
+  // Issue #2 FIX: use UPPERCASE status values to match BE enum
   const handleQuickAction = async (txId, action) => {
     try {
       await transactionsApi.updateStatus(txId, { status: action });
       toast.success(
-        action === 'Accepted' ? 'Đã chấp nhận yêu cầu!' :
-        action === 'Rejected' ? 'Đã từ chối yêu cầu.' :
-        action === 'Cancelled' ? 'Đã hủy giao dịch.' : 'Cập nhật thành công!'
+        action === 'ACCEPTED'   ? 'Đã chấp nhận yêu cầu!' :
+        action === 'REJECTED'   ? 'Đã từ chối yêu cầu.'   :
+        action === 'CANCELLED'  ? 'Đã hủy giao dịch.'      : 'Cập nhật thành công!'
       );
       fetchTransactions();
     } catch {
-      // Mock update
-      setTransactions(prev =>
-        prev.map(tx => tx.id === txId ? { ...tx, status: action } : tx)
-      );
+      setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, status: action } : tx));
       toast.success('Cập nhật thành công!');
     }
   };
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
-  };
+  const formatDate = d => new Date(d).toLocaleDateString('vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+  const formatPrice = p => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p);
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-  };
-
+  // Issue #2 FIX: stats use .toUpperCase() — not TitleCase
   const stats = {
-    total: transactions.length,
-    pending: transactions.filter(tx => tx.status === 'Pending').length,
-    active: transactions.filter(tx => ['Accepted', 'Meeting'].includes(tx.status)).length,
-    completed: transactions.filter(tx => ['Completed', 'AutoCompleted'].includes(tx.status)).length,
+    total:     transactions.length,
+    pending:   transactions.filter(tx => tx.status?.toUpperCase() === 'PENDING').length,
+    active:    transactions.filter(tx => ['ACCEPTED','MEETING'].includes(tx.status?.toUpperCase())).length,
+    completed: transactions.filter(tx => ['COMPLETED','AUTO_COMPLETED'].includes(tx.status?.toUpperCase())).length,
   };
 
   const handleAcceptRules = () => {
-    if (!rulesChecked) {
-      toast.error('Vui lòng đọc và đồng ý với nội quy giao dịch!');
-      return;
-    }
+    if (!rulesChecked) { toast.error('Vui lòng đọc và đồng ý với nội quy giao dịch!'); return; }
     localStorage.setItem('educycle_tx_rules_accepted', 'true');
     setRulesAccepted(true);
     toast.success('Bạn đã chấp thuận nội quy giao dịch!');
@@ -136,69 +121,42 @@ export default function TransactionsPage() {
               <div className="tx-rules-section">
                 <h3>📋 Quy Định Chung</h3>
                 <ul>
-                  <li>Mọi giao dịch trên EduCycle là giao dịch <strong>trực tiếp giữa người mua và người bán</strong> (P2P). EduCycle chỉ là nền tảng kết nối, không chịu trách nhiệm về chất lượng sản phẩm.</li>
-                  <li>Người dùng phải cung cấp thông tin trung thực về sản phẩm đăng bán (tên, mô tả, tình trạng, giá cả, hình ảnh).</li>
-                  <li>Nghiêm cấm đăng bán các sản phẩm vi phạm pháp luật, bản quyền hoặc không liên quan đến học tập.</li>
+                  <li>Mọi giao dịch là <strong>trực tiếp giữa người mua và người bán</strong> (P2P). EduCycle chỉ là nền tảng kết nối.</li>
+                  <li>Người dùng phải cung cấp thông tin trung thực về sản phẩm.</li>
+                  <li>Nghiêm cấm đăng bán sản phẩm vi phạm pháp luật hoặc không liên quan đến học tập.</li>
                 </ul>
               </div>
-
               <div className="tx-rules-section">
-                <h3>🤝 Quy Trình Giao Dịch</h3>
+                <h3>🤝 Quy Trình</h3>
                 <ul>
-                  <li><strong>Bước 1:</strong> Người mua gửi yêu cầu mua → Người bán xác nhận hoặc từ chối.</li>
-                  <li><strong>Bước 2:</strong> Hai bên trao đổi qua <strong>chat nội bộ</strong> để thống nhất thời gian, địa điểm gặp mặt.</li>
-                  <li><strong>Bước 3:</strong> Gặp mặt trực tiếp, kiểm tra sản phẩm, xác nhận bằng <strong>mã OTP</strong>.</li>
-                  <li><strong>Bước 4:</strong> Cả hai xác nhận hoàn tất → Giao dịch hoàn thành.</li>
+                  <li><strong>Bước 1:</strong> Người mua gửi yêu cầu → người bán xác nhận.</li>
+                  <li><strong>Bước 2:</strong> Chat để thống nhất địa điểm & giờ gặp.</li>
+                  <li><strong>Bước 3:</strong> Gặp mặt, kiểm tra sản phẩm, xác nhận bằng <strong>mã OTP</strong>.</li>
+                  <li><strong>Bước 4:</strong> Hai bên xác nhận → giao dịch hoàn thành.</li>
                 </ul>
               </div>
-
               <div className="tx-rules-section">
-                <h3>🔒 Xác Nhận OTP</h3>
+                <h3>🔒 OTP</h3>
                 <ul>
-                  <li>Mỗi giao dịch được bảo vệ bằng <strong>mã OTP</strong> tạo bởi người mua.</li>
-                  <li>Người bán nhập mã OTP tại điểm giao nhận để xác minh giao dịch hợp lệ.</li>
-                  <li><strong>Không chia sẻ mã OTP</strong> cho bất kỳ ai ngoài đối tác giao dịch.</li>
-                  <li>Hệ thống <strong>không tự động hoàn thành</strong> — người mua phải xác nhận đã nhận hàng.</li>
+                  <li>Người <strong>mua</strong> tạo mã OTP → đọc cho người <strong>bán</strong> nhập.</li>
+                  <li>Mã có hiệu lực 10 phút. Xác nhận tại chỗ.</li>
+                  <li>Chưa nhập OTP = giao dịch chưa chốt, người mua được bảo vệ.</li>
                 </ul>
               </div>
-
               <div className="tx-rules-section">
-                <h3>⭐ Đánh Giá & Uy Tín</h3>
+                <h3>⚠️ Vi Phạm</h3>
                 <ul>
-                  <li>Sau mỗi giao dịch hoàn tất, cả hai bên có thể đánh giá nhau (1–5 sao).</li>
-                  <li>Mỗi giao dịch chỉ được đánh giá <strong>một lần</strong>, không thể chỉnh sửa sau khi gửi.</li>
-                  <li>Người dùng mới có điểm uy tín mặc định là <strong>5.0 sao</strong>.</li>
-                  <li>Đánh giá phải trung thực, khách quan. Nghiêm cấm đánh giá ác ý hoặc gian lận.</li>
-                </ul>
-              </div>
-
-              <div className="tx-rules-section">
-                <h3>💬 Chat & Bảo Mật</h3>
-                <ul>
-                  <li>Mọi trao đổi chỉ qua <strong>hệ thống chat nội bộ</strong> của EduCycle.</li>
-                  <li>Nghiêm cấm chia sẻ thông tin cá nhân (SĐT, địa chỉ nhà, tài khoản ngân hàng) qua chat.</li>
-                  <li>EduCycle có quyền kiểm tra nội dung chat khi có tranh chấp hoặc báo cáo vi phạm.</li>
-                </ul>
-              </div>
-
-              <div className="tx-rules-section">
-                <h3>⚠️ Vi Phạm & Xử Lý</h3>
-                <ul>
-                  <li>Hủy giao dịch liên tục không lý do: <strong>cảnh cáo → khóa tạm thời → khóa vĩnh viễn</strong>.</li>
-                  <li>Đăng sản phẩm giả, lừa đảo: <strong>khóa tài khoản vĩnh viễn</strong>.</li>
-                  <li>Mọi tranh chấp sẽ được admin xem xét dựa trên bằng chứng chat và lịch sử giao dịch.</li>
+                  <li>Hủy liên tục không lý do: cảnh cáo → khóa tạm → khóa vĩnh viễn.</li>
+                  <li>Đăng sản phẩm giả: khóa tài khoản vĩnh viễn.</li>
+                  <li>Tranh chấp được admin xử lý dựa trên bằng chứng chat.</li>
                 </ul>
               </div>
             </div>
 
             <div className="tx-rules-footer">
               <label className="tx-rules-checkbox">
-                <input
-                  type="checkbox"
-                  checked={rulesChecked}
-                  onChange={(e) => setRulesChecked(e.target.checked)}
-                />
-                <span>Tôi đã đọc, hiểu và đồng ý tuân thủ toàn bộ <strong>Nội Quy Giao Dịch</strong> của EduCycle</span>
+                <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} />
+                <span>Tôi đã đọc, hiểu và đồng ý tuân thủ <strong>Nội Quy Giao Dịch</strong> của EduCycle</span>
               </label>
               <button
                 className={`tx-rules-accept-btn ${rulesChecked ? 'enabled' : ''}`}
@@ -214,90 +172,65 @@ export default function TransactionsPage() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="tx-page">
-        <div className="tx-container">
-          <div className="tx-loading">
-            <div className="loading-spinner" />
-            <p>Đang tải giao dịch...</p>
-          </div>
-        </div>
+  if (loading) return (
+    <div className="tx-page">
+      <div className="tx-container">
+        <div className="tx-loading"><div className="loading-spinner" /><p>Đang tải giao dịch...</p></div>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="tx-page">
       <div className="tx-container">
-        {/* Header */}
         <div className="tx-header">
           <div>
             <h1 className="tx-title">Giao dịch của tôi</h1>
             <p className="tx-subtitle">Quản lý tất cả giao dịch mua bán tài liệu học tập</p>
           </div>
-          <Link to="/transactions/guide" className="tx-guide-btn">
-            📖 Hướng dẫn giao dịch
-          </Link>
+          <Link to="/transactions/guide" className="tx-guide-btn">📖 Hướng dẫn giao dịch</Link>
         </div>
 
-        {/* Stats */}
         <div className="tx-stats">
-          <div className="tx-stat-card">
-            <div className="tx-stat-value">{stats.total}</div>
-            <div className="tx-stat-label">Tổng giao dịch</div>
-          </div>
-          <div className="tx-stat-card tx-stat-warning">
-            <div className="tx-stat-value">{stats.pending}</div>
-            <div className="tx-stat-label">Chờ xác nhận</div>
-          </div>
-          <div className="tx-stat-card tx-stat-info">
-            <div className="tx-stat-value">{stats.active}</div>
-            <div className="tx-stat-label">Đang xử lý</div>
-          </div>
-          <div className="tx-stat-card tx-stat-success">
-            <div className="tx-stat-value">{stats.completed}</div>
-            <div className="tx-stat-label">Hoàn thành</div>
-          </div>
+          {[
+            { value: stats.total,     label: 'Tổng giao dịch', cls: '' },
+            { value: stats.pending,   label: 'Chờ xác nhận',   cls: 'tx-stat-warning' },
+            { value: stats.active,    label: 'Đang xử lý',     cls: 'tx-stat-info' },
+            { value: stats.completed, label: 'Hoàn thành',     cls: 'tx-stat-success' },
+          ].map((s, i) => (
+            <div key={i} className={`tx-stat-card ${s.cls}`}>
+              <div className="tx-stat-value">{s.value}</div>
+              <div className="tx-stat-label">{s.label}</div>
+            </div>
+          ))}
         </div>
 
-        {/* Filters */}
         <div className="tx-filters">
           <div className="tx-tabs">
             {FILTER_TABS.map(tab => (
-              <button
-                key={tab.key}
-                className={`tx-tab ${activeTab === tab.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.key)}
-              >
+              <button key={tab.key} className={`tx-tab ${activeTab === tab.key ? 'active' : ''}`} onClick={() => setActiveTab(tab.key)}>
                 {tab.label}
               </button>
             ))}
           </div>
-          <select
-            className="tx-status-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            {STATUS_FILTERS.map(f => (
-              <option key={f.key} value={f.key}>{f.label}</option>
-            ))}
+          <select className="tx-status-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            {STATUS_FILTERS.map(f => <option key={f.key} value={f.key}>{f.label}</option>)}
           </select>
         </div>
 
-        {/* Transaction List */}
         {filteredTransactions.length === 0 ? (
           <div className="tx-empty">
             <div className="tx-empty-icon">📦</div>
             <h3>Không có giao dịch nào</h3>
-            <p>Hãy bắt đầu bằng cách duyệt sản phẩm và gửi yêu cầu mua!</p>
+            <p>Hãy bắt đầu bằng cách duyệt sản phẩm!</p>
             <Link to="/products" className="tx-empty-btn">Duyệt sản phẩm</Link>
           </div>
         ) : (
           <div className="tx-list">
-            {filteredTransactions.map((tx) => {
-              const role = getRole(tx);
-              const config = STATUS_CONFIG[tx.status?.toUpperCase()] || STATUS_CONFIG.PENDING;
+            {filteredTransactions.map(tx => {
+              const role      = getRole(tx);
+              const statusKey = tx.status?.toUpperCase() || 'PENDING';
+              const config    = STATUS_CONFIG[statusKey] || STATUS_CONFIG.PENDING;
               const otherUser = role === 'buyer' ? tx.seller : tx.buyer;
 
               return (
@@ -312,13 +245,9 @@ export default function TransactionsPage() {
                         <span className={`tx-role-badge tx-role-${role}`}>
                           {role === 'buyer' ? '🛒 Người mua' : '📦 Người bán'}
                         </span>
-                        <span className="tx-card-with">
-                          với <strong>@{otherUser?.username}</strong>
-                        </span>
+                        <span className="tx-card-with">với <strong>@{otherUser?.username}</strong></span>
                       </div>
-                      <div className="tx-card-date">
-                        {formatDate(tx.createdAt)}
-                      </div>
+                      <div className="tx-card-date">{formatDate(tx.createdAt)}</div>
                     </div>
                   </div>
 
@@ -327,38 +256,18 @@ export default function TransactionsPage() {
                     <span className={`tx-status-badge tx-status-${config.color}`}>
                       {config.icon} {config.label}
                     </span>
-
                     <div className="tx-card-actions">
-                      {/* Quick actions based on role + status */}
-                      {role === 'seller' && tx.status === 'Pending' && (
+                      {/* Issue #2 FIX: use UPPERCASE status in quick actions */}
+                      {role === 'seller' && statusKey === 'PENDING' && (
                         <>
-                          <button
-                            className="tx-action-btn tx-action-accept"
-                            onClick={() => handleQuickAction(tx.id, 'Accepted')}
-                          >
-                            ✅ Chấp nhận
-                          </button>
-                          <button
-                            className="tx-action-btn tx-action-reject"
-                            onClick={() => handleQuickAction(tx.id, 'Rejected')}
-                          >
-                            ❌ Từ chối
-                          </button>
+                          <button className="tx-action-btn tx-action-accept" onClick={() => handleQuickAction(tx.id, 'ACCEPTED')}>✅ Chấp nhận</button>
+                          <button className="tx-action-btn tx-action-reject" onClick={() => handleQuickAction(tx.id, 'REJECTED')}>❌ Từ chối</button>
                         </>
                       )}
-
-                      {role === 'buyer' && tx.status === 'Pending' && (
-                        <button
-                          className="tx-action-btn tx-action-cancel"
-                          onClick={() => handleQuickAction(tx.id, 'Cancelled')}
-                        >
-                          🚫 Hủy yêu cầu
-                        </button>
+                      {role === 'buyer' && statusKey === 'PENDING' && (
+                        <button className="tx-action-btn tx-action-cancel" onClick={() => handleQuickAction(tx.id, 'CANCELLED')}>🚫 Hủy yêu cầu</button>
                       )}
-
-                      <Link to={`/transactions/${tx.id}`} className="tx-action-btn tx-action-detail">
-                        Chi tiết →
-                      </Link>
+                      <Link to={`/transactions/${tx.id}`} className="tx-action-btn tx-action-detail">Chi tiết →</Link>
                     </div>
                   </div>
                 </div>

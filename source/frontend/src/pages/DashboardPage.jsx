@@ -6,6 +6,8 @@ import { useToast } from '../components/Toast';
 import { productsApi, transactionsApi } from '../api/endpoints';
 import './DashboardPage.css';
 
+// Issue #6 FIX: Dashboard cho TẤT CẢ user (không chỉ admin)
+// Admin xem AdminPage (/admin) cho quản trị hệ thống
 const SIDEBAR_ITEMS = [
   { icon: '📊', label: 'Tổng Quan', view: 'overview' },
   { icon: '📚', label: 'Sản Phẩm Của Tôi', view: 'products' },
@@ -15,19 +17,14 @@ const SIDEBAR_ITEMS = [
 ];
 
 export default function DashboardPage() {
-  const [currentView, setCurrentView] = useState('overview');
+  const [currentView, setCurrentView] = useState('products');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
-  // Redirect user to profile (admin có quyền xem dashboard)
-  useEffect(() => {
-    if (!isAdmin) {
-      // User không có dashboard, redirect về profile
-      navigate('/profile', { replace: true });
-    }
-  }, [isAdmin, navigate]);
+  // Issue #6 FIX: Không redirect — tất cả user đều có dashboard cá nhân
+  // Default view: 'products' (sản phẩm của tôi) vì đó là lý do user vào đây
 
   const handleViewChange = (view) => {
     setCurrentView(view);
@@ -66,6 +63,19 @@ export default function DashboardPage() {
               {item.label}
             </button>
           ))}
+          {/* Link đến AdminPage cho admin */}
+          {isAdmin && (
+            <>
+              <div className="dash-sidebar-section-title" style={{ marginTop: 'var(--space-4)' }}>Quản Trị</div>
+              <button
+                className="dash-sidebar-link"
+                onClick={() => navigate('/admin')}
+              >
+                <span className="dash-sidebar-link-icon">⚙️</span>
+                Trang Quản Trị
+              </button>
+            </>
+          )}
         </div>
 
         <button className="dash-sidebar-link dash-sidebar-logout" onClick={handleLogout}>
@@ -124,9 +134,6 @@ function OverviewView({ user }) {
     fetchData();
   }, []);
 
-  
-  
-
   const completedTx = transactions.filter((tx) => tx.status?.toUpperCase() === 'COMPLETED');
   const salesAmount = completedTx
     .filter((tx) => tx.seller?.id === user?.id)
@@ -143,7 +150,7 @@ function OverviewView({ user }) {
           <div className="dash-stats">
             <div className="dash-stat-card">
               <div className="dash-stat-value">{products.length}</div>
-              <div className="dash-stat-label">Sản Phẩm</div>
+              <div className="dash-stat-label">Sản Phẩm Đã Đăng</div>
             </div>
             <div className="dash-stat-card">
               <div className="dash-stat-value">{formatPrice(salesAmount)}</div>
@@ -166,7 +173,7 @@ function OverviewView({ user }) {
             </div>
             {products.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                Bạn chưa đăng sản phẩm nào
+                Bạn chưa đăng sản phẩm nào. <Link to="/products/new">Đăng ngay!</Link>
               </div>
             ) : (
               <table className="dash-table">
@@ -189,7 +196,10 @@ function OverviewView({ user }) {
                       <td>{formatPrice(p.price)}</td>
                       <td>
                         <span className={`dash-status ${p.status?.toUpperCase() === 'APPROVED' ? 'dash-status-active' : 'dash-status-draft'}`}>
-                          {p.status?.toUpperCase() === 'APPROVED' ? 'Đã duyệt' : p.status?.toUpperCase() === 'PENDING' ? 'Chờ duyệt' : p.status}
+                          {p.status?.toUpperCase() === 'APPROVED' ? 'Đã duyệt'
+                            : p.status?.toUpperCase() === 'PENDING' ? 'Chờ duyệt'
+                            : p.status?.toUpperCase() === 'SOLD' ? 'Đã bán'
+                            : p.status}
                         </span>
                       </td>
                     </tr>
@@ -278,11 +288,35 @@ function ProductsView() {
     }
   };
 
-  
+  const statusLabel = (s) => {
+    const u = s?.toUpperCase();
+    if (u === 'APPROVED') return 'Đã Duyệt';
+    if (u === 'PENDING') return 'Chờ Duyệt';
+    if (u === 'REJECTED') return 'Bị Từ Chối';
+    if (u === 'SOLD') return 'Đã Bán';
+    return s;
+  };
+
+  const statusClass = (s) => {
+    const u = s?.toUpperCase();
+    if (u === 'APPROVED') return 'dash-status-active';
+    if (u === 'REJECTED') return 'dash-status-draft';
+    if (u === 'SOLD') return 'dash-status-active';
+    return 'dash-status-pending';
+  };
 
   return (
     <>
       <h1 className="dash-welcome">Sản Phẩm Của Tôi</h1>
+
+      {/* Lưu ý: sản phẩm mới đăng sẽ ở trạng thái "Chờ Duyệt" */}
+      <div style={{
+        background: 'var(--info-light)', border: '1px solid #bfdbfe',
+        borderRadius: 'var(--radius-md)', padding: 'var(--space-3) var(--space-4)',
+        marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)', color: '#1e40af',
+      }}>
+        ℹ️ Sản phẩm mới đăng sẽ ở trạng thái <strong>Chờ Duyệt</strong> cho đến khi admin kiểm duyệt xong.
+      </div>
 
       <div className="dash-section">
         <div className="dash-section-header">
@@ -320,8 +354,8 @@ function ProductsView() {
                     </div>
                   </td>
                   <td>
-                    <span className={`dash-status ${product.status?.toUpperCase() === 'APPROVED' ? 'dash-status-active' : product.status?.toUpperCase() === 'REJECTED' ? 'dash-status-draft' : 'dash-status-pending'}`}>
-                      {product.status?.toUpperCase() === 'APPROVED' ? 'Đã Duyệt' : product.status?.toUpperCase() === 'PENDING' ? 'Chờ Duyệt' : product.status?.toUpperCase() === 'REJECTED' ? 'Bị Từ Chối' : product.status}
+                    <span className={`dash-status ${statusClass(product.status)}`}>
+                      {statusLabel(product.status)}
                     </span>
                   </td>
                   <td>{formatPrice(product.price)}</td>
@@ -361,12 +395,9 @@ function PurchasesView() {
     fetchPurchases();
   }, [user?.id]);
 
-  
-  
-
   const statusMap = {
     PENDING: 'Chờ xác nhận', ACCEPTED: 'Đã chấp nhận', MEETING: 'Đang gặp mặt',
-    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy',
+    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy', DISPUTED: 'Tranh chấp',
   };
 
   return (
@@ -402,7 +433,11 @@ function PurchasesView() {
                   </td>
                   <td>{tx.seller?.username || '—'}</td>
                   <td>{formatPrice(tx.amount)}</td>
-                  <td><span className="dash-status dash-status-active">{statusMap[tx.status?.toUpperCase()] || tx.status}</span></td>
+                  <td>
+                    <span className="dash-status dash-status-active">
+                      {statusMap[tx.status?.toUpperCase()] || tx.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -433,15 +468,12 @@ function SalesView() {
     fetchSales();
   }, [user?.id]);
 
-  
-  
-
   const completedSales = transactions.filter((tx) => tx.status?.toUpperCase() === 'COMPLETED');
   const totalRevenue = completedSales.reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
   const statusMap = {
     PENDING: 'Chờ xác nhận', ACCEPTED: 'Đã chấp nhận', MEETING: 'Đang gặp mặt',
-    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy',
+    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy', DISPUTED: 'Tranh chấp',
   };
 
   return (
@@ -530,19 +562,13 @@ function SettingsView({ user }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', maxWidth: '600px' }}>
           <div>
             <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
-              Họ Và Tên
+              Tên
             </label>
             <input
               type="text"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
-              style={{
-                width: '100%',
-                padding: 'var(--space-3) var(--space-4)',
-                border: '2px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-sm)',
-              }}
+              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}
             />
           </div>
           <div>
@@ -553,13 +579,7 @@ function SettingsView({ user }) {
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              style={{
-                width: '100%',
-                padding: 'var(--space-3) var(--space-4)',
-                border: '2px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-sm)',
-              }}
+              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}
             />
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
@@ -570,23 +590,12 @@ function SettingsView({ user }) {
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               rows={3}
-              placeholder="Nhà giáo dục đam mê và người học suốt đời."
-              style={{
-                width: '100%',
-                padding: 'var(--space-3) var(--space-4)',
-                border: '2px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-sm)',
-                resize: 'vertical',
-              }}
+              placeholder="Giới thiệu về bản thân..."
+              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', resize: 'vertical' }}
             />
           </div>
         </div>
-        <button
-          className="dash-section-action"
-          style={{ marginTop: 'var(--space-6)' }}
-          onClick={handleSave}
-        >
+        <button className="dash-section-action" style={{ marginTop: 'var(--space-6)' }} onClick={handleSave}>
           Lưu Thay Đổi
         </button>
       </div>

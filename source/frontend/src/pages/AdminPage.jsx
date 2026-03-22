@@ -2,192 +2,334 @@ import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { useToast } from '../components/Toast';
 import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api/endpoints';
+import { maskEmail } from '../utils/maskUsername'; // Issue #7
 import './AdminPage.css';
 
 const ADMIN_MENU = [
-  { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview' },
-  { icon: '👥', label: 'Người Dùng', view: 'users' },
-  { icon: '📚', label: 'Sản Phẩm', view: 'products' },
-  { icon: '🏷️', label: 'Danh Mục', view: 'categories' },
-  { icon: '💳', label: 'Giao Dịch', view: 'orders' },
-  { icon: '⭐', label: 'Đánh Giá', view: 'reviews' },
-  { icon: '💬', label: 'Tin Nhắn', view: 'messages' },
-  { icon: '🔍', label: 'Kiểm Duyệt', view: 'moderation' },
+  { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview'    },
+  { icon: '🔍', label: 'Kiểm Duyệt',      view: 'moderation'  },
+  { icon: '👥', label: 'Người Dùng',       view: 'users'       },
+  { icon: '📚', label: 'Sản Phẩm',         view: 'products'    },
+  { icon: '🏷️', label: 'Danh Mục',         view: 'categories'  },
+  { icon: '💳', label: 'Giao Dịch',        view: 'orders'      },
+  { icon: '⭐', label: 'Đánh Giá',         view: 'reviews'     },
 ];
 
 export default function AdminPage() {
   const [currentView, setCurrentView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleViewChange = (view) => {
-    setCurrentView(view);
-    setSidebarOpen(false);
-  };
+  const handleViewChange = (view) => { setCurrentView(view); setSidebarOpen(false); };
 
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-brand">🎓 Quản Trị EduCycle</div>
-
         <div className="admin-sidebar-section">
           <div className="admin-sidebar-section-title">Quản Lý</div>
-          {ADMIN_MENU.map((item) => (
-            <button
-              key={item.view}
-              className={`admin-sidebar-link ${currentView === item.view ? 'active' : ''}`}
-              onClick={() => handleViewChange(item.view)}
-            >
-              <span className="admin-sidebar-link-icon">{item.icon}</span>
-              {item.label}
+          {ADMIN_MENU.map(item => (
+            <button key={item.view} className={`admin-sidebar-link ${currentView === item.view ? 'active' : ''}`} onClick={() => handleViewChange(item.view)}>
+              <span className="admin-sidebar-link-icon">{item.icon}</span>{item.label}
             </button>
           ))}
         </div>
-
         {sidebarOpen && (
           <button className="admin-sidebar-link" onClick={() => setSidebarOpen(false)}>
-            <span className="admin-sidebar-link-icon">✕</span>
-            Đóng Menu
+            <span className="admin-sidebar-link-icon">✕</span>Đóng Menu
           </button>
         )}
       </aside>
 
       <div className="admin-main">
-        <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-          ☰ Menu Quản Trị
-        </button>
-
-        {currentView === 'overview' && <AdminOverview />}
-        {currentView === 'users' && <AdminUsers />}
-        {currentView === 'products' && <AdminProducts />}
-        {currentView === 'categories' && <AdminCategories />}
-        {currentView === 'orders' && <AdminOrders />}
-        {currentView === 'reviews' && <AdminReviews />}
-        {currentView === 'messages' && <AdminMessages />}
+        <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>☰ Menu Quản Trị</button>
+        {currentView === 'overview'   && <AdminOverview onNavigate={handleViewChange} />}
         {currentView === 'moderation' && <AdminModeration />}
+        {currentView === 'users'      && <AdminUsers />}
+        {currentView === 'products'   && <AdminProducts />}
+        {currentView === 'categories' && <AdminCategories />}
+        {currentView === 'orders'     && <AdminOrders />}
+        {currentView === 'reviews'    && <AdminReviews />}
       </div>
     </div>
   );
 }
 
-function AdminOverview() {
-  const [stats, setStats] = useState(null);
+/* ═══════════════════════════════════════
+   Operational Dashboard
+   ═══════════════════════════════════════ */
+function AdminOverview({ onNavigate }) {
+  const toast = useToast();
+  const [stats,   setStats]   = useState(null);
+  const [pending, setPending] = useState([]);
+  const [allTx,   setAllTx]   = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await adminApi.getStats();
-        setStats(res.data);
-      } catch {
-        setStats(null);
-      } finally {
-        setLoading(false);
-      }
+  const fetchAll = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, pendingRes, txRes] = await Promise.all([
+        adminApi.getStats().catch(() => ({ data: null })),
+        productsApi.getPending().catch(() => ({ data: [] })),
+        transactionsApi.getAll().catch(() => ({ data: [] })),
+      ]);
+      setStats(statsRes.data);
+      setPending(Array.isArray(pendingRes.data) ? pendingRes.data : pendingRes.data?.items || []);
+      setAllTx(Array.isArray(txRes.data) ? txRes.data : []);
+      setLastRefresh(new Date());
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { fetchAll(); }, []);
+
+  const handleApprove = async (id) => {
+    try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetchAll(); }
+    catch { toast.error('Không thể duyệt'); }
+  };
+  const handleReject = async (id) => {
+    try { await productsApi.reject(id); toast.success('Đã từ chối'); fetchAll(); }
+    catch { toast.error('Không thể từ chối'); }
+  };
+
+  const fmt = n => n != null ? Number(n).toLocaleString('vi-VN') : '—';
+  const disputedTx = allTx.filter(tx => tx.status?.toUpperCase() === 'DISPUTED');
+  const activeTx   = allTx.filter(tx => ['PENDING','ACCEPTED','MEETING'].includes(tx.status?.toUpperCase()));
+  const recentTx   = [...allTx].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,8);
+
+  const txBadge = (s) => {
+    const cfg = {
+      PENDING:   { bg:'var(--warning-light)',  color:'#e65100', label:'Chờ xác nhận' },
+      ACCEPTED:  { bg:'var(--info-light)',     color:'#1565c0', label:'Đã chấp nhận' },
+      MEETING:   { bg:'#e8eaf6',              color:'#3949ab', label:'Đang gặp mặt' },
+      COMPLETED: { bg:'var(--success-light)', color:'#2e7d32', label:'Hoàn thành'   },
+      REJECTED:  { bg:'var(--error-light)',   color:'#c62828', label:'Từ chối'       },
+      CANCELLED: { bg:'var(--bg-tertiary)',   color:'#616161', label:'Đã hủy'        },
+      DISPUTED:  { bg:'#fbe9e7',             color:'#bf360c', label:'Tranh chấp'    },
     };
-    fetchStats();
-  }, []);
+    const c = cfg[s?.toUpperCase()] || cfg.CANCELLED;
+    return <span style={{ background:c.bg, color:c.color, padding:'2px 10px', borderRadius:'var(--radius-full)', fontSize:'var(--text-xs)', fontWeight:500, whiteSpace:'nowrap' }}>{c.label}</span>;
+  };
 
-  const formatNumber = (n) => n != null ? n.toLocaleString('vi-VN') : '—';
+  if (loading) return <div style={{ textAlign:'center', padding:'4rem', color:'var(--text-secondary)' }}>⏳ Đang tải dữ liệu vận hành...</div>;
+
+  const hasAlerts = pending.length > 0 || disputedTx.length > 0;
 
   return (
     <>
-      <h1 className="admin-page-title">Bảng Điều Khiển Quản Trị</h1>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>⏳ Đang tải thống kê...</div>
-      ) : !stats ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Không thể tải thống kê</div>
-      ) : (
-        <div className="admin-stats">
-          <div className="admin-stat-card">
-            <div className="admin-stat-label">Tổng Người Dùng</div>
-            <div className="admin-stat-value">{formatNumber(stats.totalUsers)}</div>
-          </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-label">Tổng Sản Phẩm</div>
-            <div className="admin-stat-value">{formatNumber(stats.totalProducts)}</div>
-          </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-label">Chờ Duyệt</div>
-            <div className="admin-stat-value">{formatNumber(stats.pendingProducts)}</div>
-          </div>
-          <div className="admin-stat-card">
-            <div className="admin-stat-label">Tổng Giao Dịch</div>
-            <div className="admin-stat-value">{formatNumber(stats.totalTransactions)}</div>
-          </div>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'var(--space-6)', gap:'var(--space-4)', flexWrap:'wrap' }}>
+        <div>
+          <h1 className="admin-page-title" style={{ marginBottom:'var(--space-1)' }}>📊 Bảng Điều Khiển Vận Hành</h1>
+          <p style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)' }}>
+            Cập nhật lúc {lastRefresh.toLocaleTimeString('vi-VN')}
+            {hasAlerts && <span style={{ marginLeft:'var(--space-3)', color:'var(--error)', fontWeight:500 }}>⚠️ Có vấn đề cần xử lý</span>}
+          </p>
         </div>
-      )}
+        <button onClick={fetchAll} style={{ padding:'var(--space-2) var(--space-4)', background:'var(--primary-50)', color:'var(--primary-700)', border:'1px solid var(--primary-200)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', cursor:'pointer', whiteSpace:'nowrap' }}>
+          🔄 Làm mới
+        </button>
+      </div>
+
+      {/* KPI */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'var(--space-4)', marginBottom:'var(--space-6)' }}>
+        {[
+          { icon:'👥', label:'Người dùng',  value:fmt(stats?.totalUsers),                              bg:'var(--primary-50)',   color:'var(--primary-700)', alert:false },
+          { icon:'📚', label:'Sản phẩm',    value:fmt(stats?.totalProducts),                           bg:'var(--secondary-50)', color:'#2e7d32',            alert:false },
+          { icon:'⏳', label:'Chờ duyệt',   value:fmt(stats?.pendingProducts ?? pending.length),       bg:'var(--warning-light)',color:'#e65100',            alert:(stats?.pendingProducts ?? pending.length) > 0 },
+          { icon:'🔄', label:'Giao dịch',   value:fmt(stats?.totalTransactions),                       bg:'var(--info-light)',   color:'#1565c0',            alert:false },
+          { icon:'⚠️', label:'Tranh chấp',  value:String(disputedTx.length),                           bg:'var(--error-light)',  color:'#c62828',            alert:disputedTx.length > 0 },
+          { icon:'🤝', label:'Đang xử lý',  value:String(activeTx.length),                             bg:'#e8eaf6',            color:'#3949ab',            alert:false },
+        ].map((k,i) => (
+          <div key={i} style={{ background:'var(--bg-primary)', border:k.alert?'1.5px solid var(--error)':'1px solid var(--border-light)', borderRadius:'var(--radius-lg)', padding:'var(--space-4)', boxShadow:k.alert?'0 0 0 3px rgba(244,67,54,.08)':'none' }}>
+            <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:36, height:36, background:k.bg, borderRadius:'var(--radius-md)', fontSize:'1.1rem', marginBottom:'var(--space-3)' }}>{k.icon}</div>
+            <div style={{ fontSize:'var(--text-2xl)', fontWeight:700, color:k.color, lineHeight:1 }}>{k.value}</div>
+            <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'var(--space-1)' }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Row 2: Cần xử lý */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-5)', marginBottom:'var(--space-6)' }}>
+        {/* Chờ duyệt */}
+        <div className="admin-section">
+          <div className="admin-section-header">
+            <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+              ⏳ Chờ Duyệt
+              {pending.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{pending.length}</span>}
+            </h2>
+            {pending.length > 3 && <button onClick={() => onNavigate('moderation')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>}
+          </div>
+          {pending.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-secondary)' }}>
+              <div style={{ fontSize:'2.5rem', marginBottom:'var(--space-2)' }}>✅</div>Không có sản phẩm chờ duyệt
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)', maxHeight:340, overflowY:'auto' }}>
+              {pending.slice(0,5).map(item => (
+                <div key={item.id} style={{ padding:'var(--space-3)', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-light)' }}>
+                  <div style={{ fontWeight:600, fontSize:'var(--text-sm)', color:'var(--text-primary)', marginBottom:4 }}>{item.name}</div>
+                  <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:'var(--space-2)' }}>
+                    👤 {item.sellerName || '—'} &nbsp;·&nbsp; 🏷️ {item.category || '—'} &nbsp;·&nbsp; 💰 {formatPrice(item.price)}
+                  </div>
+                  {item.description && (
+                    <div style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', marginBottom:'var(--space-2)', overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{item.description}</div>
+                  )}
+                  <div style={{ display:'flex', gap:'var(--space-2)' }}>
+                    <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)} style={{ flex:1, fontSize:'var(--text-xs)' }}>✅ Duyệt</button>
+                    <button className="admin-btn admin-btn-danger"  onClick={() => handleReject(item.id)}  style={{ flex:1, fontSize:'var(--text-xs)' }}>❌ Từ chối</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Tranh chấp */}
+        <div className="admin-section">
+          <div className="admin-section-header">
+            <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
+              ⚠️ Tranh Chấp
+              {disputedTx.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{disputedTx.length}</span>}
+            </h2>
+            {disputedTx.length > 0 && <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>}
+          </div>
+          {disputedTx.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-secondary)' }}>
+              <div style={{ fontSize:'2.5rem', marginBottom:'var(--space-2)' }}>🤝</div>Không có tranh chấp nào
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
+              {disputedTx.map(tx => (
+                <div key={tx.id} style={{ padding:'var(--space-3)', background:'#fbe9e7', borderRadius:'var(--radius-md)', border:'1px solid #ffccbc' }}>
+                  <div style={{ fontWeight:600, fontSize:'var(--text-sm)', color:'var(--text-primary)', marginBottom:4 }}>{tx.product?.name || '—'}</div>
+                  <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:4 }}>
+                    🛒 {tx.buyer?.username || '—'} &nbsp;↔&nbsp; 📦 {tx.seller?.username || '—'}
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ fontSize:'var(--text-xs)', color:'#bf360c', fontWeight:600 }}>{formatPrice(tx.amount)}</span>
+                    <span style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)' }}>{formatDate(tx.createdAt)}</span>
+                  </div>
+                  <div style={{ marginTop:'var(--space-2)', fontSize:'var(--text-xs)', color:'#bf360c' }}>⚠️ Cần xem xét chat &amp; bằng chứng</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Giao dịch đang xử lý */}
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h2 className="admin-section-title">🔄 Giao Dịch Đang Hoạt Động <span style={{ fontSize:'var(--text-sm)', fontWeight:400, color:'var(--text-secondary)' }}>({activeTx.length})</span></h2>
+          <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>
+        </div>
+        {activeTx.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'var(--space-6)', color:'var(--text-secondary)' }}>Không có giao dịch đang xử lý</div>
+        ) : (
+          <table className="admin-table">
+            <thead><tr><th>Thời gian</th><th>Người mua</th><th>Người bán</th><th>Sản phẩm</th><th>Giá trị</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              {activeTx.slice(0,8).map(tx => (
+                <tr key={tx.id}>
+                  <td style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', whiteSpace:'nowrap' }}>{formatDate(tx.createdAt)}</td>
+                  <td style={{ fontWeight:500 }}>{tx.buyer?.username || '—'}</td>
+                  <td style={{ fontWeight:500 }}>{tx.seller?.username || '—'}</td>
+                  <td style={{ color:'var(--text-primary)' }}>{tx.product?.name || '—'}</td>
+                  <td style={{ fontWeight:600, whiteSpace:'nowrap' }}>{formatPrice(tx.amount)}</td>
+                  <td>{txBadge(tx.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Feed gần nhất */}
+      <div className="admin-section" style={{ marginTop:'var(--space-5)' }}>
+        <div className="admin-section-header"><h2 className="admin-section-title">🕐 Hoạt Động Gần Nhất</h2></div>
+        {recentTx.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'var(--space-4)', color:'var(--text-secondary)' }}>Chưa có giao dịch</div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-2)' }}>
+            {recentTx.map(tx => (
+              <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:'var(--space-3)', padding:'var(--space-3)', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <span style={{ fontWeight:500, color:'var(--text-primary)' }}>{tx.product?.name || '—'}</span>
+                  <span style={{ color:'var(--text-secondary)', marginLeft:'var(--space-2)' }}>· {tx.buyer?.username || '—'} → {tx.seller?.username || '—'}</span>
+                </div>
+                <span style={{ fontWeight:600, color:'var(--primary-700)', whiteSpace:'nowrap' }}>{formatPrice(tx.amount)}</span>
+                {txBadge(tx.status)}
+                <span style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', whiteSpace:'nowrap' }}>{formatDate(tx.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 }
 
+/* ═══ AdminUsers — Issue #7: mask email ═══ */
 function AdminUsers() {
-  const [users, setUsers] = useState([]);
+  const [users,   setUsers]   = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search,  setSearch]  = useState('');
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await adminApi.getUsers();
-        const data = Array.isArray(res.data) ? res.data : [];
-        setUsers(data);
-      } catch {
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
+    adminApi.getUsers()
+      .then(res => setUsers(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setUsers([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = users.filter((u) => {
+  const filtered = users.filter(u => {
     const q = search.toLowerCase();
-    return !q || (u.username || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+    // search on username only — not email (privacy)
+    return !q || (u.username || '').toLowerCase().includes(q);
   });
 
   return (
     <>
       <h1 className="admin-page-title">Quản Lý Người Dùng</h1>
-
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input
-              className="admin-search"
-              type="text"
-              placeholder="Tìm người dùng..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <input className="admin-search" type="text" placeholder="Tìm theo tên người dùng..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
-
+        {/* Issue #7: note about email masking */}
+        <p style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', padding:'0 0 var(--space-3) 0' }}>
+          🔒 Email được mã hoá để bảo vệ quyền riêng tư. Tìm kiếm chỉ theo tên người dùng.
+        </p>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+          <div style={{ textAlign:'center', padding:'2rem' }}>⏳ Đang tải...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Không có người dùng nào</div>
+          <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có người dùng nào</div>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Tên</th>
-                <th>Email</th>
+                <th>Tên người dùng</th>
+                {/* Issue #7: show masked email, not full email */}
+                <th>Email (ẩn)</th>
                 <th>Vai Trò</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((user) => (
-                <tr key={user.id || user.userId}>
-                  <td style={{ fontWeight: 500, fontSize: 'var(--text-xs)' }}>
-                    {String(user.id || user.userId).substring(0, 8)}...
+              {filtered.map(u => (
+                <tr key={u.id || u.userId}>
+                  <td style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)' }}>
+                    {String(u.id || u.userId).substring(0, 8)}...
                   </td>
-                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user.username}</td>
-                  <td>{user.email}</td>
+                  <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{u.username}</td>
+                  {/* Issue #7: masked email */}
+                  <td style={{ color:'var(--text-secondary)', fontFamily:'var(--font-mono)', fontSize:'var(--text-xs)' }}>
+                    {maskEmail(u.email)}
+                  </td>
                   <td>
-                    <span className={`admin-status ${user.role === 'Admin' ? 'admin-status-active' : 'admin-status-pending'}`}>
-                      {user.role === 'Admin' ? 'Quản trị' : 'Người dùng'}
+                    <span className={`admin-status ${u.role?.toUpperCase() === 'ADMIN' ? 'admin-status-active' : 'admin-status-pending'}`}>
+                      {u.role?.toUpperCase() === 'ADMIN' ? 'Quản trị' : 'Người dùng'}
                     </span>
                   </td>
                 </tr>
@@ -202,94 +344,52 @@ function AdminUsers() {
 
 function AdminProducts() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [loading,  setLoading]  = useState(true);
+  const [search,   setSearch]   = useState('');
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await productsApi.getAllForAdmin();
-        const data = Array.isArray(res.data) ? res.data : res.data?.items || [];
-        setProducts(data);
-      } catch {
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
+    productsApi.getAllForAdmin()
+      .then(res => setProducts(Array.isArray(res.data) ? res.data : res.data?.items || []))
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  
+  const statusLabel = s => { const u=s?.toUpperCase(); if(u==='APPROVED')return'Đã duyệt'; if(u==='PENDING')return'Chờ duyệt'; if(u==='REJECTED')return'Từ chối'; if(u==='SOLD')return'Đã bán'; return s; };
+  const statusClass = s => { const u=s?.toUpperCase(); if(u==='APPROVED'||u==='SOLD')return'admin-status-active'; if(u==='REJECTED')return'admin-status-banned'; return'admin-status-pending'; };
 
-  const statusLabel = (s) => {
-    if (s === 'Approved') return 'Đã duyệt';
-    if (s === 'Pending') return 'Chờ duyệt';
-    if (s === 'Rejected') return 'Từ chối';
-    return s;
-  };
-
-  const statusClass = (s) => {
-    if (s === 'Approved') return 'admin-status-active';
-    if (s === 'Pending') return 'admin-status-pending';
-    if (s === 'Rejected') return 'admin-status-banned';
-    return '';
-  };
-
-  const filtered = products.filter((p) => {
+  const filtered = products.filter(p => {
     const q = search.toLowerCase();
-    return !q || (p.name || '').toLowerCase().includes(q) || (p.sellerName || '').toLowerCase().includes(q);
+    return !q || (p.name||'').toLowerCase().includes(q) || (p.sellerName||'').toLowerCase().includes(q);
   });
 
   return (
     <>
       <h1 className="admin-page-title">Quản Lý Sản Phẩm</h1>
-
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input
-              className="admin-search"
-              type="text"
-              placeholder="Tìm sản phẩm..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <input className="admin-search" type="text" placeholder="Tìm sản phẩm..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Không có sản phẩm nào</div>
-        ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Sản Phẩm</th>
-                <th>Người Bán</th>
-                <th>Danh Mục</th>
-                <th>Giá</th>
-                <th>Trạng Thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((product) => (
-                <tr key={product.id}>
-                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{product.name}</td>
-                  <td>{product.sellerName || '—'}</td>
-                  <td>{product.categoryName || product.category || '—'}</td>
-                  <td>{formatPrice(product.price)}</td>
-                  <td>
-                    <span className={`admin-status ${statusClass(product.status)}`}>
-                      {statusLabel(product.status)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+          : filtered.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có sản phẩm nào</div>
+          : (
+            <table className="admin-table">
+              <thead><tr><th>Sản Phẩm</th><th>Người Bán</th><th>Danh Mục</th><th>Giá</th><th>Trạng Thái</th></tr></thead>
+              <tbody>
+                {filtered.map(p => (
+                  <tr key={p.id}>
+                    <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{p.name}</td>
+                    <td>{p.sellerName || '—'}</td>
+                    <td>{p.categoryName || p.category || '—'}</td>
+                    <td>{p.price === 0 ? 'Liên hệ' : formatPrice(p.price)}</td>
+                    <td><span className={`admin-status ${statusClass(p.status)}`}>{statusLabel(p.status)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
       </div>
     </>
   );
@@ -297,327 +397,178 @@ function AdminProducts() {
 
 function AdminOrders() {
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [loading,      setLoading]      = useState(true);
+  const [search,       setSearch]       = useState('');
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await transactionsApi.getAll();
-        const data = Array.isArray(res.data) ? res.data : [];
-        setTransactions(data);
-      } catch {
-        setTransactions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTransactions();
+    transactionsApi.getAll()
+      .then(res => setTransactions(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setTransactions([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  
-  
+  const statusMap = { PENDING:'Chờ xác nhận', ACCEPTED:'Đã chấp nhận', MEETING:'Đang gặp mặt', COMPLETED:'Hoàn thành', AUTO_COMPLETED:'Tự hoàn thành', REJECTED:'Từ chối', CANCELLED:'Đã hủy', DISPUTED:'Tranh chấp' };
 
-  const statusMap = {
-    Pending: 'Chờ xác nhận', Accepted: 'Đã chấp nhận', Meeting: 'Đang gặp mặt',
-    Completed: 'Hoàn thành', AutoCompleted: 'Tự hoàn thành',
-    Rejected: 'Từ chối', Cancelled: 'Đã hủy', Disputed: 'Tranh chấp',
-  };
-
-  const filtered = transactions.filter((tx) => {
+  const filtered = transactions.filter(tx => {
     const q = search.toLowerCase();
-    return !q
-      || (tx.buyer?.username || '').toLowerCase().includes(q)
-      || (tx.seller?.username || '').toLowerCase().includes(q)
-      || (tx.product?.name || '').toLowerCase().includes(q);
+    return !q || (tx.buyer?.username||'').toLowerCase().includes(q) || (tx.seller?.username||'').toLowerCase().includes(q) || (tx.product?.name||'').toLowerCase().includes(q);
   });
 
   return (
     <>
       <h1 className="admin-page-title">Giao Dịch</h1>
-
       <div className="admin-section">
         <div className="admin-section-header">
           <div className="admin-section-actions">
-            <input
-              className="admin-search"
-              type="text"
-              placeholder="Tìm giao dịch..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <input className="admin-search" type="text" placeholder="Tìm giao dịch..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Không có giao dịch nào</div>
-        ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Người Mua</th>
-                <th>Người Bán</th>
-                <th>Sản Phẩm</th>
-                <th>Số Tiền</th>
-                <th>Trạng Thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((tx) => (
-                <tr key={tx.id}>
-                  <td>{formatDate(tx.createdAt)}</td>
-                  <td>{tx.buyer?.username || '—'}</td>
-                  <td>{tx.seller?.username || '—'}</td>
-                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{tx.product?.name || '—'}</td>
-                  <td>{formatPrice(tx.amount)}</td>
-                  <td>
-                    <span className="admin-status admin-status-active">
-                      {statusMap[tx.status] || tx.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+          : filtered.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có giao dịch nào</div>
+          : (
+            <table className="admin-table">
+              <thead><tr><th>Ngày</th><th>Người Mua</th><th>Người Bán</th><th>Sản Phẩm</th><th>Số Tiền</th><th>Trạng Thái</th></tr></thead>
+              <tbody>
+                {filtered.map(tx => (
+                  <tr key={tx.id}>
+                    <td>{formatDate(tx.createdAt)}</td>
+                    <td>{tx.buyer?.username || '—'}</td>
+                    <td>{tx.seller?.username || '—'}</td>
+                    <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{tx.product?.name || '—'}</td>
+                    <td>{tx.amount === 0 ? 'Liên hệ' : formatPrice(tx.amount)}</td>
+                    <td><span className="admin-status admin-status-active">{statusMap[tx.status?.toUpperCase()] || tx.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
       </div>
     </>
   );
 }
 
 function AdminCategories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ name: '', description: '' });
   const toast = useToast();
+  const [categories, setCategories] = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editingId,  setEditingId]  = useState(null);
+  const [form,       setForm]       = useState({ name:'', description:'' });
 
-  const fetchCategories = async () => {
-    try {
-      const res = await categoriesApi.getAll();
-      const data = Array.isArray(res.data) ? res.data : [];
-      setCategories(data);
-    } catch {
-      setCategories([]);
-    } finally {
-      setLoading(false);
-    }
+  const fetch = () => {
+    categoriesApi.getAll().then(res => setCategories(Array.isArray(res.data)?res.data:[])).catch(()=>setCategories([])).finally(()=>setLoading(false));
   };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetch(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await categoriesApi.update(editingId, form);
-        toast.success('Đã cập nhật danh mục');
-      } else {
-        await categoriesApi.create(form);
-        toast.success('Đã tạo danh mục mới');
-      }
-      setForm({ name: '', description: '' });
-      setShowForm(false);
-      setEditingId(null);
-      fetchCategories();
-    } catch {
-      toast.error('Không thể lưu danh mục');
-    }
+      if (editingId) { await categoriesApi.update(editingId, form); toast.success('Đã cập nhật'); }
+      else           { await categoriesApi.create(form);            toast.success('Đã tạo mới'); }
+      setForm({name:'',description:''}); setShowForm(false); setEditingId(null); fetch();
+    } catch { toast.error('Không thể lưu danh mục'); }
+  };
+  const handleEdit   = c => { setForm({name:c.name, description:c.description||''}); setEditingId(c.id); setShowForm(true); };
+  const handleDelete = async id => {
+    if (!window.confirm('Xóa danh mục này?')) return;
+    try { await categoriesApi.delete(id); toast.success('Đã xóa'); fetch(); }
+    catch { toast.error('Không thể xóa'); }
   };
 
-  const handleEdit = (cat) => {
-    setForm({ name: cat.name, description: cat.description || '' });
-    setEditingId(cat.id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Xóa danh mục này? Sản phẩm trong danh mục có thể bị ảnh hưởng.')) return;
-    try {
-      await categoriesApi.delete(id);
-      toast.success('Đã xóa danh mục');
-      fetchCategories();
-    } catch {
-      toast.error('Không thể xóa danh mục');
-    }
-  };
+  const inp = { width:'100%', padding:'var(--space-3)', border:'2px solid var(--border-light)', borderRadius:'var(--radius-md)' };
 
   return (
     <>
       <h1 className="admin-page-title">Quản Lý Danh Mục</h1>
-
       <div className="admin-section">
         <div className="admin-section-header">
-          <h2 className="admin-section-title">Danh Mục Sản Phẩm ({categories.length})</h2>
-          <button className="admin-btn admin-btn-success" onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({ name: '', description: '' }); }}>
+          <h2 className="admin-section-title">Danh Mục ({categories.length})</h2>
+          <button className="admin-btn admin-btn-success" onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({name:'',description:''}); }}>
             {showForm ? '✕ Đóng' : '+ Tạo Mới'}
           </button>
         </div>
-
         {showForm && (
-          <form onSubmit={handleSubmit} style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-            <div style={{ marginBottom: 'var(--space-3)' }}>
-              <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Tên Danh Mục *</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                style={{ width: '100%', padding: 'var(--space-3)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}
-              />
+          <form onSubmit={handleSubmit} style={{ marginBottom:'var(--space-6)', padding:'var(--space-4)', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)' }}>
+            <div style={{ marginBottom:'var(--space-3)' }}>
+              <label style={{ display:'block', marginBottom:'var(--space-2)', fontWeight:600 }}>Tên Danh Mục *</label>
+              <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required style={inp} />
             </div>
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Mô Tả</label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                style={{ width: '100%', padding: 'var(--space-3)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', resize: 'vertical' }}
-              />
+            <div style={{ marginBottom:'var(--space-4)' }}>
+              <label style={{ display:'block', marginBottom:'var(--space-2)', fontWeight:600 }}>Mô Tả</label>
+              <textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={3} style={{...inp,resize:'vertical'}} />
             </div>
-            <button type="submit" className="admin-btn admin-btn-success">
-              {editingId ? 'Cập Nhật' : 'Tạo Mới'}
-            </button>
+            <button type="submit" className="admin-btn admin-btn-success">{editingId?'Cập Nhật':'Tạo Mới'}</button>
           </form>
         )}
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
-        ) : categories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Chưa có danh mục nào</div>
-        ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Tên</th>
-                <th>Mô Tả</th>
-                <th>Hành Động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id}>
-                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{cat.name}</td>
-                  <td>{cat.description || '—'}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                      <button className="admin-btn" onClick={() => handleEdit(cat)}>Sửa</button>
-                      <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(cat.id)}>Xóa</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+          : categories.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Chưa có danh mục</div>
+          : (
+            <table className="admin-table">
+              <thead><tr><th>Tên</th><th>Mô Tả</th><th>Hành Động</th></tr></thead>
+              <tbody>
+                {categories.map(c => (
+                  <tr key={c.id}>
+                    <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{c.name}</td>
+                    <td>{c.description||'—'}</td>
+                    <td>
+                      <div style={{ display:'flex', gap:'var(--space-2)' }}>
+                        <button className="admin-btn" onClick={()=>handleEdit(c)}>Sửa</button>
+                        <button className="admin-btn admin-btn-danger" onClick={()=>handleDelete(c.id)}>Xóa</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
       </div>
     </>
   );
 }
 
 function AdminReviews() {
+  const toast = useToast();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const toast = useToast();
 
-  const fetchReviews = async () => {
-    try {
-      const res = await reviewsApi.getAll();
-      const data = Array.isArray(res.data) ? res.data : [];
-      setReviews(data);
-    } catch {
-      setReviews([]);
-    } finally {
-      setLoading(false);
-    }
+  const fetch = () => {
+    reviewsApi.getAll().then(res=>setReviews(Array.isArray(res.data)?res.data:[])).catch(()=>setReviews([])).finally(()=>setLoading(false));
   };
+  useEffect(() => { fetch(); }, []);
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (!window.confirm('Xóa đánh giá này?')) return;
-    try {
-      await reviewsApi.delete(id);
-      toast.success('Đã xóa đánh giá');
-      fetchReviews();
-    } catch {
-      toast.error('Không thể xóa đánh giá');
-    }
+    try { await reviewsApi.delete(id); toast.success('Đã xóa'); fetch(); }
+    catch { toast.error('Không thể xóa'); }
   };
-
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
 
   return (
     <>
       <h1 className="admin-page-title">Quản Lý Đánh Giá</h1>
-
       <div className="admin-section">
-        <div className="admin-section-header">
-          <h2 className="admin-section-title">Tất Cả Đánh Giá ({reviews.length})</h2>
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
-        ) : reviews.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Chưa có đánh giá nào</div>
-        ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Sản Phẩm</th>
-                <th>Người Dùng</th>
-                <th>Đánh Giá</th>
-                <th>Nội Dung</th>
-                <th>Hành Động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reviews.map((review) => (
-                <tr key={review.id}>
-                  <td>{formatDate(review.createdAt)}</td>
-                  <td style={{ fontWeight: 500 }}>{review.product?.name || review.productName || '—'}</td>
-                  <td>{review.reviewer?.username || review.reviewerName || '—'}</td>
-                  <td>
-                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>
-                      {'⭐'.repeat(review.rating || 0)} ({review.rating}/5)
-                    </span>
-                  </td>
-                  <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {review.content || '—'}
-                  </td>
-                  <td>
-                    <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(review.id)}>Xóa</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </>
-  );
-}
-
-function AdminMessages() {
-  return (
-    <>
-      <h1 className="admin-page-title">Quản Lý Tin Nhắn</h1>
-
-      <div className="admin-section">
-        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 'var(--space-4)' }}>💬</div>
-          <h3 style={{ marginBottom: 'var(--space-2)' }}>Tin nhắn gắn với giao dịch</h3>
-          <p>Tin nhắn chỉ có thể xem trong chi tiết từng giao dịch. Truy cập tab "Giao Dịch" để xem chi tiết.</p>
-        </div>
+        <div className="admin-section-header"><h2 className="admin-section-title">Tất Cả Đánh Giá ({reviews.length})</h2></div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+          : reviews.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Chưa có đánh giá</div>
+          : (
+            <table className="admin-table">
+              <thead><tr><th>Ngày</th><th>Người được đánh giá</th><th>Người đánh giá</th><th>Sao</th><th>Nội dung</th><th>Hành Động</th></tr></thead>
+              <tbody>
+                {reviews.map(r => (
+                  <tr key={r.id}>
+                    <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
+                    <td style={{ fontWeight:500 }}>{r.targetUser?.username || r.targetUsername || r.product?.name || '—'}</td>
+                    <td>{r.reviewer?.username || r.reviewerName || '—'}</td>
+                    <td><span style={{ color:'#f59e0b', fontWeight:600 }}>{'⭐'.repeat(r.rating||0)} ({r.rating}/5)</span></td>
+                    <td style={{ maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.content||'—'}</td>
+                    <td><button className="admin-btn admin-btn-danger" onClick={()=>handleDelete(r.id)}>Xóa</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
       </div>
     </>
   );
@@ -628,84 +579,41 @@ function AdminModeration() {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPending = async () => {
-    try {
-      const res = await productsApi.getPending();
-      const data = Array.isArray(res.data) ? res.data : res.data?.items || [];
-      setPending(data);
-    } catch {
-      setPending([]);
-    } finally {
-      setLoading(false);
-    }
+  const fetch = () => {
+    productsApi.getPending().then(res=>setPending(Array.isArray(res.data)?res.data:res.data?.items||[])).catch(()=>setPending([])).finally(()=>setLoading(false));
   };
+  useEffect(() => { fetch(); }, []);
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
-
-  const handleApprove = async (id) => {
-    try {
-      await productsApi.approve(id);
-      toast.success('Sản phẩm đã được duyệt!');
-      fetchPending();
-    } catch {
-      toast.error('Không thể duyệt sản phẩm.');
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      await productsApi.reject(id);
-      toast.success('Sản phẩm đã bị từ chối.');
-      fetchPending();
-    } catch {
-      toast.error('Không thể từ chối sản phẩm.');
-    }
-  };
-
-  
+  const handleApprove = async id => { try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetch(); } catch { toast.error('Không thể duyệt'); } };
+  const handleReject  = async id => { try { await productsApi.reject(id);  toast.success('Đã từ chối'); fetch(); } catch { toast.error('Không thể từ chối'); } };
 
   return (
     <>
       <h1 className="admin-page-title">Kiểm Duyệt Nội Dung</h1>
-
       <div className="admin-section">
-        <div className="admin-section-header">
-          <h2 className="admin-section-title">Đang Chờ Duyệt ({pending.length})</h2>
-        </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
-        ) : pending.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-            Không có sản phẩm nào chờ duyệt 🎉
-          </div>
-        ) : (
-          pending.map((item) => (
+        <div className="admin-section-header"><h2 className="admin-section-title">Đang Chờ Duyệt ({pending.length})</h2></div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+          : pending.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có sản phẩm chờ duyệt 🎉</div>
+          : pending.map(item => (
             <div key={item.id} className="admin-mod-card">
               <div className="admin-mod-title">{item.name}</div>
               <div className="admin-mod-meta">
                 <span>Người bán: {item.sellerName || '—'}</span>
-                <span>Danh mục: {item.categoryName || item.category || '—'} &middot; Giá: {formatPrice(item.price)}</span>
-                <span>Tình trạng: {item.condition || '—'}</span>
+                <span>Danh mục: {item.categoryName||item.category||'—'} · Giá: {item.price===0?'Liên hệ':formatPrice(item.price)}</span>
+                <span>Tình trạng: {item.condition||'—'}</span>
               </div>
               {item.description && (
-                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', margin: '0.5rem 0' }}>
-                  {item.description.length > 200 ? item.description.substring(0, 200) + '...' : item.description}
+                <p style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)', margin:'0.5rem 0' }}>
+                  {item.description.length > 200 ? item.description.substring(0,200)+'...' : item.description}
                 </p>
               )}
               <div className="admin-mod-actions">
-                <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)}>
-                  ✅ Duyệt
-                </button>
-                <button className="admin-btn admin-btn-danger" onClick={() => handleReject(item.id)}>
-                  ❌ Từ Chối
-                </button>
+                <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)}>✅ Duyệt</button>
+                <button className="admin-btn admin-btn-danger"  onClick={() => handleReject(item.id)}>❌ Từ Chối</button>
               </div>
             </div>
           ))
-        )}
+        }
       </div>
     </>
   );
