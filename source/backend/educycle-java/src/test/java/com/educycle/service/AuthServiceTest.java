@@ -98,7 +98,7 @@ class AuthServiceTest {
             // Act + Assert
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("Email already exists");
+                    .hasMessageContaining("Email đã tồn tại");
 
             verify(userRepository, never()).save(any());
         }
@@ -161,7 +161,7 @@ class AuthServiceTest {
             // Act + Assert
             assertThatThrownBy(() -> authService.login(request))
                     .isInstanceOf(UnauthorizedException.class)
-                    .hasMessageContaining("Invalid credentials");
+                    .hasMessageContaining("Thông tin đăng nhập không đúng");
         }
 
         @Test
@@ -177,7 +177,7 @@ class AuthServiceTest {
             // Act + Assert
             assertThatThrownBy(() -> authService.login(request))
                     .isInstanceOf(UnauthorizedException.class)
-                    .hasMessageContaining("Invalid credentials");
+                    .hasMessageContaining("Thông tin đăng nhập không đúng");
         }
     }
 }

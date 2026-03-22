@@ -91,7 +91,7 @@ class TransactionServiceTest {
 
             assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining("Buyer not found");
+                    .hasMessageContaining("Không tìm thấy người mua");
         }
     }
 
@@ -127,7 +127,7 @@ class TransactionServiceTest {
 
             assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "999999"))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("Invalid or expired OTP");
+                    .hasMessageContaining("Mã OTP không hợp lệ hoặc đã hết hạn");
         }
 
         @Test
@@ -141,7 +141,7 @@ class TransactionServiceTest {
 
             assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "123456"))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("Invalid or expired OTP");
+                    .hasMessageContaining("Mã OTP không hợp lệ hoặc đã hết hạn");
         }
     }
 
@@ -189,7 +189,7 @@ class TransactionServiceTest {
             assertThatThrownBy(() -> transactionService.updateStatus(
                     t.getId(), new UpdateTransactionStatusRequest("INVALID_STATUS")))
                     .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("Invalid transaction status");
+                    .hasMessageContaining("Trạng thái giao dịch không hợp lệ");
         }
     }
 
