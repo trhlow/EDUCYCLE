@@ -1,24 +1,28 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi, test, expect } from 'vitest';
 import AuthPage from './AuthPage';
 import { AuthProvider } from '../contexts/AuthContext';
 import { authApi } from '../api/endpoints';
-import toast from 'react-hot-toast';
+
+const mockToast = {
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  warning: vi.fn(),
+  addToast: vi.fn(),
+  removeToast: vi.fn(),
+};
+
+vi.mock('../components/Toast', () => ({
+  useToast: () => mockToast,
+  ToastProvider: ({ children }) => children,
+}));
 
 vi.mock('../api/endpoints', () => ({
   authApi: {
     login: vi.fn(),
-  }
-}));
-
-vi.mock('react-hot-toast', () => ({
-  default: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
   },
-  Toaster: () => null,
 }));
 
 test('shows error on failed login', async () => {
@@ -31,7 +35,7 @@ test('shows error on failed login', async () => {
       <AuthProvider>
         <AuthPage />
       </AuthProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
   const emailInput = container.querySelector('#login-email');
@@ -40,11 +44,10 @@ test('shows error on failed login', async () => {
 
   fireEvent.change(emailInput, { target: { value: 'a@b.com' } });
   fireEvent.change(passwordInput, { target: { value: 'wrongpass' } });
-  
+
   fireEvent.click(submitButton);
 
   await waitFor(() => {
-    expect(toast.error).toHaveBeenCalledWith('Sai mật khẩu');
+    expect(mockToast.error).toHaveBeenCalledWith('Sai mật khẩu');
   });
 });
-

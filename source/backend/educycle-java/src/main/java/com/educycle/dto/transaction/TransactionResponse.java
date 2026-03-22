@@ -13,7 +13,8 @@ public record TransactionResponse(
         String status,
         boolean buyerConfirmed,
         boolean sellerConfirmed,
-        Instant createdAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
     public record TransactionUserDto(String id, String username, String email) {}
     public record TransactionProductDto(String id, String name, BigDecimal price, String imageUrl) {}

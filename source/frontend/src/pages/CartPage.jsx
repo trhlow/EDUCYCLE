@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import './CartPage.css';
 
 export default function CartPage() {
@@ -16,7 +16,7 @@ export default function CartPage() {
 
   const handleRemoveItem = (id, name) => {
     removeItem(id);
-    toast(`Đã xóa "${name}" khỏi giỏ hàng`);
+    toast.info(`Đã xóa "${name}" khỏi giỏ hàng`);
   };
 
   const handleCheckout = () => {

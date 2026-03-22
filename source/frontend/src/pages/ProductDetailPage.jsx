@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const toast = useToast();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
@@ -194,7 +195,7 @@ export default function ProductDetailPage() {
               <button
                 className="pdp-btn-buy"
                 onClick={() => {
-                  toast('Vui lòng đăng nhập để gửi yêu cầu mua');
+                  toast.warning('Vui lòng đăng nhập để gửi yêu cầu mua');
                   navigate('/auth');
                 }}
               >
@@ -209,7 +210,7 @@ export default function ProductDetailPage() {
               className={`pdp-btn-wishlist ${isInWishlist(product.id) ? 'active' : ''}`}
               onClick={() => {
                 toggleWishlist(product);
-                toast(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
               }}
               title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
             >

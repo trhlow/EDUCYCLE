@@ -245,7 +245,8 @@ public class TransactionServiceImpl implements TransactionService {
                 t.getStatus().name(),
                 t.isBuyerConfirmed(),
                 t.isSellerConfirmed(),
-                t.getCreatedAt()
+                t.getCreatedAt(),
+                t.getUpdatedAt()
         );
     }
 }

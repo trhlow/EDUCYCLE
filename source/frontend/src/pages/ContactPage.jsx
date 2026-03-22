@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import './ContactPage.css';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sending, setSending] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -2,19 +2,18 @@ import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import { transactionsApi } from '../api/endpoints';
 import './TransactionsPage.css';
 
 const STATUS_CONFIG = {
-  Pending: { label: 'Chờ xác nhận', color: 'warning', icon: '⏳' },
-  Accepted: { label: 'Đã chấp nhận', color: 'info', icon: '✅' },
-  Meeting: { label: 'Đang gặp mặt', color: 'primary', icon: '🤝' },
-  Completed: { label: 'Hoàn thành', color: 'success', icon: '🎉' },
-  AutoCompleted: { label: 'Tự động hoàn thành', color: 'success', icon: '⏰' },
-  Rejected: { label: 'Từ chối', color: 'error', icon: '❌' },
-  Cancelled: { label: 'Đã hủy', color: 'neutral', icon: '🚫' },
-  Disputed: { label: 'Tranh chấp', color: 'error', icon: '⚠️' },
+  PENDING: { label: 'Chờ xác nhận', color: 'warning', icon: '⏳' },
+  ACCEPTED: { label: 'Đã chấp nhận', color: 'info', icon: '✅' },
+  MEETING: { label: 'Đang gặp mặt', color: 'primary', icon: '🤝' },
+  COMPLETED: { label: 'Hoàn thành', color: 'success', icon: '🎉' },
+  REJECTED: { label: 'Từ chối', color: 'error', icon: '❌' },
+  CANCELLED: { label: 'Đã hủy', color: 'neutral', icon: '🚫' },
+  DISPUTED: { label: 'Tranh chấp', color: 'error', icon: '⚠️' },
 };
 
 const FILTER_TABS = [
@@ -25,16 +24,17 @@ const FILTER_TABS = [
 
 const STATUS_FILTERS = [
   { key: 'all', label: 'Tất cả trạng thái' },
-  { key: 'Pending', label: 'Chờ xác nhận' },
-  { key: 'Accepted', label: 'Đã chấp nhận' },
-  { key: 'Meeting', label: 'Đang gặp mặt' },
-  { key: 'Completed', label: 'Hoàn thành' },
-  { key: 'Rejected', label: 'Từ chối' },
-  { key: 'Cancelled', label: 'Đã hủy' },
+  { key: 'PENDING', label: 'Chờ xác nhận' },
+  { key: 'ACCEPTED', label: 'Đã chấp nhận' },
+  { key: 'MEETING', label: 'Đang gặp mặt' },
+  { key: 'COMPLETED', label: 'Hoàn thành' },
+  { key: 'REJECTED', label: 'Từ chối' },
+  { key: 'CANCELLED', label: 'Đã hủy' },
 ];
 
 export default function TransactionsPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -65,7 +65,7 @@ export default function TransactionsPage() {
     if (activeTab === 'buying' && tx.buyer?.id !== user?.id) return false;
     if (activeTab === 'selling' && tx.seller?.id !== user?.id) return false;
     // Status filter
-    if (statusFilter !== 'all' && tx.status !== statusFilter) return false;
+    if (statusFilter !== 'all' && tx.status?.toUpperCase() !== statusFilter) return false;
     return true;
   });
 
@@ -298,7 +298,7 @@ export default function TransactionsPage() {
           <div className="tx-list">
             {filteredTransactions.map((tx) => {
               const role = getRole(tx);
-              const config = STATUS_CONFIG[tx.status] || STATUS_CONFIG.Pending;
+              const config = STATUS_CONFIG[tx.status?.toUpperCase()] || STATUS_CONFIG.PENDING;
               const otherUser = role === 'buyer' ? tx.seller : tx.buyer;
 
               return (

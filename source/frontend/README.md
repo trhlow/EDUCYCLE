@@ -51,8 +51,8 @@
 | **HTTP Client** | Axios 1.13 |
 | **Styling** | Pure CSS + CSS Variables (Design Tokens) |
 | **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
-| **Backend** | .NET Web API + SQL Server + JWT (repo riêng) |
-| **Proxy** | Vite dev server → `http://localhost:5171/api` |
+| **Backend** | Java 17 + Spring Boot 3.2.5 + PostgreSQL + JWT |
+| **Proxy** | Vite dev server → `http://localhost:8080/api` |
 
 ---
 
@@ -72,7 +72,7 @@ src/
 │       ├── Layout.jsx/.css   # App shell + Footer
 │       └── Navbar.jsx/.css   # Top navigation bar
 ├── contexts/
-│   ├── AuthContext.jsx       # JWT auth + mock fallback khi offline
+│   ├── AuthContext.jsx       # JWT auth (no mock — backend only)
 │   ├── CartContext.jsx       # Giỏ hàng (localStorage)
 │   └── WishlistContext.jsx   # Yêu thích (localStorage)
 ├── pages/                    # 16 pages — tất cả lazy-loaded
@@ -103,10 +103,10 @@ src/
 
 ## 🔗 Tích Hợp Backend
 
-Frontend giao tiếp hoàn toàn với .NET Web API thông qua Vite proxy:
+Frontend giao tiếp hoàn toàn với Java Spring Boot API thông qua Vite proxy:
 
 ```
-Frontend /api/*  →  http://localhost:5171/api/*
+Frontend /api/*  →  http://localhost:8080/api/*
 ```
 
 ### API Endpoints đã tích hợp
@@ -144,7 +144,7 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 
 - **Node.js** ≥ 18
 - **npm** ≥ 9
-- **Backend** đang chạy tại `http://localhost:5171` (tùy chọn — có mock fallback)
+- **Backend** đang chạy tại `http://localhost:8080`
 
 ### Clone & install
 
@@ -155,7 +155,7 @@ npm install
 
 # 2. Configure
 #    Edit .env — set your backend API URL
-#    Default: VITE_API_URL=http://localhost:5171/api
+#    Default: VITE_API_URL=http://localhost:8080/api
 
 # 3. Run
 npm run dev
@@ -163,7 +163,7 @@ npm run dev
 
 Truy cập → **[http://localhost:5173](http://localhost:5173)** — Tự động proxy API requests đến backend.
 
-> **Yêu cầu**: Node.js ≥ 18 · Backend [educycle-backend](https://github.com/trhlow/educycle-backend) chạy tại `localhost:5171`
+> **Yêu cầu**: Node.js ≥ 18 · Backend `source/backend/educycle-java/` chạy tại `localhost:8080`
 
 ---
 
@@ -271,7 +271,7 @@ educycle-frontend/
 │   └── utils/
 │       └── maskUsername.js     # Privacy: "NguyenVanA" → "Ngu***A"
 │
-└── .env                       # VITE_API_URL=http://localhost:5171/api
+└── .env                       # VITE_API_URL=http://localhost:8080/api
 ```
 
 ---
@@ -335,15 +335,16 @@ EduCycle sử dụng quy trình giao dịch **5 bước** đảm bảo minh bạ
 | **Typography** | Inter + Poppins | Google Fonts |
 | **Icons** | Emoji-native | No icon library dependency |
 
-### Backend (Companion)
+### Backend (Monorepo)
 
 | Layer | Technology |
 |---|---|
-| **Framework** | ASP.NET Core 8 Web API |
-| **Architecture** | Clean Architecture (Domain → Application → Infrastructure → API) |
-| **Database** | SQL Server + Entity Framework Core |
-| **Auth** | JWT Bearer + OAuth 2.0 (Google, Facebook, Microsoft) |
-| **OTP** | Email-based 6-digit verification |
+| **Framework** | Java 17 + Spring Boot 3.2.5 |
+| **Database** | PostgreSQL + Flyway migrations |
+| **ORM** | Spring Data JPA + Hibernate |
+| **Auth** | JWT (JJWT) + Refresh Token + BCrypt |
+| **WebSocket** | STOMP/SockJS (real-time chat + notifications) |
+| **Rate Limiting** | Bucket4j (5/min auth, 60/min API) |
 
 ---
 
@@ -401,7 +402,7 @@ Tất cả API calls đi qua một Axios instance duy nhất với **JWT interce
                                                    │
                                           ┌────────▼─────────┐
                                           │  Backend API     │
-                                          │  localhost:5171   │
+                                          │  localhost:8080   │
                                           └──────────────────┘
 ```
 

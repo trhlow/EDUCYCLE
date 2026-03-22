@@ -2,7 +2,7 @@ import { formatPrice } from '../utils/format';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import './PostProductPage.css';
 
@@ -29,6 +29,7 @@ const CONDITIONS = [
 export default function PostProductPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImages, setPreviewImages] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -108,7 +109,7 @@ export default function PostProductPage() {
 
     const filesToAdd = files.slice(0, remaining);
     if (files.length > remaining) {
-      toast(`Chỉ thêm được ${remaining} ảnh nữa (tối đa 5)`);
+      toast.warning(`Chỉ thêm được ${remaining} ảnh nữa (tối đa 5)`);
     }
 
     filesToAdd.forEach((file) => {

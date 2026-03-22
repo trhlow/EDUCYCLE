@@ -2,7 +2,7 @@ import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import { productsApi, transactionsApi } from '../api/endpoints';
 import './DashboardPage.css';
 
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     logout();
-    toast('Đã đăng xuất');
+    toast.info('Đã đăng xuất');
     navigate('/');
   };
 
@@ -127,7 +127,7 @@ function OverviewView({ user }) {
   
   
 
-  const completedTx = transactions.filter((tx) => ['Completed', 'AutoCompleted'].includes(tx.status));
+  const completedTx = transactions.filter((tx) => tx.status?.toUpperCase() === 'COMPLETED');
   const salesAmount = completedTx
     .filter((tx) => tx.seller?.id === user?.id)
     .reduce((sum, tx) => sum + (tx.amount || 0), 0);
@@ -188,8 +188,8 @@ function OverviewView({ user }) {
                       </td>
                       <td>{formatPrice(p.price)}</td>
                       <td>
-                        <span className={`dash-status ${p.status === 'Approved' ? 'dash-status-active' : 'dash-status-draft'}`}>
-                          {p.status === 'Approved' ? 'Đã duyệt' : p.status === 'Pending' ? 'Chờ duyệt' : p.status}
+                        <span className={`dash-status ${p.status?.toUpperCase() === 'APPROVED' ? 'dash-status-active' : 'dash-status-draft'}`}>
+                          {p.status?.toUpperCase() === 'APPROVED' ? 'Đã duyệt' : p.status?.toUpperCase() === 'PENDING' ? 'Chờ duyệt' : p.status}
                         </span>
                       </td>
                     </tr>
@@ -319,8 +319,8 @@ function ProductsView() {
                     </div>
                   </td>
                   <td>
-                    <span className={`dash-status ${product.status === 'Approved' ? 'dash-status-active' : product.status === 'Rejected' ? 'dash-status-draft' : 'dash-status-pending'}`}>
-                      {product.status === 'Approved' ? 'Đã Duyệt' : product.status === 'Pending' ? 'Chờ Duyệt' : product.status === 'Rejected' ? 'Bị Từ Chối' : product.status}
+                    <span className={`dash-status ${product.status?.toUpperCase() === 'APPROVED' ? 'dash-status-active' : product.status?.toUpperCase() === 'REJECTED' ? 'dash-status-draft' : 'dash-status-pending'}`}>
+                      {product.status?.toUpperCase() === 'APPROVED' ? 'Đã Duyệt' : product.status?.toUpperCase() === 'PENDING' ? 'Chờ Duyệt' : product.status?.toUpperCase() === 'REJECTED' ? 'Bị Từ Chối' : product.status}
                     </span>
                   </td>
                   <td>{formatPrice(product.price)}</td>
@@ -364,9 +364,8 @@ function PurchasesView() {
   
 
   const statusMap = {
-    Pending: 'Chờ xác nhận', Accepted: 'Đã chấp nhận', Meeting: 'Đang gặp mặt',
-    Completed: 'Hoàn thành', AutoCompleted: 'Hoàn thành',
-    Rejected: 'Từ chối', Cancelled: 'Đã hủy',
+    PENDING: 'Chờ xác nhận', ACCEPTED: 'Đã chấp nhận', MEETING: 'Đang gặp mặt',
+    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy',
   };
 
   return (
@@ -402,7 +401,7 @@ function PurchasesView() {
                   </td>
                   <td>{tx.seller?.username || '—'}</td>
                   <td>{formatPrice(tx.amount)}</td>
-                  <td><span className="dash-status dash-status-active">{statusMap[tx.status] || tx.status}</span></td>
+                  <td><span className="dash-status dash-status-active">{statusMap[tx.status?.toUpperCase()] || tx.status}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -436,13 +435,12 @@ function SalesView() {
   
   
 
-  const completedSales = transactions.filter((tx) => ['Completed', 'AutoCompleted'].includes(tx.status));
+  const completedSales = transactions.filter((tx) => tx.status?.toUpperCase() === 'COMPLETED');
   const totalRevenue = completedSales.reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
   const statusMap = {
-    Pending: 'Chờ xác nhận', Accepted: 'Đã chấp nhận', Meeting: 'Đang gặp mặt',
-    Completed: 'Hoàn thành', AutoCompleted: 'Hoàn thành',
-    Rejected: 'Từ chối', Cancelled: 'Đã hủy',
+    PENDING: 'Chờ xác nhận', ACCEPTED: 'Đã chấp nhận', MEETING: 'Đang gặp mặt',
+    COMPLETED: 'Hoàn thành', REJECTED: 'Từ chối', CANCELLED: 'Đã hủy',
   };
 
   return (
@@ -494,8 +492,8 @@ function SalesView() {
                   </td>
                   <td style={{ color: 'var(--success)', fontWeight: 600 }}>+{formatPrice(tx.amount)}</td>
                   <td>
-                    <span className={`dash-status ${['Completed', 'AutoCompleted'].includes(tx.status) ? 'dash-status-active' : 'dash-status-pending'}`}>
-                      {statusMap[tx.status] || tx.status}
+                    <span className={`dash-status ${tx.status?.toUpperCase() === 'COMPLETED' ? 'dash-status-active' : 'dash-status-pending'}`}>
+                      {statusMap[tx.status?.toUpperCase()] || tx.status}
                     </span>
                   </td>
                 </tr>

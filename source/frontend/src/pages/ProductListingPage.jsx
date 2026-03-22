@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
-import toast from 'react-hot-toast';
+import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import { useDebounce } from '../hooks/useDebounce';
 import './ProductListingPage.css';
@@ -28,6 +28,7 @@ export default function ProductListingPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const toast = useToast();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -279,7 +280,7 @@ export default function ProductListingPage() {
                           e.preventDefault();
                           e.stopPropagation();
                           toggleWishlist(product);
-                          toast(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                          toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
                         }}
                         title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
                       >
