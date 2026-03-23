@@ -84,4 +84,24 @@ public class AuthController {
         boolean result = authService.verifyPhone(UUID.fromString(userId), request);
         return ResponseEntity.ok(Map.of("success", result));
     }
+
+    // POST /api/auth/change-password  [Authorize]
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @AuthenticationPrincipal String userId,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        authService.changePassword(UUID.fromString(userId), request);
+        return ResponseEntity.ok(Map.of("message", "Đã đổi mật khẩu thành công"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
 }

@@ -23,6 +23,13 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+# Gửi email (OTP, quên mật khẩu): chỉ cấu hình khi có MAIL_HOST — xem README / NOTES
+# spring.mail.host, spring.mail.port, spring.mail.username, spring.mail.password
+
+app:
+  frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
+  mail-from: ${APP_MAIL_FROM:EduCycle <noreply@educycle.local>}
+
 cors:
   allowed-origins:
     - "http://localhost:5173"

@@ -1,8 +1,8 @@
 package com.educycle.dto.product;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -11,7 +11,7 @@ public record UpdateProductRequest(
         String description,
 
         @NotNull(message = "Giá là bắt buộc")
-        @DecimalMin(value = "0.0", inclusive = false, message = "Giá phải lớn hơn 0")
+        @PositiveOrZero(message = "Giá không được âm")
         BigDecimal price,
 
         String imageUrl,

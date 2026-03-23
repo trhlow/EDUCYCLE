@@ -1,8 +1,10 @@
 package com.educycle.repository;
 
 import com.educycle.model.Review;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -26,4 +28,13 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
      */
     @Query("SELECT r FROM Review r WHERE r.product.id IN :productIds")
     List<Review> findByProductIdIn(Collection<UUID> productIds);
+
+    @Query("SELECT COALESCE(AVG(r.rating), 0) FROM Review r WHERE r.targetUser.id = :uid")
+    double averageRatingForTargetUser(@Param("uid") UUID uid);
+
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.targetUser.id = :uid")
+    long countReviewsForTargetUser(@Param("uid") UUID uid);
+
+    @Query("SELECT r FROM Review r JOIN FETCH r.user WHERE r.targetUser.id = :uid ORDER BY r.createdAt DESC")
+    List<Review> findByTargetUserIdOrderByCreatedAtDesc(@Param("uid") UUID uid, Pageable pageable);
 }

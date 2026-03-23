@@ -25,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByMicrosoftId(String microsoftId);
 
     Optional<User> findByRefreshToken(String refreshToken);
+
+    Optional<User> findByPasswordResetToken(String passwordResetToken);
 }

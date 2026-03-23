@@ -71,17 +71,21 @@ public class TransactionsController {
 
     // POST /api/transactions/{id}/otp
     @PostMapping("/{id}/otp")
-    public ResponseEntity<Map<String, String>> generateOtp(@PathVariable UUID id) {
-        return ResponseEntity.ok(transactionService.generateOtp(id));
+    public ResponseEntity<Map<String, String>> generateOtp(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String userId) {
+
+        return ResponseEntity.ok(transactionService.generateOtp(id, UUID.fromString(userId)));
     }
 
     // POST /api/transactions/{id}/verify-otp
     @PostMapping("/{id}/verify-otp")
     public ResponseEntity<Map<String, String>> verifyOtp(
             @PathVariable UUID id,
+            @AuthenticationPrincipal String userId,
             @Valid @RequestBody TransactionVerifyOtpRequest request) {
 
-        transactionService.verifyOtp(id, request.otp());
+        transactionService.verifyOtp(id, request.otp(), UUID.fromString(userId));
         return ResponseEntity.ok(Map.of("message", "Xác thực mã OTP thành công"));
     }
 
@@ -89,6 +93,17 @@ public class TransactionsController {
     @PostMapping("/{id}/confirm")
     public ResponseEntity<TransactionResponse> confirmReceipt(@PathVariable UUID id) {
         return ResponseEntity.ok(transactionService.confirmReceipt(id));
+    }
+
+    // POST /api/transactions/{id}/dispute — buyer only, status MEETING
+    @PostMapping("/{id}/dispute")
+    public ResponseEntity<TransactionResponse> openDispute(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String userId,
+            @RequestBody(required = false) DisputeTransactionRequest body) {
+
+        return ResponseEntity.ok(
+                transactionService.openDispute(id, UUID.fromString(userId), body));
     }
 
     // ===== Messages sub-routes =====

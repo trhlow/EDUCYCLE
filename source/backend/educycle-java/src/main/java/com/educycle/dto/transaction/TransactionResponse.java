@@ -14,7 +14,9 @@ public record TransactionResponse(
         boolean buyerConfirmed,
         boolean sellerConfirmed,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String disputeReason,
+        Instant disputedAt
 ) {
     public record TransactionUserDto(String id, String username, String email) {}
 

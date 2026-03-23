@@ -9,10 +9,12 @@ import com.educycle.model.User;
 import com.educycle.repository.UserRepository;
 import com.educycle.security.JwtTokenProvider;
 import com.educycle.service.AuthService;
+import com.educycle.service.MailService;
 import com.educycle.service.OAuthTokenVerifier;
 import com.educycle.util.MessageConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +37,10 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider     jwtTokenProvider;
     private final PasswordEncoder      passwordEncoder;
     private final OAuthTokenVerifier   oAuthTokenVerifier; // NEW
+    private final MailService          mailService;
+
+    @Value("${app.frontend-base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -63,7 +71,8 @@ public class AuthServiceImpl implements AuthService {
         populateRefreshToken(user);
         userRepository.save(user);
 
-        log.info("Đăng ký thành công: {} | OTP (chỉ dùng khi phát triển, cần bỏ ở môi trường thật): {}", email, otpToken);
+        log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
+        sendVerificationOtpEmail(user, otpToken);
         return toAuthResponse(user, MessageConstants.REGISTER_OTP_SENT);
     }
 
@@ -191,7 +200,8 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
 
-        log.info("Đã gửi lại OTP cho {} | OTP (chỉ dùng khi phát triển): {}", email, otp);
+        log.info("Đã gửi lại OTP cho {} | OTP (log khi chưa cấu hình SMTP): {}", email, otp);
+        sendVerificationOtpEmail(user, otp);
         return true;
     }
 
@@ -230,6 +240,57 @@ public class AuthServiceImpl implements AuthService {
         });
     }
 
+    @Override
+    public void changePassword(UUID userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException(MessageConstants.CURRENT_PASSWORD_WRONG);
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
+        String email = normalizeEmail(request.email());
+        Optional<User> found = userRepository.findByEmail(email);
+        if (found.isPresent()) {
+            User user = found.get();
+            String token = UUID.randomUUID().toString().replace("-", "");
+            user.setPasswordResetToken(token);
+            user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
+            userRepository.save(user);
+            String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+            String link = base + "/auth?resetToken=" + token;
+            String body = String.format(
+                    "Xin chào %s,%n%nBạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu EduCycle.%n"
+                            + "Mở liên kết sau trên trình duyệt:%n%s%n%nLiên kết hết hạn sau 1 giờ.%n"
+                            + "Nếu không phải bạn, hãy bỏ qua email này.",
+                    user.getUsername(), link);
+            mailService.sendPlain(user.getEmail(), "EduCycle — đặt lại mật khẩu", body);
+        }
+        return Map.of("message", MessageConstants.FORGOT_PASSWORD_GENERIC_RESPONSE);
+    }
+
+    @Override
+    public Map<String, String> resetPassword(ResetPasswordRequest request) {
+        String rawToken = request.token() == null ? "" : request.token().trim();
+        User user = userRepository.findByPasswordResetToken(rawToken)
+                .orElseThrow(() -> new BadRequestException(MessageConstants.RESET_TOKEN_INVALID_OR_EXPIRED));
+        if (user.getPasswordResetTokenExpiry() == null
+                || user.getPasswordResetTokenExpiry().isBefore(Instant.now())) {
+            throw new BadRequestException(MessageConstants.RESET_TOKEN_INVALID_OR_EXPIRED);
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiry(null);
+        userRepository.save(user);
+        return Map.of("message", MessageConstants.RESET_PASSWORD_SUCCESS);
+    }
+
     // ── Private helpers ────────────────────────────────────────────────────
 
     private void populateRefreshToken(User user) {
@@ -258,5 +319,12 @@ public class AuthServiceImpl implements AuthService {
     private static String normalizeEmail(String email) {
         if (email == null) return null;
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private void sendVerificationOtpEmail(User user, String otp) {
+        String body = String.format(
+                "Xin chào %s,%n%nMã OTP xác thực email EduCycle của bạn: %s%nHiệu lực 30 phút.%n",
+                user.getUsername(), otp);
+        mailService.sendPlain(user.getEmail(), "EduCycle — mã xác thực email", body);
     }
 }

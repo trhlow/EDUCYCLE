@@ -1,11 +1,14 @@
 package com.educycle.service.impl;
 
+import com.educycle.dto.admin.AdminResolveTransactionRequest;
 import com.educycle.dto.transaction.CreateTransactionRequest;
+import com.educycle.dto.transaction.DisputeTransactionRequest;
 import com.educycle.dto.transaction.TransactionResponse;
 import com.educycle.dto.transaction.UpdateTransactionStatusRequest;
 import com.educycle.enums.ProductStatus;
 import com.educycle.enums.TransactionStatus;
 import com.educycle.exception.BadRequestException;
+import com.educycle.exception.ForbiddenException;
 import com.educycle.exception.NotFoundException;
 import com.educycle.model.Product;
 import com.educycle.model.Transaction;
@@ -114,6 +117,11 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
+        String rawStatus = request.status();
+        if (rawStatus != null && "DISPUTED".equalsIgnoreCase(rawStatus.trim())) {
+            throw new BadRequestException(MessageConstants.USE_DISPUTE_ENDPOINT_FOR_DISPUTED);
+        }
+
         try {
             t.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
         } catch (IllegalArgumentException e) {
@@ -134,9 +142,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Map<String, String> generateOtp(UUID id) {
+    public Map<String, String> generateOtp(UUID id, UUID actorUserId) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        if (t.getBuyer() == null || !t.getBuyer().getId().equals(actorUserId)) {
+            throw new ForbiddenException(MessageConstants.OTP_GENERATE_BUYER_ONLY);
+        }
 
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         t.setOtpCode(OtpHasher.hash(otp));
@@ -148,9 +160,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void verifyOtp(UUID id, String otp) {
+    public void verifyOtp(UUID id, String otp, UUID actorUserId) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        if (t.getSeller() == null || !t.getSeller().getId().equals(actorUserId)) {
+            throw new ForbiddenException(MessageConstants.OTP_VERIFY_SELLER_ONLY);
+        }
 
         if (t.getOtpCode() == null
                 || !OtpHasher.verify(otp, t.getOtpCode())
@@ -176,6 +192,102 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(t);
 
         markProductAsSold(t.getProduct().getId());
+        return mapToResponse(t);
+    }
+
+    @Override
+    public TransactionResponse openDispute(UUID id, UUID buyerId, DisputeTransactionRequest request) {
+        Transaction t = transactionRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        if (t.getBuyer() == null || !t.getBuyer().getId().equals(buyerId)) {
+            throw new ForbiddenException(MessageConstants.DISPUTE_ONLY_BUYER);
+        }
+        if (t.getStatus() != TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.DISPUTE_REQUIRES_MEETING);
+        }
+
+        String reason = null;
+        if (request != null && request.reason() != null) {
+            String r = request.reason().trim();
+            reason = r.isEmpty() ? null : r;
+        }
+
+        t.setStatus(TransactionStatus.DISPUTED);
+        t.setDisputeReason(reason);
+        t.setDisputedAt(Instant.now());
+        t.setOtpCode(null);
+        t.setOtpExpiresAt(null);
+        transactionRepository.save(t);
+
+        String preview = reason != null && reason.length() > 200 ? reason.substring(0, 200) + "..." : (reason != null ? reason : "(Không ghi lý do)");
+        notificationService.create(
+                t.getSeller().getId(),
+                "TRANSACTION_DISPUTED",
+                "Giao dịch bị báo tranh chấp",
+                "Người mua đã báo tranh chấp. Lý do: " + preview,
+                t.getId());
+        notificationService.create(
+                t.getBuyer().getId(),
+                "TRANSACTION_DISPUTED",
+                "Đã gửi báo tranh chấp",
+                "Bạn đã báo tranh chấp giao dịch. Admin sẽ xem xét.",
+                t.getId());
+
+        return mapToResponse(t);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> listDisputedTransactions() {
+        return transactionRepository.findByStatusWithDetails(TransactionStatus.DISPUTED)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public TransactionResponse adminResolveDispute(UUID id, AdminResolveTransactionRequest request) {
+        Transaction t = transactionRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        if (t.getStatus() != TransactionStatus.DISPUTED) {
+            throw new BadRequestException(MessageConstants.TRANSACTION_NOT_DISPUTED);
+        }
+
+        String res = request.resolution().trim().toUpperCase();
+        if (!"COMPLETED".equals(res) && !"CANCELLED".equals(res)) {
+            throw new BadRequestException(MessageConstants.ADMIN_RESOLUTION_INVALID);
+        }
+
+        String note = request.adminNote() == null ? "" : request.adminNote().trim();
+        String noteLine = note.isEmpty() ? "" : "\nGhi chú admin: " + note;
+
+        if ("COMPLETED".equals(res)) {
+            t.setStatus(TransactionStatus.COMPLETED);
+            t.setOtpCode(null);
+            t.setOtpExpiresAt(null);
+            transactionRepository.save(t);
+            markProductAsSold(t.getProduct().getId());
+        } else {
+            t.setStatus(TransactionStatus.CANCELLED);
+            transactionRepository.save(t);
+        }
+
+        String body = "Admin đã xử lý tranh chấp với kết quả: " + res + "." + noteLine;
+        notificationService.create(
+                t.getBuyer().getId(),
+                "DISPUTE_RESOLVED",
+                "Tranh chấp đã được xử lý",
+                body,
+                t.getId());
+        notificationService.create(
+                t.getSeller().getId(),
+                "DISPUTE_RESOLVED",
+                "Tranh chấp đã được xử lý",
+                body,
+                t.getId());
+
         return mapToResponse(t);
     }
 
@@ -223,7 +335,9 @@ public class TransactionServiceImpl implements TransactionService {
                 t.isBuyerConfirmed(),
                 t.isSellerConfirmed(),
                 t.getCreatedAt(),
-                t.getUpdatedAt()
+                t.getUpdatedAt(),
+                t.getDisputeReason(),
+                t.getDisputedAt()
         );
     }
 }

@@ -2,6 +2,7 @@ package com.educycle.service;
 
 import com.educycle.dto.auth.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -24,4 +25,10 @@ public interface AuthService {
     AuthResponse refreshToken(String refreshToken);
 
     void logout(String refreshToken);
+
+    void changePassword(UUID userId, ChangePasswordRequest request);
+
+    Map<String, String> forgotPassword(ForgotPasswordRequest request);
+
+    Map<String, String> resetPassword(ResetPasswordRequest request);
 }

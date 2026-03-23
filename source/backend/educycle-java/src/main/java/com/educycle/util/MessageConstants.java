@@ -44,4 +44,23 @@ public final class MessageConstants {
     public static final String UNEXPECTED_ERROR = "Đã xảy ra lỗi không mong muốn";
     public static final String TOO_MANY_REQUESTS = "Bạn thao tác quá nhiều lần. Vui lòng thử lại sau.";
     public static final String JWT_SECRET_REQUIRED = "JWT secret bắt buộc phải được cấu hình bằng biến môi trường JWT_SECRET";
+
+    public static final String CURRENT_PASSWORD_WRONG = "Mật khẩu hiện tại không đúng";
+    public static final String OTP_GENERATE_BUYER_ONLY = "Chỉ người mua mới được tạo mã OTP cho giao dịch này.";
+    public static final String OTP_VERIFY_SELLER_ONLY = "Chỉ người bán mới được nhập mã OTP để hoàn tất giao dịch.";
+
+    public static final String FORGOT_PASSWORD_GENERIC_RESPONSE =
+            "Nếu email tồn tại trong hệ thống, bạn sẽ nhận hướng dẫn đặt lại mật khẩu.";
+    public static final String RESET_TOKEN_INVALID_OR_EXPIRED = "Liên kết hoặc mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+    public static final String RESET_PASSWORD_SUCCESS = "Đã đặt lại mật khẩu thành công.";
+    public static final String DISPUTE_ONLY_BUYER = "Chỉ người mua mới được báo tranh chấp.";
+    public static final String DISPUTE_REQUIRES_MEETING =
+            "Chỉ có thể báo tranh chấp khi giao dịch đang ở trạng thái gặp mặt (MEETING).";
+    public static final String DISPUTE_ONLY_BUYER_MEETING =
+            "Chỉ người mua có thể báo tranh chấp, và chỉ khi giao dịch đang ở trạng thái gặp mặt (MEETING).";
+    public static final String TRANSACTION_NOT_DISPUTED = "Giao dịch không ở trạng thái tranh chấp.";
+    public static final String USE_DISPUTE_ENDPOINT_FOR_DISPUTED =
+            "Không thể đặt trạng thái DISPUTED qua API cập nhật chung. Hãy dùng POST /transactions/{id}/dispute.";
+    public static final String ADMIN_RESOLUTION_INVALID =
+            "resolution phải là COMPLETED (hoàn tất) hoặc CANCELLED (hủy giao dịch).";
 }

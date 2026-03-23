@@ -7,6 +7,7 @@ import com.educycle.enums.ProductStatus;
 import com.educycle.enums.Role;
 import com.educycle.enums.TransactionStatus;
 import com.educycle.exception.BadRequestException;
+import com.educycle.exception.ForbiddenException;
 import com.educycle.exception.NotFoundException;
 import com.educycle.model.Product;
 import com.educycle.model.Transaction;
@@ -109,7 +110,7 @@ class TransactionServiceTest {
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
             given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
 
-            transactionService.verifyOtp(t.getId(), "123456");
+            transactionService.verifyOtp(t.getId(), "123456", seller.getId());
 
             assertThat(t.getStatus()).isEqualTo(TransactionStatus.COMPLETED);
             assertThat(t.getOtpCode()).isNull();
@@ -125,7 +126,7 @@ class TransactionServiceTest {
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
-            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "999999"))
+            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "999999", seller.getId()))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("Mã OTP không hợp lệ hoặc đã hết hạn");
         }
@@ -139,9 +140,23 @@ class TransactionServiceTest {
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
-            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "123456"))
+            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "123456", seller.getId()))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("Mã OTP không hợp lệ hoặc đã hết hạn");
+        }
+
+        @Test
+        @DisplayName("should throw ForbiddenException when caller is not seller")
+        void shouldThrow_whenNotSeller() {
+            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            t.setOtpCode(OtpHasher.hash("123456"));
+            t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
+
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "123456", buyer.getId()))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasMessageContaining("Chỉ người bán");
         }
     }
 
@@ -155,12 +170,23 @@ class TransactionServiceTest {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
-            Map<String, String> result = transactionService.generateOtp(t.getId());
+            Map<String, String> result = transactionService.generateOtp(t.getId(), buyer.getId());
 
             assertThat(result).containsKey("otp");
             assertThat(result.get("otp")).hasSize(6).containsOnlyDigits();
             assertThat(t.getOtpCode()).isNotNull();
             assertThat(t.getOtpExpiresAt()).isAfter(Instant.now());
+        }
+
+        @Test
+        @DisplayName("should throw ForbiddenException when caller is not buyer")
+        void shouldThrow_whenNotBuyer() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.generateOtp(t.getId(), seller.getId()))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasMessageContaining("Chỉ người mua");
         }
     }
 
@@ -190,6 +216,18 @@ class TransactionServiceTest {
                     t.getId(), new UpdateTransactionStatusRequest("INVALID_STATUS")))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("Trạng thái giao dịch không hợp lệ");
+        }
+
+        @Test
+        @DisplayName("should reject setting DISPUTED via generic status API")
+        void shouldThrow_whenDisputedViaPatch() {
+            Transaction t = buildTransaction(TransactionStatus.MEETING);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.updateStatus(
+                    t.getId(), new UpdateTransactionStatusRequest("DISPUTED")))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("DISPUTED");
         }
     }
 

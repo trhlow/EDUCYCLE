@@ -4,6 +4,7 @@ import com.educycle.enums.TransactionStatus;
 import com.educycle.model.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -31,4 +32,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.status = 'COMPLETED' OR t.status = 'AUTO_COMPLETED'")
     BigDecimal sumCompletedAmount();
+
+    @Query("SELECT t FROM Transaction t " +
+           "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
+           "WHERE t.status = :status ORDER BY t.disputedAt DESC NULLS LAST, t.updatedAt DESC")
+    List<Transaction> findByStatusWithDetails(@Param("status") TransactionStatus status);
 }

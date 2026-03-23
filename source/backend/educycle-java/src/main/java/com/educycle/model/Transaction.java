@@ -47,7 +47,8 @@ public class Transaction {
     @Builder.Default
     private TransactionStatus status = TransactionStatus.PENDING;
 
-    @Column(name = "otp_code", length = 10)
+    /** SHA-256 hex = 64 ký tự — cột DB trước đây VARCHAR(10) gây lỗi khi lưu hash */
+    @Column(name = "otp_code", length = 64)
     private String otpCode;
 
     @Column(name = "otp_expires_at")
@@ -68,4 +69,10 @@ public class Transaction {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "dispute_reason", columnDefinition = "TEXT")
+    private String disputeReason;
+
+    @Column(name = "disputed_at")
+    private Instant disputedAt;
 }
