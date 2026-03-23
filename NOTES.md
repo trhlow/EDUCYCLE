@@ -33,6 +33,10 @@
 | TransactionProductDto fields | ✅ | ✅ | description + category đã có |
 | Product SOLD status check | ✅ | ✅ | `.toUpperCase() === 'SOLD'` |
 | TransactionGuidePage v2 | — | ✅ | 7 bước, DISPUTED flow, nội quy v2 |
+| PATCH `/users/me` + đổi MK | ✅ | ✅ | `UsersController`, `change-password`, ProfilePage gọi thật |
+| OTP transaction: buyer/seller guard | ✅ | — | `generateOtp(actor)`, `verifyOtp(actor)` + 403 |
+| Cart P2P (không giỏ checkout) | — | ✅ | `/cart` → hướng dẫn; xóa `CartContext` |
+| Wishlist copy + CTA yêu cầu mua | — | ✅ | Bỏ thêm giỏ; link chi tiết sản phẩm |
 
 ---
 
@@ -42,8 +46,6 @@
 
 | Issue | File | Impact |
 |-------|------|--------|
-| Guard `generateOtp`: chỉ buyer được gọi | `TransactionServiceImpl.java` | Bảo mật — ai cũng gọi được hiện tại |
-| Guard `verifyOtp`: chỉ seller được gọi | `TransactionServiceImpl.java` | Bảo mật — ai cũng gọi được hiện tại |
 | Thêm endpoint `POST /transactions/{id}/dispute` | `TransactionsController` + `TransactionServiceImpl` | DISPUTED flow chưa có BE |
 | Thêm endpoint `PATCH /admin/transactions/{id}/resolve` | `AdminController` + `AdminService` | Admin xử lý tranh chấp |
 
@@ -71,6 +73,55 @@ npm run dev
 # Test login
 # Email: admin@educycle.com | Password: admin@1
 ```
+
+---
+
+## 2.5 EXTERNAL REVIEW — Audit ngoại bộ (2026-03-22)
+
+> Nguồn: đánh giá tổng quan EduCycle (template khóa học vs P2P, FE giả API, thiếu endpoint).  
+> Mục đích: giữ ngữ cảnh cho roadmap; checklist bên dưới được cập nhật khi hoàn thành từng mục.
+
+### Tóm tắt điểm số (tham chiếu)
+
+| Tiêu chí | Ghi chú ngắn |
+|----------|----------------|
+| **~5.5/10** tổng thể (production / P2P thật) | Nền tảng kỹ thuật tốt; nhiều luồng profile/cart/wishlist chưa khớp mô hình hoặc chưa gọi BE. |
+| Điểm mạnh | Spring Boot + React, OTP giao dịch, WebSocket/STOMP, JWT + refresh, Flyway, OAuth verify JWKS. |
+| Điểm yếu cốt lõi | Giỏ hàng/checkout USD không phù hợp P2P; profile đổi MK/xóa TK/cài đặt TB giả; thiếu seller public profile; base64 ảnh; email OTP log console; pagination. |
+
+### Checklist theo sprint (đồng bộ với audit)
+
+#### Sprint 1 — Critical (đang / đã làm trong repo)
+
+- [x] **Cart / concept P2P** — Bỏ giỏ checkout online; trang `/cart` → nội dung P2P + link giao dịch (không CartContext).
+- [x] **Wishlist** — Đổi copy “khóa học” → tài liệu/sách; bỏ “Thêm vào giỏ”; CTA “Xem chi tiết & gửi yêu cầu mua”.
+- [x] **Profile + BE** — `PATCH /api/users/me`, `POST /api/auth/change-password`; FE `refreshUser` / `saveProfileToServer`.
+- [x] **OTP guards BE** — `generateOtp` chỉ buyer; `verifyOtp` chỉ seller (`TransactionServiceImpl` + `@AuthenticationPrincipal`).
+- [x] **Xóa tài khoản** — Không còn giả xóa: xác nhận + thông báo chưa hỗ trợ / đăng xuất.
+
+#### Sprint 2 — Missing features
+
+- [x] `POST /auth/forgot-password`, `POST /auth/reset-password`
+- [x] `POST /transactions/{id}/dispute`, `GET /admin/transactions/disputed`, `PATCH /admin/transactions/{id}/resolve`
+- [x] Trang hồ sơ công khai `/users/:id` (BE `GET /api/public/users/{id}` + FE)
+- [x] SMTP / OTP & quên mật khẩu (`spring-boot-starter-mail` + `MailService`; khi chưa cấu hình SMTP vẫn log nội dung)
+
+#### Sprint 3 — Scale & polish
+
+- [ ] Ảnh: Cloudinary / S3 / MinIO (thay base64 DB)
+- [ ] Pagination API + FE
+- [ ] Edit sản phẩm `/products/:id/edit`
+- [ ] Notification preferences lưu BE
+- [ ] Admin duyệt: xem ảnh, reject reason, notify seller
+
+#### Sprint 4 — Production
+
+- [ ] OAuth E2E test; skeleton loading; error messages; mobile audit
+- [ ] README + deployment (Docker Compose)
+
+### Page scorecard (tham chiếu — không đổi logic code)
+
+Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 (base64) · Transactions ~7 · TransactionDetail ~7 · Guide ~7 · Dashboard ~5 · Profile ~4 → ~3 sau Sprint 1 nếu fix API · Wishlist ~3 → cần copy+CTA · Cart ~1 → repurpose · Admin ~6 · OAuthCallback ~5.
 
 ---
 
@@ -102,6 +153,12 @@ npm run dev
 | 22 | **AuthServiceImpl.verifyOtp() luôn throw** | `AuthServiceImpl.java` | Implement OTP thực: sinh OTP trong register, lưu DB, verify đúng + log OTP ra console (dev mode) |
 | 23 | **Product status check TitleCase** | `ProductDetailPage.jsx` | `product.status === 'Sold'` → `.toUpperCase() === 'SOLD'` |
 | 24 | **TransactionGuidePage OTP flow mơ hồ** | `TransactionGuidePage.jsx` | Viết lại 7 bước, rõ buyer tạo / seller nhập, thêm DISPUTED flow, nội quy v2 |
+| 25 | **Sprint 1 — OTP ai cũng gọi được** | `TransactionServiceImpl` + `TransactionsController` | `generateOtp(id, buyerId)`, `verifyOtp(..., sellerId)` + `ForbiddenException` |
+| 26 | **Sprint 1 — Profile / đổi MK giả** | BE: `UsersController`, `UserProfileService`, `POST /auth/change-password` · FE: `AuthContext`, `ProfilePage` | `GET/PATCH /users/me`, đổi mật khẩu BCrypt thật |
+| 27 | **Sprint 1 — Cart template khóa học** | `CartPage.jsx` + xóa `CartContext` | Trang P2P + link giao dịch; bỏ `CartProvider` |
+| 28 | **Sprint 1 — Wishlist sai ngữ cảnh** | `WishlistPage.jsx` | Copy tài liệu/sách; CTA tới chi tiết sản phẩm thay vì giỏ |
+| 29 | **TransactionDetail: mất UI / mất chat khi lỗi** | `TransactionDetailPage.jsx` + `axios.js` | Poll 1s→8s (tránh 429); refetch silent không `setLoading`/không xóa state; `fetchMessages(preserve)`; bỏ mock OTP & success giả; WS reconnect khi `educycle:token-refreshed` |
+| 30 | **Tạo OTP → "Dữ liệu bị trùng hoặc không hợp lệ"** | `V6__widen_transaction_otp_code.sql` + `Transaction.java` | `otp_code` VARCHAR(10) không chứa được SHA-256 hex (64) → `DataIntegrityViolation` |
 
 ---
 
@@ -222,7 +279,12 @@ git push origin dev
 | `POST /transactions` | `{ productId, sellerId, amount }` | `CreateTransactionRequest` |
 | `PATCH /transactions/{id}/status` | `{ status }` | `UpdateTransactionStatusRequest { status }` |
 | `POST /transactions/{id}/verify-otp` | `{ otp }` | `TransactionVerifyOtpRequest { otp }` |
-| `POST /transactions/{id}/dispute` | `{ reason }` | `DisputeTransactionRequest { reason }` *(chưa có — cần tạo)* |
+| `POST /transactions/{id}/dispute` | `{ reason }` | `DisputeTransactionRequest { reason }` |
+| `POST /auth/forgot-password` | `{ email }` | `ForgotPasswordRequest` |
+| `POST /auth/reset-password` | `{ token, newPassword }` | `ResetPasswordRequest` |
+| `GET /public/users/{userId}` | — | `PublicUserProfileResponse` |
+| `GET /admin/transactions/disputed` | — | `List<TransactionResponse>` |
+| `PATCH /admin/transactions/{id}/resolve` | `{ resolution, adminNote? }` | `AdminResolveTransactionRequest` |
 | `POST /reviews` | `{ targetUserId, transactionId, rating, content, productId? }` | `CreateReviewRequest` |
 
 ---
@@ -235,12 +297,31 @@ git push origin dev
 | v0.6.0 | Fix FE: status uppercase, OTP flow, mock bypass | ✅ Done |
 | v0.6.1 | Fix BE↔FE sync: field names, OTP impl, TransactionProductDto | ✅ Done |
 | v0.6.2 | FE: TransactionGuidePage v2, nội quy v2 | ✅ Done |
-| v0.7.0 | BE: OTP guard, Dispute endpoint + Admin resolve; FE: Skeleton UI | 📋 Planned |
+| v0.6.3 | Sprint 2: forgot/reset, dispute + admin resolve, public profile, MailService/SMTP | ✅ Done |
+| v0.7.0 | OTP guard nâng cao, FE skeleton UI (còn lại) | 📋 Planned |
 | v1.0.0 | Production release | 📋 Planned |
 
 ---
 
 ## 7. CHANGELOG
+
+### [0.6.3] — 2026-03-21 — Sprint 2 (missing features)
+
+**Added (BE)**
+- `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` (token 1h, link `APP_FRONTEND_BASE_URL/auth?resetToken=…`)
+- `MailService` + gửi OTP đăng ký / resend OTP / quên mật khẩu khi cấu hình `spring.mail.*`
+- `POST /api/transactions/{id}/dispute` (buyer, `MEETING` → `DISPUTED`); chặn `DISPUTED` qua `PATCH …/status`
+- `GET /api/admin/transactions/disputed`, `PATCH /api/admin/transactions/{id}/resolve` (`COMPLETED` | `CANCELLED`)
+- `GET /api/public/users/{userId}` + `PublicUserProfileResponse` (rating + 10 review gần nhất)
+- Flyway `V7`: `dispute_reason`, `disputed_at` trên `transactions`
+
+**Added (FE)**
+- `AuthPage`: gọi API quên/đặt lại mật khẩu; đọc `resetToken` từ query; mật khẩu mới tối thiểu 8 ký tự
+- `GuestRoute`: cho phép `/auth?resetToken=` khi đã đăng nhập
+- `TransactionDetailPage`: báo tranh chấp (buyer, MEETING); hiển thị trạng thái DISPUTED
+- `AdminPage` → Giao dịch: khối xử lý tranh chấp + gọi admin API
+- `UserPublicProfilePage` + route `/users/:id`; `ProductDetailPage` link tới hồ sơ người bán
+- `endpoints.js`: `openDispute`, `getDisputedTransactions`, `resolveDisputedTransaction`, `publicProfileApi`
 
 ### [0.6.2] — 2026-03-22 — TransactionGuidePage v2
 

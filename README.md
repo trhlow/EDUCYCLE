@@ -125,6 +125,23 @@ npm run dev
 > VITE_DEV_PROXY_TARGET=http://localhost:8080
 > ```
 
+### Email (SMTP — tuỳ chọn)
+
+OTP đăng ký, gửi lại OTP và **quên mật khẩu** dùng `MailService`. Nếu chưa cấu hình SMTP, backend vẫn chạy và **ghi nội dung email vào log** (tiện cho dev).
+
+Để gửi email thật, cấu hình Spring Mail (ví dụ Gmail [App Password](https://support.google.com/accounts/answer/185833)) trong `application.yml` hoặc biến môi trường, ví dụ:
+
+| Mục | Ví dụ |
+|-----|--------|
+| `spring.mail.host` | `smtp.gmail.com` |
+| `spring.mail.port` | `587` |
+| `spring.mail.username` | địa chỉ Gmail |
+| `spring.mail.password` | App Password |
+| `spring.mail.properties.mail.smtp.auth` | `true` |
+| `spring.mail.properties.mail.smtp.starttls.enable` | `true` |
+| `app.mail-from` | `EduCycle <your@gmail.com>` |
+| `app.frontend-base-url` | `http://localhost:5173` (link trong email đặt lại mật khẩu) |
+
 ---
 
 ## API Endpoints
@@ -141,6 +158,8 @@ npm run dev
 | POST | `/api/auth/refresh` | Làm mới JWT |
 | POST | `/api/auth/logout` | Đăng xuất |
 | POST | `/api/auth/verify-phone` | Xác thực số điện thoại |
+| POST | `/api/auth/forgot-password` | Quên mật khẩu (email có link đặt lại) |
+| POST | `/api/auth/reset-password` | Đặt lại mật khẩu (`token`, `newPassword`) |
 
 ### Products
 
@@ -162,11 +181,20 @@ npm run dev
 | POST | `/api/transactions/{id}/otp` | Tạo mã OTP |
 | POST | `/api/transactions/{id}/verify-otp` | Xác nhận OTP |
 | POST | `/api/transactions/{id}/confirm` | Xác nhận nhận hàng |
+| POST | `/api/transactions/{id}/dispute` | Báo tranh chấp (người mua, trạng thái MEETING) |
+
+### Admin (role ADMIN)
+
+| Method | Endpoint | Mô tả |
+|--------|----------|-------|
+| GET | `/api/admin/transactions/disputed` | Danh sách giao dịch tranh chấp |
+| PATCH | `/api/admin/transactions/{id}/resolve` | Xử lý: `resolution` = `COMPLETED` hoặc `CANCELLED` |
 
 ### Khác
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
+| GET | `/api/public/users/{userId}` | Hồ sơ công khai + đánh giá gần đây |
 | GET | `/api/categories` | Danh mục |
 | POST | `/api/reviews` | Đánh giá |
 | GET | `/api/notifications` | Thông báo |
