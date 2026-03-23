@@ -22,6 +22,7 @@ const TransactionDetailPage = lazy(() => import('./pages/TransactionDetailPage')
 const TransactionGuidePage = lazy(() => import('./pages/TransactionGuidePage'));
 const PostProductPage = lazy(() => import('./pages/PostProductPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const UserPublicProfilePage = lazy(() => import('./pages/UserPublicProfilePage'));
 
 // Redirect /products → trang chủ section #products
 function ProductsRedirect() {
@@ -57,6 +58,7 @@ export default function App() {
 
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
+        <Route path="users/:id" element={<SuspenseWrapper><UserPublicProfilePage /></SuspenseWrapper>} />
         <Route path="cart" element={<SuspenseWrapper><CartPage /></SuspenseWrapper>} />
         <Route path="transactions" element={<SuspenseWrapper><ProtectedRoute><TransactionsPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="transactions/guide" element={<SuspenseWrapper><TransactionGuidePage /></SuspenseWrapper>} />

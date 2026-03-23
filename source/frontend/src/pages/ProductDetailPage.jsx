@@ -144,7 +144,14 @@ export default function ProductDetailPage() {
         <div className="pdp-purchase-panel">
           <h1 className="pdp-title">{product.name}</h1>
           <div className="pdp-seller-row">
-            bởi <span className="pdp-seller-name">{maskUsername(product.seller)}</span>
+            bởi{' '}
+            {product.sellerId ? (
+              <Link to={`/users/${product.sellerId}`} className="pdp-seller-name" title="Xem hồ sơ người bán">
+                {maskUsername(product.seller)}
+              </Link>
+            ) : (
+              <span className="pdp-seller-name">{maskUsername(product.seller)}</span>
+            )}
           </div>
 
           {/* Issue #5: Rating = uy tín người bán, không phải sản phẩm */}

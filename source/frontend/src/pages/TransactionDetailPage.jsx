@@ -40,59 +40,87 @@ export default function TransactionDetailPage() {
   const [reviewForm,   setReviewForm]   = useState({ rating: 5, comment: '' });
   const [hasReviewed,  setHasReviewed]  = useState(false);
   const [activeSection, setActiveSection] = useState('chat');
+  const [disputeReasonInput, setDisputeReasonInput] = useState('');
+  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
 
   const chatEndRef       = useRef(null);
   const chatContainerRef = useRef(null);
   const stompClientRef   = useRef(null);
 
-  const fetchTransaction = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await transactionsApi.getById(id);
-      setTransaction(res.data);
-    } catch {
-      setTransaction(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  /** silent=true: không full-screen loading, không xóa transaction khi lỗi mạng/429 */
+  const fetchTransaction = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        const res = await transactionsApi.getById(id);
+        setTransaction(res.data);
+      } catch (e) {
+        const msg = e?.response?.data?.message || e?.response?.data?.error;
+        setTransaction((prev) => {
+          if (silent && prev) return prev;
+          return null;
+        });
+        if (!silent) {
+          toast.error(typeof msg === 'string' ? msg : 'Không tải được giao dịch.');
+        }
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [id, toast],
+  );
 
-  const fetchMessages = useCallback(async () => {
-    try {
-      const res = await messagesApi.getByTransaction(id);
-      setMessages(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setMessages([]);
-    }
-  }, [id]);
+  /** preserveOnError: không xóa chat khi một lần poll thất bại (429, mạng) */
+  const fetchMessages = useCallback(
+    async (preserveOnError = false) => {
+      try {
+        const res = await messagesApi.getByTransaction(id);
+        setMessages(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        if (!preserveOnError) setMessages([]);
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
-    fetchTransaction();
-    fetchMessages();
+    fetchTransaction(false);
+    fetchMessages(false);
   }, [id, fetchTransaction, fetchMessages]);
+
+  // Làm mới WebSocket khi JWT được refresh (axios interceptor)
+  const [wsEpoch, setWsEpoch] = useState(0);
+  useEffect(() => {
+    const bump = () => setWsEpoch((n) => n + 1);
+    window.addEventListener('educycle:token-refreshed', bump);
+    return () => window.removeEventListener('educycle:token-refreshed', bump);
+  }, []);
 
   // WebSocket chat
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token || !id) return;
     const client = createChatClient(token, id, (newMsg) => {
-      setMessages(prev => {
-        if (prev.some(m => m.id === newMsg.id)) return prev;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
       });
     });
     client.activate();
     stompClientRef.current = client;
-    return () => { client.deactivate(); stompClientRef.current = null; };
-  }, [id]);
+    return () => {
+      client.deactivate();
+      stompClientRef.current = null;
+    };
+  }, [id, wsEpoch]);
 
-  // Polling messages every 1s while chat open
+  // Polling dự phòng — 8s để tránh chạm 60 req/phút (trước đây 1s dễ 429 → mất tin nhắn)
   useEffect(() => {
     let interval;
     if (activeSection === 'chat' && transaction) {
       const st = transaction.status?.toUpperCase() ?? '';
       if (['ACCEPTED', 'MEETING'].includes(st)) {
-        interval = setInterval(fetchMessages, 1000);
+        interval = setInterval(() => fetchMessages(true), 8000);
       }
     }
     return () => clearInterval(interval);
@@ -125,11 +153,10 @@ export default function TransactionDetailPage() {
         newStatus === 'MEETING'   ? '🤝 Bắt đầu gặp mặt! Hãy tạo mã OTP.' :
         'Cập nhật thành công!'
       );
-      fetchTransaction(); // will trigger auto-switch to OTP if MEETING
-    } catch {
-      const next = { ...transaction, status: newStatus };
-      setTransaction(next);
-      toast.success('Cập nhật thành công!');
+      await fetchTransaction(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không cập nhật được trạng thái. Kiểm tra kết nối hoặc quyền.');
     }
   };
 
@@ -143,7 +170,7 @@ export default function TransactionDetailPage() {
     } else {
       try {
         await messagesApi.send(id, { content });
-        fetchMessages();
+        fetchMessages(true);
       } catch {
         setMessages(prev => [...prev, { id: Date.now(), senderId: user?.id, senderName: user?.username, content, createdAt: new Date().toISOString() }]);
       }
@@ -161,11 +188,9 @@ export default function TransactionDetailPage() {
       setOtpCode(otp);
       setOtpGenerated(true);
       toast.success('✅ Mã OTP đã được tạo! Đọc mã cho người bán.');
-    } catch {
-      const mockOtp = String(Math.floor(100000 + Math.random() * 900000));
-      setOtpCode(mockOtp);
-      setOtpGenerated(true);
-      toast.success('✅ Mã OTP đã được tạo! Đọc mã cho người bán.');
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không tạo được mã OTP. Chỉ người mua được tạo mã.');
     }
   };
 
@@ -177,9 +202,10 @@ export default function TransactionDetailPage() {
     try {
       await transactionsApi.verifyOtp(id, { otp: otpInput });
       toast.success('🎉 Xác nhận OTP thành công! Giao dịch hoàn thành.');
-      fetchTransaction();
-    } catch {
-      toast.error('Mã OTP không đúng hoặc đã hết hạn!');
+      await fetchTransaction(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Mã OTP không đúng, hết hạn, hoặc bạn không phải người bán.');
     }
     setOtpInput('');
   };
@@ -188,10 +214,27 @@ export default function TransactionDetailPage() {
     try {
       await transactionsApi.confirmReceipt(id);
       toast.success('Đã xác nhận nhận hàng!');
-      fetchTransaction();
-    } catch {
-      setTransaction(prev => prev ? { ...prev, buyerConfirmed: true } : prev);
-      toast.success('Đã xác nhận nhận hàng!');
+      await fetchTransaction(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không xác nhận được. Thử lại.');
+    }
+  };
+
+  const handleOpenDispute = async () => {
+    if (!window.confirm('Báo tranh chấp cho admin? Hai bên sẽ chờ admin xử lý trước khi tiếp tục.')) return;
+    setDisputeSubmitting(true);
+    try {
+      const body = disputeReasonInput.trim() ? { reason: disputeReasonInput.trim() } : {};
+      await transactionsApi.openDispute(id, body);
+      toast.success('Đã gửi báo tranh chấp. Admin sẽ xem xét.');
+      setDisputeReasonInput('');
+      await fetchTransaction(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không gửi được báo tranh chấp.');
+    } finally {
+      setDisputeSubmitting(false);
     }
   };
 
@@ -203,9 +246,9 @@ export default function TransactionDetailPage() {
       await reviewsApi.createUserReview({ targetUserId, transactionId: id, rating: reviewForm.rating, content: reviewForm.comment });
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
-    } catch {
-      toast.success('Đã gửi đánh giá!');
-      setHasReviewed(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Gửi đánh giá thất bại. Thử lại.');
     }
   };
 
@@ -226,10 +269,11 @@ export default function TransactionDetailPage() {
     </div></div>
   );
 
-  const isTerminal = ['COMPLETED','AUTOCOMPLETED','REJECTED','CANCELLED'].includes(statusKey);
+  const isTerminal = ['COMPLETED','AUTOCOMPLETED','REJECTED','CANCELLED','DISPUTED'].includes(statusKey);
   const canChat   = ['ACCEPTED','MEETING'].includes(statusKey);
   const canOtp    = statusKey === 'MEETING';
   const canReview = ['COMPLETED','AUTOCOMPLETED'].includes(statusKey) && !hasReviewed;
+  const canDispute = role === 'buyer' && statusKey === 'MEETING';
 
   return (
     <div className="txd-page">
@@ -312,6 +356,33 @@ export default function TransactionDetailPage() {
                   <button className="txd-btn txd-btn-meeting" onClick={() => handleStatusUpdate('MEETING')}>🤝 Bắt đầu gặp mặt</button>
                 </div>
               )}
+              {canDispute && (
+                <div className="txd-actions-group" style={{ border: '1px solid var(--error-light, #ffcdd2)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+                  <p className="txd-actions-hint">Có vấn đề khi gặp mặt? Chỉ <strong>người mua</strong> có thể báo tranh chấp để admin hỗ trợ.</p>
+                  <textarea
+                    className="auth-input"
+                    style={{ width: '100%', minHeight: 72, marginBottom: 'var(--space-2)', resize: 'vertical' }}
+                    placeholder="Mô tả ngắn (không bắt buộc)..."
+                    value={disputeReasonInput}
+                    onChange={(e) => setDisputeReasonInput(e.target.value)}
+                    maxLength={2000}
+                  />
+                  <button type="button" className="txd-btn txd-btn-cancel" disabled={disputeSubmitting} onClick={handleOpenDispute}>
+                    {disputeSubmitting ? 'Đang gửi...' : '⚠️ Báo tranh chấp'}
+                  </button>
+                </div>
+              )}
+              {statusKey === 'DISPUTED' && (
+                <div className="txd-actions-group" style={{ background: 'var(--error-light, #ffebee)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+                  <p className="txd-actions-hint" style={{ fontWeight: 600 }}>⚠️ Giao dịch đang tranh chấp — chờ admin xử lý</p>
+                  {transaction.disputeReason && (
+                    <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-2)' }}><strong>Lý do:</strong> {transaction.disputeReason}</p>
+                  )}
+                  {transaction.disputedAt && (
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>Báo lúc: {formatDate(transaction.disputedAt)}</p>
+                  )}
+                </div>
+              )}
               {canReview && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Giao dịch hoàn thành! Hãy đánh giá đối tác.</p>
@@ -323,7 +394,7 @@ export default function TransactionDetailPage() {
                   <p className="txd-actions-hint txd-hint-success">✅ Bạn đã gửi đánh giá. Cảm ơn bạn!</p>
                 </div>
               )}
-              {isTerminal && !canReview && !hasReviewed && (
+              {isTerminal && !canReview && !hasReviewed && statusKey !== 'DISPUTED' && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Giao dịch đã kết thúc: <strong>{config.label}</strong></p>
                 </div>

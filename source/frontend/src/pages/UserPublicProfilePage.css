@@ -1,0 +1,128 @@
+.upp-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+}
+
+.upp-breadcrumb {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-secondary, #666);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.upp-breadcrumb a {
+  color: var(--primary-600, #2563eb);
+  text-decoration: none;
+}
+
+.upp-breadcrumb span {
+  margin: 0 0.35rem;
+}
+
+.upp-card {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-light, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-5, 1.25rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.upp-loading {
+  text-align: center;
+  color: var(--text-secondary, #666);
+}
+
+.upp-header {
+  display: flex;
+  gap: var(--space-4, 1rem);
+  align-items: flex-start;
+}
+
+.upp-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-full, 999px);
+  overflow: hidden;
+  background: var(--primary-100, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-700, #1d4ed8);
+  flex-shrink: 0;
+}
+
+.upp-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upp-head-text h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.upp-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.upp-stars {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.upp-muted {
+  color: var(--text-secondary, #666);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.upp-bio {
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+.upp-section-title {
+  margin: 0 0 var(--space-3, 0.75rem);
+  font-size: 1.1rem;
+}
+
+.upp-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.upp-review-item {
+  padding: var(--space-3, 0.75rem) 0;
+  border-bottom: 1px solid var(--border-light, #e5e7eb);
+}
+
+.upp-review-item:last-child {
+  border-bottom: none;
+}
+
+.upp-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.upp-review-content {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.5;
+}
+
+.upp-back {
+  display: inline-block;
+  margin-top: var(--space-3, 0.75rem);
+  color: var(--primary-600, #2563eb);
+}

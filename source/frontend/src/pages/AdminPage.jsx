@@ -396,16 +396,53 @@ function AdminProducts() {
 }
 
 function AdminOrders() {
+  const toast = useToast();
   const [transactions, setTransactions] = useState([]);
+  const [disputed, setDisputed] = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [search,       setSearch]       = useState('');
+  const [resolveBusy,  setResolveBusy]  = useState(null);
+  const [resolveForms, setResolveForms] = useState({});
 
-  useEffect(() => {
-    transactionsApi.getAll()
-      .then(res => setTransactions(Array.isArray(res.data) ? res.data : []))
-      .catch(() => setTransactions([]))
+  const fetchAll = () => {
+    setLoading(true);
+    Promise.all([
+      transactionsApi.getAll().then(res => Array.isArray(res.data) ? res.data : []).catch(() => []),
+      adminApi.getDisputedTransactions().then(res => Array.isArray(res.data) ? res.data : []).catch(() => []),
+    ])
+      .then(([tx, disp]) => {
+        setTransactions(tx);
+        setDisputed(disp);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchAll(); }, []);
+
+  const setForm = (txId, patch) => {
+    setResolveForms((prev) => ({
+      ...prev,
+      [txId]: { resolution: 'COMPLETED', adminNote: '', ...prev[txId], ...patch },
+    }));
+  };
+
+  const handleResolve = async (txId) => {
+    const f = resolveForms[txId] || { resolution: 'COMPLETED', adminNote: '' };
+    setResolveBusy(txId);
+    try {
+      await adminApi.resolveDisputedTransaction(txId, {
+        resolution: f.resolution || 'COMPLETED',
+        adminNote: f.adminNote || undefined,
+      });
+      toast.success('Đã xử lý tranh chấp.');
+      fetchAll();
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không xử lý được.');
+    } finally {
+      setResolveBusy(null);
+    }
+  };
 
   const statusMap = { PENDING:'Chờ xác nhận', ACCEPTED:'Đã chấp nhận', MEETING:'Đang gặp mặt', COMPLETED:'Hoàn thành', AUTO_COMPLETED:'Tự hoàn thành', REJECTED:'Từ chối', CANCELLED:'Đã hủy', DISPUTED:'Tranh chấp' };
 
@@ -417,10 +454,68 @@ function AdminOrders() {
   return (
     <>
       <h1 className="admin-page-title">Giao Dịch</h1>
+      {disputed.length > 0 && (
+        <div className="admin-section" style={{ marginBottom: 'var(--space-5)', border: '1px solid var(--error-light, #ffcdd2)' }}>
+          <div className="admin-section-header">
+            <h2 className="admin-section-title">⚠️ Tranh chấp cần xử lý ({disputed.length})</h2>
+            <button type="button" className="admin-btn" onClick={fetchAll}>🔄 Làm mới</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            {disputed.map((tx) => {
+              const fid = tx.id;
+              const rf = resolveForms[fid] || { resolution: 'COMPLETED', adminNote: '' };
+              return (
+                <div key={fid} style={{ padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ fontWeight: 600, marginBottom: 'var(--space-2)' }}>{tx.product?.name || '—'}</div>
+                  <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-2)' }}>
+                    Mua: {tx.buyer?.username || '—'} · Bán: {tx.seller?.username || '—'} · #{fid}
+                  </div>
+                  {tx.disputeReason && (
+                    <div style={{ fontSize: 'var(--text-sm)', marginBottom: 'var(--space-3)' }}><strong>Lý do:</strong> {tx.disputeReason}</div>
+                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', alignItems: 'flex-end' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 'var(--text-sm)' }}>
+                      Kết quả
+                      <select
+                        className="admin-search"
+                        style={{ minWidth: 180 }}
+                        value={rf.resolution || 'COMPLETED'}
+                        onChange={(e) => setForm(fid, { resolution: e.target.value })}
+                      >
+                        <option value="COMPLETED">Hoàn tất (đánh dấu đã bán)</option>
+                        <option value="CANCELLED">Hủy giao dịch (không đánh dấu bán)</option>
+                      </select>
+                    </label>
+                    <label style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 'var(--text-sm)' }}>
+                      Ghi chú admin (tuỳ chọn)
+                      <input
+                        className="admin-search"
+                        type="text"
+                        value={rf.adminNote || ''}
+                        onChange={(e) => setForm(fid, { adminNote: e.target.value })}
+                        placeholder="Thông báo tới hai bên..."
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-success"
+                      disabled={resolveBusy === fid}
+                      onClick={() => handleResolve(fid)}
+                    >
+                      {resolveBusy === fid ? 'Đang xử lý...' : '✅ Áp dụng'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <div className="admin-section">
         <div className="admin-section-header">
-          <div className="admin-section-actions">
+          <div className="admin-section-actions" style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
             <input className="admin-search" type="text" placeholder="Tìm giao dịch..." value={search} onChange={e => setSearch(e.target.value)} />
+            <button type="button" className="admin-btn" onClick={fetchAll}>🔄 Làm mới</button>
           </div>
         </div>
         {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>

@@ -132,6 +132,13 @@
 }
 .wishlist-add-cart-btn:hover { background: var(--primary-dark); }
 
+a.wishlist-request-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
 @media (max-width: 768px) {
   .wishlist-grid { grid-template-columns: 1fr; }
   .wishlist-header { flex-direction: column; align-items: flex-start; gap: var(--space-3); }

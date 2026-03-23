@@ -1,5 +1,6 @@
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { vi, test, expect } from 'vitest';
 import AuthPage from './AuthPage';
 import { AuthProvider } from '../contexts/AuthContext';
@@ -23,6 +24,9 @@ vi.mock('../api/endpoints', () => ({
   authApi: {
     login: vi.fn(),
   },
+  usersApi: {
+    getMe: vi.fn(),
+  },
 }));
 
 test('shows error on failed login', async () => {
@@ -31,11 +35,13 @@ test('shows error on failed login', async () => {
   });
 
   const { container } = render(
-    <MemoryRouter>
-      <AuthProvider>
-        <AuthPage />
-      </AuthProvider>
-    </MemoryRouter>,
+    <GoogleOAuthProvider clientId="test-client-id.apps.googleusercontent.com">
+      <MemoryRouter>
+        <AuthProvider>
+          <AuthPage />
+        </AuthProvider>
+      </MemoryRouter>
+    </GoogleOAuthProvider>,
   );
 
   const emailInput = container.querySelector('#login-email');

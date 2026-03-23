@@ -50,8 +50,8 @@ export default function Layout() {
             <div className="footer-section">
               <h4 className="footer-section-title">Liên hệ</h4>
               <span className="footer-link">📧 support@educycle.com</span>
-              <span className="footer-link">📞 +84 (0) 123 456 789</span>
-              <span className="footer-link">📍 TP. Hồ Chí Minh</span>
+              <span className="footer-link">📞 +84 (0) 342478051</span>
+              <span className="footer-link">📍 Trà Vinh</span>
             </div>
           </div>
           <div className="footer-bottom">

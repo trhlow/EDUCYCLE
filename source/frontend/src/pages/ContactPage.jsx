@@ -38,12 +38,12 @@ export default function ContactPage() {
           <div className="contact-info-card">
             <span className="contact-info-icon">📞</span>
             <h3>Điện thoại</h3>
-            <p>+84 (0) 123 456 789</p>
+            <p>+84 (0) 342478051</p>
           </div>
           <div className="contact-info-card">
             <span className="contact-info-icon">📍</span>
             <h3>Địa chỉ</h3>
-            <p>123 Nguyễn Huệ, Quận 1, TP.HCM</p>
+            <p>Trà Vinh, Việt Nam</p>
           </div>
           <div className="contact-info-card">
             <span className="contact-info-icon">🕐</span>
@@ -107,10 +107,22 @@ export default function ContactPage() {
         <h2>Câu Hỏi Thường Gặp</h2>
         <div className="contact-faq-list">
           {[
-            { q: 'Làm thế nào để mua khóa học?', a: 'Duyệt khóa học, thêm vào giỏ hàng và tiến hành thanh toán. Khóa học sẽ có trong bảng điều khiển ngay lập tức.' },
-            { q: 'Tôi có thể hoàn tiền không?', a: 'Có, chúng tôi có chính sách hoàn tiền 30 ngày cho tất cả các khóa học nếu bạn không hài lòng.' },
-            { q: 'Làm sao để bán khóa học?', a: 'Đăng ký tài khoản, vào bảng điều khiển và tạo khóa học mới. Sau khi được duyệt, khóa học sẽ xuất hiện trên sàn.' },
-            { q: 'Hỗ trợ khách hàng hoạt động khi nào?', a: 'Đội ngũ hỗ trợ làm việc từ T2-T6, 8:00-17:00. Email được phản hồi trong 24 giờ.' },
+            {
+              q: 'Làm thế nào để mua sách hoặc tài liệu?',
+              a: 'EduCycle là sàn giao dịch trực tiếp giữa sinh viên: bạn duyệt sản phẩm trên trang chủ, đăng nhập rồi nhấn "Gửi yêu cầu mua". Khi người bán chấp nhận, hai bên chat để hẹn gặp; tại điểm gặp, người mua tạo mã OTP và người bán nhập OTP trên app để xác nhận giao dịch. Tiền và giao nhận thực tế do hai bên thỏa thuận — EduCycle không xử lý thanh toán online hay giỏ hàng kiểu thương mại điện tử.',
+            },
+            {
+              q: 'Tôi có hoàn tiền qua EduCycle không?',
+              a: 'Không. EduCycle không thu phí và không giữ tiền thay bạn; thanh toán là thỏa thuận ngoài nền tảng. Nếu có vấn đề, bạn có thể báo tranh chấp (khi giao dịch đang ở bước gặp mặt) để admin xem xét, hoặc gửi email hỗ trợ kèm mã giao dịch.',
+            },
+            {
+              q: 'Làm sao để đăng bán sản phẩm?',
+              a: 'Đăng ký bằng email .edu.vn và xác thực OTP. Sau đó vào mục Đăng bán, điền thông tin sản phẩm (mô tả, giá cố định hoặc giá liên hệ, ảnh nếu có). Tin đăng được admin kiểm duyệt; khi được duyệt, sản phẩm hiển thị trên sàn cho người khác xem.',
+            },
+            {
+              q: 'Hỗ trợ hoạt động khi nào?',
+              a: 'Chúng tôi tiếp nhận yêu cầu qua email và form liên hệ trong giờ hành chính: thứ Hai–thứ Sáu, 8:00–17:00 (giờ Việt Nam). Thường phản hồi email trong vòng 24 giờ làm việc. Đối với đồ án/demo, quy mô hỗ trợ có thể hạn chế — cảm ơn bạn đã thông cảm.',
+            },
           ].map((item, i) => (
             <details key={i} className="contact-faq-item">
               <summary>{item.q}</summary>

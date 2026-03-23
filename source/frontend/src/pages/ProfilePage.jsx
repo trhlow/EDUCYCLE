@@ -1,17 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
-  const { user, updateProfile, logout, verifyPhone } = useAuth();
+  const { user, logout, verifyPhone, refreshUser, saveProfileToServer, changePassword } = useAuth();
   const toast = useToast();
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [changingPw, setChangingPw] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || '',
     email: user?.email || '',
     bio: user?.bio || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
+    avatar: user?.avatar || '',
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -28,14 +30,64 @@ export default function ProfilePage() {
   const [verifyPhoneNumber, setVerifyPhoneNumber] = useState('');
   const [verifySending, setVerifySending] = useState(false);
 
-  const handleProfileSave = (e) => {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await refreshUser();
+      } catch (err) {
+        if (!cancelled) {
+          const msg = err?.response?.data?.message || err?.message || 'Không tải được hồ sơ từ server.';
+          toast.error(typeof msg === 'string' ? msg : 'Không tải được hồ sơ.');
+        }
+      } finally {
+        if (!cancelled) setProfileLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; refreshUser ổn định qua useCallback
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setFormData({
+      username: user.username || '',
+      email: user.email || '',
+      bio: user.bio || '',
+      avatar: user.avatar || '',
+    });
+  }, [user?.id, user?.username, user?.email, user?.bio, user?.avatar]);
+
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    updateProfile(formData);
-    toast.success('Đã cập nhật hồ sơ thành công!');
+    if (!formData.username?.trim()) {
+      toast.error('Tên người dùng không được để trống');
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      await saveProfileToServer({
+        username: formData.username.trim(),
+        bio: formData.bio?.trim() || null,
+        avatar: formData.avatar?.trim() || null,
+      });
+      toast.success('Đã cập nhật hồ sơ thành công!');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.errors?.join?.(', ') || err?.message;
+      toast.error(typeof msg === 'string' ? msg : 'Cập nhật hồ sơ thất bại.');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
+    if (!passwordForm.currentPassword) {
+      toast.error('Vui lòng nhập mật khẩu hiện tại');
+      return;
+    }
     if (passwordForm.newPassword.length < 8) {
       toast.error('Mật khẩu mới phải có ít nhất 8 ký tự');
       return;
@@ -44,14 +96,27 @@ export default function ProfilePage() {
       toast.error('Mật khẩu xác nhận không khớp');
       return;
     }
-    toast.success('Đã đổi mật khẩu thành công!');
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setChangingPw(true);
+    try {
+      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      toast.success('Đã đổi mật khẩu thành công!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message;
+      toast.error(typeof msg === 'string' ? msg : 'Đổi mật khẩu thất bại.');
+    } finally {
+      setChangingPw(false);
+    }
   };
 
   const handleDeleteAccount = () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.')) {
+    if (
+      window.confirm(
+        'Xóa tài khoản vĩnh viễn chưa được hỗ trợ qua app. Liên hệ quản trị nếu cần. Bạn có muốn đăng xuất không?',
+      )
+    ) {
       logout();
-      toast.info('Tài khoản đã được xóa');
+      toast.info('Đã đăng xuất.');
     }
   };
 
@@ -124,6 +189,9 @@ export default function ProfilePage() {
           {activeSection === 'profile' && (
             <section className="profile-section">
               <h2 className="profile-section-title">Thông Tin Cá Nhân</h2>
+              {profileLoading ? (
+                <p className="profile-section-desc">Đang tải hồ sơ từ server…</p>
+              ) : (
               <form onSubmit={handleProfileSave} className="profile-form">
                 <div className="profile-form-row">
                   <div className="profile-form-group">
@@ -136,32 +204,21 @@ export default function ProfilePage() {
                   </div>
                   <div className="profile-form-group">
                     <label>Email</label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
+                    <input type="email" value={formData.email} readOnly disabled className="profile-input-readonly" />
+                    <span className="profile-field-hint">Email dùng đăng nhập — không đổi tại đây.</span>
                   </div>
                 </div>
-                <div className="profile-form-row">
-                  <div className="profile-form-group">
-                    <label>Số điện thoại</label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      placeholder="0123 456 789"
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>Địa chỉ</label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      placeholder="Thành phố, Quốc gia"
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    />
-                  </div>
+                <p className="profile-field-hint" style={{ marginBottom: 'var(--space-3)' }}>
+                  Số điện thoại: cập nhật tại mục <strong>Xác Thực</strong> (EduCycle P2P — không lưu địa chỉ nhà trên server).
+                </p>
+                <div className="profile-form-group full-width">
+                  <label>Ảnh đại diện (URL — tuỳ chọn)</label>
+                  <input
+                    type="url"
+                    value={formData.avatar}
+                    placeholder="https://..."
+                    onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                  />
                 </div>
                 <div className="profile-form-group full-width">
                   <label>Tiểu sử</label>
@@ -172,8 +229,11 @@ export default function ProfilePage() {
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   />
                 </div>
-                <button type="submit" className="profile-save-btn">Lưu Thay Đổi</button>
+                <button type="submit" className="profile-save-btn" disabled={savingProfile}>
+                  {savingProfile ? 'Đang lưu…' : 'Lưu Thay Đổi'}
+                </button>
               </form>
+              )}
             </section>
           )}
 
@@ -301,7 +361,9 @@ export default function ProfilePage() {
                     />
                   </div>
                 </div>
-                <button type="submit" className="profile-save-btn">Đổi Mật Khẩu</button>
+                <button type="submit" className="profile-save-btn" disabled={changingPw}>
+                  {changingPw ? 'Đang xử lý…' : 'Đổi Mật Khẩu'}
+                </button>
               </form>
             </section>
           )}
@@ -309,12 +371,15 @@ export default function ProfilePage() {
           {activeSection === 'notifications' && (
             <section className="profile-section">
               <h2 className="profile-section-title">Cài Đặt Thông Báo</h2>
+              <p className="profile-section-desc" style={{ marginBottom: 'var(--space-4)' }}>
+                Cài đặt chi tiết sẽ lưu trên server trong bản cập nhật sau. Hiện bạn vẫn nhận thông báo trong app (chuông) và qua WebSocket khi có giao dịch.
+              </p>
               <div className="profile-notification-list">
                 {[
-                  { id: 'email_orders', label: 'Thông báo đơn hàng qua email', desc: 'Nhận email khi có đơn hàng mới' },
-                  { id: 'email_promo', label: 'Khuyến mãi và ưu đãi', desc: 'Nhận thông tin về tài liệu được chia sẻ mới' },
-                  { id: 'email_updates', label: 'Cập nhật giao dịch', desc: 'Thông báo khi giao dịch có thay đổi trạng thái' },
-                  { id: 'email_newsletter', label: 'Bản tin hàng tuần', desc: 'Tổng hợp sản phẩm mới và phổ biến' },
+                  { id: 'email_orders', label: 'Thông báo giao dịch qua email', desc: 'Nhận email khi có giao dịch mới (sắp có)' },
+                  { id: 'email_promo', label: 'Tài liệu mới phù hợp', desc: 'Gợi ý sách/tài liệu trên EduCycle (sắp có)' },
+                  { id: 'email_updates', label: 'Cập nhật trạng thái giao dịch', desc: 'Email khi trạng thái giao dịch thay đổi (sắp có)' },
+                  { id: 'email_newsletter', label: 'Bản tin hàng tuần', desc: 'Tổng hợp sản phẩm mới (sắp có)' },
                 ].map((item) => (
                   <div key={item.id} className="profile-notification-item">
                     <div>

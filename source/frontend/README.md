@@ -72,8 +72,7 @@ src/
 │       ├── Layout.jsx/.css   # App shell + Footer
 │       └── Navbar.jsx/.css   # Top navigation bar
 ├── contexts/
-│   ├── AuthContext.jsx       # JWT auth (no mock — backend only)
-│   ├── CartContext.jsx       # Giỏ hàng (localStorage)
+│   ├── AuthContext.jsx       # JWT auth + /users/me + đổi mật khẩu (no mock)
 │   └── WishlistContext.jsx   # Yêu thích (localStorage)
 ├── pages/                    # 16 pages — tất cả lazy-loaded
 │   ├── HomePage.jsx          # Landing page
@@ -88,7 +87,7 @@ src/
 │   ├── AdminPage.jsx         # Quản trị viên (API thực)
 │   ├── ProfilePage.jsx       # Hồ sơ cá nhân
 │   ├── WishlistPage.jsx      # Danh sách yêu thích
-│   ├── CartPage.jsx          # Giỏ hàng
+│   ├── CartPage.jsx          # P2P: không giỏ — hướng dẫn + link giao dịch
 │   ├── AboutPage.jsx         # Giới thiệu
 │   ├── ContactPage.jsx       # Liên hệ
 │   └── NotFoundPage.jsx      # 404
@@ -234,12 +233,11 @@ educycle-frontend/
 │   │
 │   ├── api/
 │   │   ├── axios.js            # Axios instance + JWT interceptor + 401 handler
-│   │   └── endpoints.js        # 7 API namespaces (auth, products, categories,
-│   │                           #   transactions, messages, reviews, admin)
+│   │   └── endpoints.js        # auth, users, products, categories, transactions,
+│   │                           #   messages, reviews, notifications, admin
 │   │
 │   ├── contexts/
-│   │   ├── AuthContext.jsx     # Auth state + login/register/OAuth/OTP/phone verify
-│   │   ├── CartContext.jsx     # Cart state + localStorage persistence
+│   │   ├── AuthContext.jsx     # Auth + refreshUser/saveProfile/changePassword
 │   │   └── WishlistContext.jsx # Per-user wishlist + localStorage keyed by userId
 │   │
 │   ├── components/
@@ -494,5 +492,5 @@ Dự án thuộc về **EduCycle Team**. Không sử dụng cho mục đích th�
 
 <p align="center">
   <strong>🎓 EduCycle</strong> — Trao đổi sách thông minh, kết nối sinh viên bền vững<br/><br/>
-  <em>Built with ❤️ by <strong>EduCycle Team</strong> · TP. Hồ Chí Minh, Việt Nam</em>
+  <em>Built with ❤️ by <strong>EduCycle Team</strong> · Trà Vinh, Việt Nam</em>
 </p>

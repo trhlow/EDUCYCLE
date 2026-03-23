@@ -36,7 +36,9 @@ export function GuestRoute({ children }) {
     );
   }
 
-  if (isAuthenticated) {
+  // Cho phép mở /auth?resetToken=... kể cả khi đã đăng nhập (link từ email quên mật khẩu)
+  const resetFromEmail = new URLSearchParams(location.search).has('resetToken');
+  if (isAuthenticated && !resetFromEmail) {
     const from = location.state?.from?.pathname || '/products';
     return <Navigate to={from} replace />;
   }

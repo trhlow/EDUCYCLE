@@ -10,9 +10,16 @@ export const authApi = {
   resendOtp:       (data) => api.post('/auth/resend-otp', data),
   socialLogin:     (data) => api.post('/auth/social-login', data),
   verifyPhone:     (data) => api.post('/auth/verify-phone', data),
-  // Issue: Forgot / Reset password
+  changePassword:  (data) => api.post('/auth/change-password', data),
+  // Issue: Forgot / Reset password — BE chưa có (Sprint 2)
   forgotPassword:  (data) => api.post('/auth/forgot-password', data),
   resetPassword:   (data) => api.post('/auth/reset-password', data),
+};
+
+// ─── Current user (profile) ───────────────────────────
+export const usersApi = {
+  getMe:    () => api.get('/users/me'),
+  patchMe:  (data) => api.patch('/users/me', data),
 };
 
 // ─── Products ────────────────────────────────────────
@@ -49,6 +56,7 @@ export const transactionsApi = {
   generateOtp:      (id)      => api.post(`/transactions/${id}/otp`),
   verifyOtp:        (id,data) => api.post(`/transactions/${id}/verify-otp`, data),
   confirmReceipt:   (id)      => api.post(`/transactions/${id}/confirm`),
+  openDispute:      (id, data) => api.post(`/transactions/${id}/dispute`, data ?? {}),
 };
 
 // ─── Messages ────────────────────────────────────────
@@ -81,4 +89,11 @@ export const notificationsApi = {
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
   getUsers: () => api.get('/admin/users'),
+  getDisputedTransactions: () => api.get('/admin/transactions/disputed'),
+  resolveDisputedTransaction: (id, data) => api.patch(`/admin/transactions/${id}/resolve`, data),
+};
+
+/** Hồ sơ công khai (không cần đăng nhập) */
+export const publicProfileApi = {
+  getUser: (userId) => api.get(`/public/users/${userId}`),
 };

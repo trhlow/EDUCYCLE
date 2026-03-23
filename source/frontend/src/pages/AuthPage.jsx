@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
@@ -61,8 +61,23 @@ export default function AuthPage() {
   const toast    = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const clearErrors = () => setErrors({});
+
+  const apiErr = (e) => {
+    const d = e?.response?.data;
+    return (typeof d?.message === 'string' && d.message) || (typeof d?.error === 'string' && d.error) || null;
+  };
+
+  // Link đặt lại mật khẩu từ email: /auth?resetToken=...
+  useEffect(() => {
+    const t = searchParams.get('resetToken');
+    if (t) {
+      setResetForm((prev) => ({ ...prev, token: t }));
+      setView(VIEW.FORGOT_RESET);
+    }
+  }, [searchParams]);
 
   const goHome = useCallback((userData) => {
     const isAdminUser = userData?.role?.toUpperCase() === 'ADMIN';
@@ -229,13 +244,12 @@ export default function AuthPage() {
     if (!isStudentEmail(forgotEmail)) { setErrors({ forgotEmail: 'Chỉ hỗ trợ email .edu.vn' }); return; }
     setSubmitting(true);
     try {
-      await authApi.forgotPassword?.({ email: forgotEmail }).catch(() => {
-        console.log('[DEV] Forgot password for:', forgotEmail);
-      });
+      const res = await authApi.forgotPassword({ email: forgotEmail });
+      toast.success(res.data?.message || 'Đã gửi hướng dẫn (nếu email tồn tại).');
       setView(VIEW.FORGOT_SENT);
       clearErrors();
-    } catch {
-      toast.error('Không thể gửi email đặt lại mật khẩu.');
+    } catch (err) {
+      toast.error(apiErr(err) || 'Không thể gửi email đặt lại mật khẩu.');
     } finally {
       setSubmitting(false);
     }
@@ -245,20 +259,22 @@ export default function AuthPage() {
     e.preventDefault();
     const errs = {};
     if (!resetForm.token.trim())            errs.resetToken = 'Vui lòng nhập token từ email';
-    if (!resetForm.password || resetForm.password.length < 6) errs.resetPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
+    if (!resetForm.password || resetForm.password.length < 8) errs.resetPassword = 'Mật khẩu phải có ít nhất 8 ký tự (theo server)';
     if (resetForm.password !== resetForm.confirmPassword) errs.resetConfirm = 'Mật khẩu xác nhận không khớp';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSubmitting(true);
     try {
-      await authApi.resetPassword?.({ email: forgotEmail, token: resetForm.token, newPassword: resetForm.password }).catch(() => {
-        console.log('[DEV] Reset password for:', forgotEmail);
+      const res = await authApi.resetPassword({
+        token: resetForm.token.trim(),
+        newPassword: resetForm.password,
       });
-      toast.success('Đặt lại mật khẩu thành công! Hãy đăng nhập.');
+      toast.success(res.data?.message || 'Đặt lại mật khẩu thành công! Hãy đăng nhập.');
       setView(VIEW.LOGIN);
       setResetForm({ token: '', password: '', confirmPassword: '' });
+      setSearchParams({}, { replace: true });
       clearErrors();
-    } catch {
-      toast.error('Token không hợp lệ hoặc đã hết hạn.');
+    } catch (err) {
+      toast.error(apiErr(err) || 'Token không hợp lệ hoặc đã hết hạn.');
     } finally {
       setSubmitting(false);
     }
@@ -524,7 +540,7 @@ export default function AuthPage() {
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reset-password">Mật khẩu mới</label>
                 <input type="password" id="reset-password" className={`auth-input ${errors.resetPassword ? 'error' : ''}`}
-                  placeholder="Ít nhất 6 ký tự"
+                  placeholder="Ít nhất 8 ký tự"
                   value={resetForm.password} onChange={e => setResetForm({ ...resetForm, password: e.target.value })} />
                 <div className={`auth-error ${errors.resetPassword ? 'show' : ''}`}>{errors.resetPassword}</div>
               </div>

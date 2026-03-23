@@ -79,6 +79,10 @@ api.interceptors.response.use(
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
 
         processQueue(null, newToken);
+        // Cho WebSocket / trang cần JWT mới (AuthContext state có thể chưa sync)
+        window.dispatchEvent(
+          new CustomEvent('educycle:token-refreshed', { detail: { token: newToken } }),
+        );
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);

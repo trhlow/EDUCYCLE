@@ -129,7 +129,7 @@ export default function PostProductPage() {
         name: form.name.trim(), category: form.category,
         categoryId: form.categoryId || undefined, condition: form.condition,
         price: priceType === 'contact' ? 0 : Number(form.price),
-        priceType,
+        // Không gửi priceType — DTO BE không có field; trước đây + ObjectMapper strict → 500
         description: form.description.trim(),
         contactNote: priceType === 'contact'
           ? (form.contactNote.trim() || 'Giá liên hệ — vui lòng nhắn tin để thương lượng')

@@ -5,7 +5,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -22,13 +21,11 @@ createRoot(document.getElementById('root')).render(
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <NotificationProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <ToastProvider>
-                    <App />
-                  </ToastProvider>
-                </WishlistProvider>
-              </CartProvider>
+              <WishlistProvider>
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
+              </WishlistProvider>
             </NotificationProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
