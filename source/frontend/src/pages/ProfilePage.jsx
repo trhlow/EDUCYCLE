@@ -4,7 +4,7 @@ import { useToast } from '../components/Toast';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
-  const { user, logout, verifyPhone, refreshUser, saveProfileToServer, changePassword } = useAuth();
+  const { user, logout, verifyPhone, refreshUser, saveProfileToServer, changePassword, saveNotificationPrefsToServer } = useAuth();
   const toast = useToast();
   const [profileLoading, setProfileLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -29,6 +29,13 @@ export default function ProfilePage() {
   const [phoneVerifyStep, setPhoneVerifyStep] = useState('idle');
   const [verifyPhoneNumber, setVerifyPhoneNumber] = useState('');
   const [verifySending, setVerifySending] = useState(false);
+
+  const [notifPrefs, setNotifPrefs] = useState({
+    notifyProductModeration: true,
+    notifyTransactions: true,
+    notifyMessages: true,
+  });
+  const [savingNotifPrefs, setSavingNotifPrefs] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +66,32 @@ export default function ProfilePage() {
       avatar: user.avatar || '',
     });
   }, [user?.id, user?.username, user?.email, user?.bio, user?.avatar]);
+
+  useEffect(() => {
+    if (!user) return;
+    setNotifPrefs({
+      notifyProductModeration: user.notifyProductModeration ?? true,
+      notifyTransactions: user.notifyTransactions ?? true,
+      notifyMessages: user.notifyMessages ?? true,
+    });
+  }, [user?.notifyProductModeration, user?.notifyTransactions, user?.notifyMessages]);
+
+  const handleNotifToggle = async (key) => {
+    const prev = { ...notifPrefs };
+    const next = { ...prev, [key]: !prev[key] };
+    setNotifPrefs(next);
+    setSavingNotifPrefs(true);
+    try {
+      await saveNotificationPrefsToServer(next);
+      toast.success('Đã lưu cài đặt thông báo.');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message;
+      toast.error(typeof msg === 'string' ? msg : 'Không lưu được cài đặt.');
+      setNotifPrefs(prev);
+    } finally {
+      setSavingNotifPrefs(false);
+    }
+  };
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -372,27 +405,47 @@ export default function ProfilePage() {
             <section className="profile-section">
               <h2 className="profile-section-title">Cài Đặt Thông Báo</h2>
               <p className="profile-section-desc" style={{ marginBottom: 'var(--space-4)' }}>
-                Cài đặt chi tiết sẽ lưu trên server trong bản cập nhật sau. Hiện bạn vẫn nhận thông báo trong app (chuông) và qua WebSocket khi có giao dịch.
+                Bật/tắt loại thông báo trong ứng dụng (chuông + WebSocket). Đã lưu trên tài khoản.
+                {savingNotifPrefs && <span style={{ marginLeft: 8, color: 'var(--text-tertiary)' }}>Đang lưu…</span>}
               </p>
               <div className="profile-notification-list">
                 {[
-                  { id: 'email_orders', label: 'Thông báo giao dịch qua email', desc: 'Nhận email khi có giao dịch mới (sắp có)' },
-                  { id: 'email_promo', label: 'Tài liệu mới phù hợp', desc: 'Gợi ý sách/tài liệu trên EduCycle (sắp có)' },
-                  { id: 'email_updates', label: 'Cập nhật trạng thái giao dịch', desc: 'Email khi trạng thái giao dịch thay đổi (sắp có)' },
-                  { id: 'email_newsletter', label: 'Bản tin hàng tuần', desc: 'Tổng hợp sản phẩm mới (sắp có)' },
+                  {
+                    key: 'notifyProductModeration',
+                    label: 'Kiểm duyệt sản phẩm',
+                    desc: 'Khi admin duyệt / từ chối tin đăng của bạn.',
+                  },
+                  {
+                    key: 'notifyTransactions',
+                    label: 'Giao dịch & thanh toán P2P',
+                    desc: 'Cập nhật trạng thái giao dịch, OTP, hoàn tất…',
+                  },
+                  {
+                    key: 'notifyMessages',
+                    label: 'Tin nhắn chat',
+                    desc: 'Thông báo khi có tin nhắn mới trong giao dịch.',
+                  },
                 ].map((item) => (
-                  <div key={item.id} className="profile-notification-item">
+                  <div key={item.key} className="profile-notification-item">
                     <div>
                       <div className="profile-notification-label">{item.label}</div>
                       <div className="profile-notification-desc">{item.desc}</div>
                     </div>
                     <label className="profile-toggle">
-                      <input type="checkbox" defaultChecked={item.id !== 'email_newsletter'} />
+                      <input
+                        type="checkbox"
+                        checked={!!notifPrefs[item.key]}
+                        disabled={savingNotifPrefs || profileLoading}
+                        onChange={() => handleNotifToggle(item.key)}
+                      />
                       <span className="profile-toggle-slider" />
                     </label>
                   </div>
                 ))}
               </div>
+              <p className="profile-field-hint" style={{ marginTop: 'var(--space-4)' }}>
+                Email marketing tách riêng — sẽ bổ sung sau.
+              </p>
             </section>
           )}
 

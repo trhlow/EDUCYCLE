@@ -5,6 +5,65 @@ import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } fro
 import { maskEmail } from '../utils/maskUsername'; // Issue #7
 import './AdminPage.css';
 
+/** Sprint 3: từ chối tin kèm lý do (notify seller từ BE) */
+function RejectReasonModal({
+  open, productName, reason, onReasonChange, onCancel, onConfirm, submitting,
+}) {
+  if (!open) return null;
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 9999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
+      }}
+      onClick={onCancel}
+      role="presentation"
+    >
+      <div
+        style={{
+          background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', maxWidth: 440, width: '100%',
+          padding: 'var(--space-6)', boxShadow: 'var(--shadow-xl)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reject-modal-title"
+      >
+        <h3 id="reject-modal-title" style={{ marginTop: 0, marginBottom: 'var(--space-3)' }}>Từ chối tin</h3>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+          {productName}
+        </p>
+        <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+          Lý do (tuỳ chọn, tối đa 2000 ký tự)
+        </label>
+        <textarea
+          value={reason}
+          onChange={(e) => onReasonChange(e.target.value)}
+          rows={4}
+          maxLength={2000}
+          placeholder="VD: Ảnh mờ, mô tả không khớp nội dung, vi phạm nội quy..."
+          style={{
+            width: '100%', padding: 'var(--space-3)', borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)', fontSize: 'var(--text-sm)', resize: 'vertical', boxSizing: 'border-box',
+          }}
+        />
+        <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-4)' }}>
+          <button type="button" className="admin-btn" onClick={onCancel} disabled={submitting}>Hủy</button>
+          <button type="button" className="admin-btn admin-btn-danger" onClick={onConfirm} disabled={submitting}>
+            {submitting ? '⏳…' : 'Xác nhận từ chối'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function productThumbUrls(item) {
+  if (item.imageUrls && item.imageUrls.length) return item.imageUrls.slice(0, 5);
+  if (item.imageUrl) return [item.imageUrl];
+  return [];
+}
+
 const ADMIN_MENU = [
   { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview'    },
   { icon: '🔍', label: 'Kiểm Duyệt',      view: 'moderation'  },
@@ -64,6 +123,9 @@ function AdminOverview({ onNavigate }) {
   const [allTx,   setAllTx]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectBusy, setRejectBusy] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -87,9 +149,22 @@ function AdminOverview({ onNavigate }) {
     try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetchAll(); }
     catch { toast.error('Không thể duyệt'); }
   };
-  const handleReject = async (id) => {
-    try { await productsApi.reject(id); toast.success('Đã từ chối'); fetchAll(); }
-    catch { toast.error('Không thể từ chối'); }
+  const openReject = (id, name) => { setRejectReason(''); setRejectModal({ id, name: name || 'Sản phẩm' }); };
+  const closeReject = () => { if (!rejectBusy) setRejectModal(null); };
+  const confirmReject = async () => {
+    if (!rejectModal) return;
+    setRejectBusy(true);
+    try {
+      const body = rejectReason.trim() ? { reason: rejectReason.trim() } : {};
+      await productsApi.reject(rejectModal.id, body);
+      toast.success('Đã từ chối — người bán nhận thông báo.');
+      setRejectModal(null);
+      fetchAll();
+    } catch {
+      toast.error('Không thể từ chối');
+    } finally {
+      setRejectBusy(false);
+    }
   };
 
   const fmt = n => n != null ? Number(n).toLocaleString('vi-VN') : '—';
@@ -117,6 +192,15 @@ function AdminOverview({ onNavigate }) {
 
   return (
     <>
+      <RejectReasonModal
+        open={!!rejectModal}
+        productName={rejectModal?.name}
+        reason={rejectReason}
+        onReasonChange={setRejectReason}
+        onCancel={closeReject}
+        onConfirm={confirmReject}
+        submitting={rejectBusy}
+      />
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'var(--space-6)', gap:'var(--space-4)', flexWrap:'wrap' }}>
         <div>
           <h1 className="admin-page-title" style={{ marginBottom:'var(--space-1)' }}>📊 Bảng Điều Khiển Vận Hành</h1>
@@ -171,12 +255,19 @@ function AdminOverview({ onNavigate }) {
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:'var(--space-2)' }}>
                     👤 {item.sellerName || '—'} &nbsp;·&nbsp; 🏷️ {item.category || '—'} &nbsp;·&nbsp; 💰 {formatPrice(item.price)}
                   </div>
+                  {productThumbUrls(item).length > 0 && (
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:'var(--space-2)' }}>
+                      {productThumbUrls(item).map((u, i) => (
+                        <img key={i} src={u} alt="" style={{ width:56, height:56, objectFit:'cover', borderRadius:6, border:'1px solid var(--border-light)' }} />
+                      ))}
+                    </div>
+                  )}
                   {item.description && (
                     <div style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', marginBottom:'var(--space-2)', overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{item.description}</div>
                   )}
                   <div style={{ display:'flex', gap:'var(--space-2)' }}>
                     <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)} style={{ flex:1, fontSize:'var(--text-xs)' }}>✅ Duyệt</button>
-                    <button className="admin-btn admin-btn-danger"  onClick={() => handleReject(item.id)}  style={{ flex:1, fontSize:'var(--text-xs)' }}>❌ Từ chối</button>
+                    <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}  style={{ flex:1, fontSize:'var(--text-xs)' }}>❌ Từ chối</button>
                   </div>
                 </div>
               ))}
@@ -673,6 +764,9 @@ function AdminModeration() {
   const toast = useToast();
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectBusy, setRejectBusy] = useState(false);
 
   const fetch = () => {
     productsApi.getPending().then(res=>setPending(Array.isArray(res.data)?res.data:res.data?.items||[])).catch(()=>setPending([])).finally(()=>setLoading(false));
@@ -680,10 +774,35 @@ function AdminModeration() {
   useEffect(() => { fetch(); }, []);
 
   const handleApprove = async id => { try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetch(); } catch { toast.error('Không thể duyệt'); } };
-  const handleReject  = async id => { try { await productsApi.reject(id);  toast.success('Đã từ chối'); fetch(); } catch { toast.error('Không thể từ chối'); } };
+  const openReject = (id, name) => { setRejectReason(''); setRejectModal({ id, name: name || 'Sản phẩm' }); };
+  const closeReject = () => { if (!rejectBusy) setRejectModal(null); };
+  const confirmReject = async () => {
+    if (!rejectModal) return;
+    setRejectBusy(true);
+    try {
+      const body = rejectReason.trim() ? { reason: rejectReason.trim() } : {};
+      await productsApi.reject(rejectModal.id, body);
+      toast.success('Đã từ chối — người bán nhận thông báo.');
+      setRejectModal(null);
+      fetch();
+    } catch {
+      toast.error('Không thể từ chối');
+    } finally {
+      setRejectBusy(false);
+    }
+  };
 
   return (
     <>
+      <RejectReasonModal
+        open={!!rejectModal}
+        productName={rejectModal?.name}
+        reason={rejectReason}
+        onReasonChange={setRejectReason}
+        onCancel={closeReject}
+        onConfirm={confirmReject}
+        submitting={rejectBusy}
+      />
       <h1 className="admin-page-title">Kiểm Duyệt Nội Dung</h1>
       <div className="admin-section">
         <div className="admin-section-header"><h2 className="admin-section-title">Đang Chờ Duyệt ({pending.length})</h2></div>
@@ -697,6 +816,15 @@ function AdminModeration() {
                 <span>Danh mục: {item.categoryName||item.category||'—'} · Giá: {item.price===0?'Liên hệ':formatPrice(item.price)}</span>
                 <span>Tình trạng: {item.condition||'—'}</span>
               </div>
+              {productThumbUrls(item).length > 0 && (
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap', margin:'var(--space-2) 0' }}>
+                  {productThumbUrls(item).map((u, i) => (
+                    <a key={i} href={u} target="_blank" rel="noreferrer">
+                      <img src={u} alt="" style={{ width:96, height:96, objectFit:'cover', borderRadius:8, border:'1px solid var(--border-light)', display:'block' }} />
+                    </a>
+                  ))}
+                </div>
+              )}
               {item.description && (
                 <p style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)', margin:'0.5rem 0' }}>
                   {item.description.length > 200 ? item.description.substring(0,200)+'...' : item.description}
@@ -704,7 +832,7 @@ function AdminModeration() {
               )}
               <div className="admin-mod-actions">
                 <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)}>✅ Duyệt</button>
-                <button className="admin-btn admin-btn-danger"  onClick={() => handleReject(item.id)}>❌ Từ Chối</button>
+                <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}>❌ Từ Chối</button>
               </div>
             </div>
           ))

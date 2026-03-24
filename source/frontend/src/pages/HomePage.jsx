@@ -4,6 +4,8 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import { useDebounce } from '../hooks/useDebounce';
+import { extractPage } from '../utils/pageApi';
+import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import './HomePage.css';
 
 /* ── Scroll-reveal ── */
@@ -66,6 +68,22 @@ const CAT_LIST = [
   { name: 'Ngoại Ngữ',    icon: '🌍', color: '#00bcd4', val: 'Ngoại Ngữ' },
 ];
 
+function mapApiProductToCard(p) {
+  return {
+    id: String(p.id),
+    name: p.name || '',
+    description: p.description || '',
+    price: p.price || 0,
+    priceType: p.priceType || (p.price === 0 ? 'contact' : 'fixed'),
+    category: p.categoryName || p.category || '',
+    imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
+    rating: p.averageRating || 0,
+    seller: p.sellerName || '',
+    createdAt: p.createdAt || '',
+    status: p.status || '',
+  };
+}
+
 export default function HomePage() {
   const productsRef = useRef(null);
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -93,9 +111,14 @@ export default function HomePage() {
     return () => clearInterval(t);
   }, [slide, animating]);
 
-  /* Products */
+  /* Products (+ pagination từ BE) */
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [last, setLast] = useState(true);
+  const [totalElements, setTotalElements] = useState(0);
+  const PAGE_SIZE = 24;
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [selectedCat, setSelectedCat] = useState('all');
@@ -117,27 +140,43 @@ export default function HomePage() {
       }).catch(() => {});
 
     setLoading(true);
-    productsApi.getAll()
+    setPage(0);
+    productsApi.getAll({ page: 0, size: PAGE_SIZE, direction: 'desc' })
       .then(res => {
-        const data = res.data;
-        const list = Array.isArray(data) ? data : data?.items || data?.products || [];
-        setProducts(list.map(p => ({
-          id: String(p.id),
-          name: p.name || '',
-          description: p.description || '',
-          price: p.price || 0,
-          priceType: p.priceType || (p.price === 0 ? 'contact' : 'fixed'),
-          category: p.categoryName || p.category || '',
-          imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
-          rating: p.averageRating || 0,
-          seller: p.sellerName || '',
-          createdAt: p.createdAt || '',
-          status: p.status || '',
-        })).filter(p => !['sold', 'completed'].includes(p.status?.toLowerCase())));
+        const pg = extractPage(res);
+        setPage(pg.page);
+        setLast(pg.last);
+        setTotalElements(pg.totalElements);
+        setProducts(
+          pg.content
+            .map(mapApiProductToCard)
+            .filter(p => !['sold', 'completed'].includes(p.status?.toLowerCase())),
+        );
       })
-      .catch(() => setProducts([]))
+      .catch(() => { setProducts([]); setLast(true); setTotalElements(0); })
       .finally(() => setLoading(false));
   }, []);
+
+  const loadMoreProducts = () => {
+    if (last || loadingMore) return;
+    const next = page + 1;
+    setLoadingMore(true);
+    productsApi.getAll({ page: next, size: PAGE_SIZE, direction: 'desc' })
+      .then(res => {
+        const pg = extractPage(res);
+        setPage(next);
+        setLast(pg.last);
+        setTotalElements(pg.totalElements);
+        setProducts(prev => [
+          ...prev,
+          ...pg.content
+            .map(mapApiProductToCard)
+            .filter(p => !['sold', 'completed'].includes(p.status?.toLowerCase())),
+        ]);
+      })
+      .catch(() => toast.error('Không tải thêm được.'))
+      .finally(() => setLoadingMore(false));
+  };
 
   const filtered = products.filter(p => {
     const q = debouncedSearch.toLowerCase();
@@ -253,7 +292,9 @@ export default function HomePage() {
           <Reveal>
             <h2 className="hp-section__h2" style={{ marginBottom: 8 }}>Sản phẩm hiện có</h2>
             <p className="hp-products-count">
-              {loading ? 'Đang tải...' : `${filtered.length} sản phẩm`}
+              {loading
+                ? 'Đang tải...'
+                : `${filtered.length} sản phẩm sau lọc · đã tải ${products.length}${totalElements ? ` / ${totalElements} trên sàn` : ''}`}
             </p>
           </Reveal>
 
@@ -307,10 +348,7 @@ export default function HomePage() {
 
         {/* Grid */}
         {loading ? (
-          <div className="hp-products-empty">
-            <div style={{ fontSize: '2.5rem' }}>⏳</div>
-            <p>Đang tải sản phẩm...</p>
-          </div>
+          <ProductGridSkeleton count={8} />
         ) : filtered.length === 0 ? (
           <div className="hp-products-empty">
             <div style={{ fontSize: '2.5rem' }}>📚</div>
@@ -354,6 +392,19 @@ export default function HomePage() {
                 </Link>
               </Reveal>
             ))}
+          </div>
+        )}
+        {!loading && !last && filtered.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-8)' }}>
+            <button
+              type="button"
+              className="hp-btn hp-btn--ghost"
+              style={{ minWidth: 200 }}
+              disabled={loadingMore}
+              onClick={loadMoreProducts}
+            >
+              {loadingMore ? '⏳ Đang tải...' : '⬇️ Tải thêm sản phẩm'}
+            </button>
           </div>
         )}
       </section>

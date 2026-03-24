@@ -44,6 +44,7 @@ export default function ProductDetailPage() {
           contactNote: p.contactNote || '',
           status: p.status || '',
           createdAt: p.createdAt || '',
+          rejectReason: p.rejectReason || '',
         });
       } catch {
         setProduct(null);
@@ -99,6 +100,8 @@ export default function ProductDetailPage() {
   // Issue #3: RESERVED — khi BE đặt sản phẩm là "đang có người đặt mua"
   const isReserved  = productStatus === 'RESERVED';
   const isPending   = productStatus === 'PENDING';
+  const isRejected  = productStatus === 'REJECTED';
+  const isOwner     = isAuthenticated && product.sellerId === user?.id;
 
   // Issue #4: Hiển thị "Giá liên hệ" khi price=0 hoặc priceType='contact'
   const isContactPrice = product.priceType === 'contact' || product.price === 0;
@@ -179,6 +182,16 @@ export default function ProductDetailPage() {
               🔍 Đang chờ kiểm duyệt
             </div>
           )}
+          {isRejected && (
+            <div style={{ background:'var(--error-light)', border:'1px solid #fecaca', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#991b1b', marginBottom:'var(--space-3)' }}>
+              <strong>❌ Tin bị từ chối</strong>
+              {product.rejectReason ? (
+                <p style={{ margin:'var(--space-2) 0 0', whiteSpace:'pre-wrap' }}>Lý do: {product.rejectReason}</p>
+              ) : (
+                <p style={{ margin:'var(--space-2) 0 0' }}>Vui lòng chỉnh sửa và gửi lại để admin xem xét.</p>
+              )}
+            </div>
+          )}
 
           {/* Issue #4: price display */}
           <div className="pdp-price">{priceDisplay}</div>
@@ -190,6 +203,16 @@ export default function ProductDetailPage() {
 
           {/* Actions */}
           <div className="pdp-actions">
+            {isOwner && !isSold && (
+              <button
+                type="button"
+                className="pdp-btn-buy"
+                style={{ marginBottom: 'var(--space-2)' }}
+                onClick={() => navigate(`/products/${product.id}/edit`)}
+              >
+                ✏️ Sửa tin đăng
+              </button>
+            )}
             {isSold ? (
               <div className="pdp-sold-notice">✅ Sản phẩm đã được bán</div>
             ) : isReserved ? (
@@ -201,6 +224,10 @@ export default function ProductDetailPage() {
             ) : isPending ? (
               <div style={{ background:'var(--info-light)', border:'1px solid #bfdbfe', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#1e40af' }}>
                 🔍 Sản phẩm đang chờ admin kiểm duyệt. Vui lòng quay lại sau.
+              </div>
+            ) : isRejected && !isOwner ? (
+              <div style={{ background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'var(--text-secondary)' }}>
+                Tin này không hiển thị công khai do chưa được duyệt hoặc đã bị từ chối.
               </div>
             ) : isAuthenticated && product.sellerId !== user?.id ? (
               <button

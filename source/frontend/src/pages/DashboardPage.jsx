@@ -4,7 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { productsApi, transactionsApi } from '../api/endpoints';
+import { extractPage } from '../utils/pageApi';
 import './DashboardPage.css';
+
+const MY_PRODUCTS_PAGE_SIZE = 100;
 
 // Issue #6 FIX: Dashboard cho TẤT CẢ user (không chỉ admin)
 // Admin xem AdminPage (/admin) cho quản trị hệ thống
@@ -105,7 +108,7 @@ export default function DashboardPage() {
         {currentView === 'products' && <ProductsView />}
         {currentView === 'purchases' && <PurchasesView />}
         {currentView === 'sales' && <SalesView />}
-        {currentView === 'settings' && <SettingsView user={user} />}
+        {currentView === 'settings' && <SettingsView />}
       </div>
     </div>
   );
@@ -120,10 +123,10 @@ function OverviewView({ user }) {
     const fetchData = async () => {
       try {
         const [prodRes, txRes] = await Promise.all([
-          productsApi.getMyProducts().catch(() => ({ data: [] })),
+          productsApi.getMyProducts({ page: 0, size: MY_PRODUCTS_PAGE_SIZE }).catch(() => ({ data: { content: [] } })),
           transactionsApi.getMyTransactions().catch(() => ({ data: [] })),
         ]);
-        setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+        setProducts(extractPage(prodRes).content);
         setTransactions(Array.isArray(txRes.data) ? txRes.data : []);
       } catch {
         // keep empty
@@ -264,8 +267,8 @@ function ProductsView() {
 
   const fetchProducts = async () => {
     try {
-      const res = await productsApi.getMyProducts();
-      setProducts(Array.isArray(res.data) ? res.data : []);
+      const res = await productsApi.getMyProducts({ page: 0, size: MY_PRODUCTS_PAGE_SIZE });
+      setProducts(extractPage(res).content);
     } catch {
       setProducts([]);
     } finally {
@@ -362,6 +365,9 @@ function ProductsView() {
                   <td>
                     <div className="dash-table-actions">
                       <button className="dash-table-btn" onClick={() => navigate(`/products/${product.id}`)}>Xem</button>
+                      {product.status?.toUpperCase() !== 'SOLD' && (
+                        <button className="dash-table-btn" onClick={() => navigate(`/products/${product.id}/edit`)}>Sửa</button>
+                      )}
                       <button className="dash-table-btn dash-table-btn-danger" onClick={() => handleDelete(product.id)}>Xóa</button>
                     </div>
                   </td>
@@ -539,64 +545,19 @@ function SalesView() {
   );
 }
 
-function SettingsView({ user }) {
-  const toast = useToast();
-  const { updateProfile } = useAuth();
-  const [form, setForm] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-  });
-
-  const handleSave = () => {
-    updateProfile(form);
-    toast.success('Đã lưu thay đổi!');
-  };
+function SettingsView() {
+  const navigate = useNavigate();
 
   return (
     <>
       <h1 className="dash-welcome">Cài Đặt Tài Khoản</h1>
-
       <div className="dash-section" style={{ padding: 'var(--space-6)' }}>
-        <h3 className="dash-section-title" style={{ marginBottom: 'var(--space-6)' }}>Thông Tin Cá Nhân</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', maxWidth: '600px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
-              Tên
-            </label>
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)' }}
-            />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-2)', color: 'var(--text-primary)' }}>
-              Tiểu Sử
-            </label>
-            <textarea
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              rows={3}
-              placeholder="Giới thiệu về bản thân..."
-              style={{ width: '100%', padding: 'var(--space-3) var(--space-4)', border: '2px solid var(--border-light)', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-sm)', resize: 'vertical' }}
-            />
-          </div>
-        </div>
-        <button className="dash-section-action" style={{ marginTop: 'var(--space-6)' }} onClick={handleSave}>
-          Lưu Thay Đổi
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-4)', maxWidth: '36rem', lineHeight: 1.6 }}>
+          Hồ sơ, đổi mật khẩu, xác thực email/SĐT và cài đặt thông báo đều nằm tại trang{' '}
+          <strong>Hồ sơ</strong> — tránh trùng form và luôn gọi API thật.
+        </p>
+        <button type="button" className="dash-section-action" onClick={() => navigate('/profile')}>
+          Mở trang Hồ sơ
         </button>
       </div>
     </>

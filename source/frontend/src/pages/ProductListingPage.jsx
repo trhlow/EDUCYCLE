@@ -4,6 +4,8 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import { useDebounce } from '../hooks/useDebounce';
+import { extractPage } from '../utils/pageApi';
+import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import './ProductListingPage.css';
 
 const FALLBACK_CATEGORIES = [
@@ -29,6 +31,11 @@ export default function ProductListingPage() {
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
+  const PAGE_SIZE = 24;
+  const [page, setPage] = useState(0);
+  const [last, setLast] = useState(true);
+  const [totalElements, setTotalElements] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -45,38 +52,73 @@ export default function ProductListingPage() {
     fetchCategories();
   }, []);
 
+  const mapP = (p) => ({
+    id: String(p.id),
+    name: p.name || '',
+    description: p.description || '',
+    price: p.price || 0,
+    category: p.categoryName || p.category || '',
+    imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
+    rating: p.averageRating || 0,
+    reviews: p.reviewCount || 0,
+    seller: p.sellerName || '',
+    createdAt: p.createdAt || '',
+    status: p.status || '',
+  });
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      setPage(0);
       try {
-        const res = await productsApi.getAll();
-        const data = res.data;
-        const list = Array.isArray(data) ? data : data.items || data.products || [];
-        setProducts(list.map((p) => ({
-          id: String(p.id),
-          name: p.name || '',
-          description: p.description || '',
-          price: p.price || 0,
-          category: p.categoryName || p.category || '',
-          imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
-          rating: p.averageRating || 0,
-          reviews: p.reviewCount || 0,
-          seller: p.sellerName || '',
-          createdAt: p.createdAt || '',
-          status: p.status || '',
-        })).filter((p) => {
-          // Hide sold/completed products from listing
-          const s = p.status?.toLowerCase();
-          return s !== 'sold' && s !== 'completed';
-        }));
+        const res = await productsApi.getAll({ page: 0, size: PAGE_SIZE, direction: 'desc' });
+        const pg = extractPage(res);
+        setLast(pg.last);
+        setTotalElements(pg.totalElements);
+        setProducts(
+          pg.content
+            .map(mapP)
+            .filter((p) => {
+              const s = p.status?.toLowerCase();
+              return s !== 'sold' && s !== 'completed';
+            }),
+        );
       } catch {
         setProducts([]);
+        setLast(true);
+        setTotalElements(0);
       } finally {
         setLoading(false);
       }
     };
     fetchProducts();
   }, []);
+
+  const loadMore = async () => {
+    if (last || loadingMore) return;
+    const next = page + 1;
+    setLoadingMore(true);
+    try {
+      const res = await productsApi.getAll({ page: next, size: PAGE_SIZE, direction: 'desc' });
+      const pg = extractPage(res);
+      setPage(next);
+      setLast(pg.last);
+      setTotalElements(pg.totalElements);
+      setProducts((prev) => [
+        ...prev,
+        ...pg.content
+          .map(mapP)
+          .filter((p) => {
+            const s = p.status?.toLowerCase();
+            return s !== 'sold' && s !== 'completed';
+          }),
+      ]);
+    } catch {
+      toast.error('Không tải thêm được.');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -243,14 +285,12 @@ export default function ProductListingPage() {
             </div>
 
             <div className="plp-results-count">
-              Hiển thị {filteredProducts.length} trong {products.length} sản phẩm
+              Hiển thị {filteredProducts.length} sau lọc · đã tải {products.length}
+              {totalElements ? ` / ${totalElements} trên sàn` : ''}
             </div>
 
             {loading ? (
-              <div className="plp-empty">
-                <div className="plp-empty-icon">⏳</div>
-                <h3 className="plp-empty-title">Đang tải sản phẩm...</h3>
-              </div>
+              <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
               <div className="plp-empty">
                 <div className="plp-empty-icon">📚</div>
@@ -263,48 +303,57 @@ export default function ProductListingPage() {
                 </Link>
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className={viewMode === 'grid' ? 'plp-product-grid' : 'plp-product-list'}>
-                {filteredProducts.map((product) => (
-                  <Link
-                    to={`/products/${product.id}`}
-                    key={product.id}
-                    className={viewMode === 'grid' ? 'plp-card' : 'plp-card-list'}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="plp-card-image">
-                      <img src={product.imageUrl} alt={product.name} />
-                      <div className="plp-card-badge">{product.category}</div>
-                      <button
-                        className={`plp-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleWishlist(product);
-                          toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
-                        }}
-                        title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
-                      >
-                        {isInWishlist(product.id) ? '❤️' : '🤍'}
-                      </button>
-                    </div>
-                    <div className="plp-card-content">
-                      <h3 className="plp-card-title">{product.name}</h3>
-                      <p className="plp-card-description">{product.description}</p>
-                      <div className="plp-card-meta">
-                        <div className="plp-card-rating">
-                          <span className="plp-rating-stars">★ {product.rating}</span>
-                          <span className="plp-rating-count">({product.reviews})</span>
+              <>
+                <div className={viewMode === 'grid' ? 'plp-product-grid' : 'plp-product-list'}>
+                  {filteredProducts.map((product) => (
+                    <Link
+                      to={`/products/${product.id}`}
+                      key={product.id}
+                      className={viewMode === 'grid' ? 'plp-card' : 'plp-card-list'}
+                      style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
+                      <div className="plp-card-image">
+                        <img src={product.imageUrl} alt={product.name} />
+                        <div className="plp-card-badge">{product.category}</div>
+                        <button
+                          className={`plp-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleWishlist(product);
+                            toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                          }}
+                          title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                          {isInWishlist(product.id) ? '❤️' : '🤍'}
+                        </button>
+                      </div>
+                      <div className="plp-card-content">
+                        <h3 className="plp-card-title">{product.name}</h3>
+                        <p className="plp-card-description">{product.description}</p>
+                        <div className="plp-card-meta">
+                          <div className="plp-card-rating">
+                            <span className="plp-rating-stars">★ {product.rating}</span>
+                            <span className="plp-rating-count">({product.reviews})</span>
+                          </div>
+                          <div className="plp-card-seller">bởi {product.seller}</div>
                         </div>
-                        <div className="plp-card-seller">bởi {product.seller}</div>
+                        <div className="plp-card-footer">
+                          <div className="plp-card-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
+                          <span className="plp-view-detail-btn">Xem chi tiết →</span>
+                        </div>
                       </div>
-                      <div className="plp-card-footer">
-                        <div className="plp-card-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
-                        <span className="plp-view-detail-btn">Xem chi tiết →</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+                {!last && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                    <button type="button" className="plp-reset-btn" disabled={loadingMore} onClick={loadMore}>
+                      {loadingMore ? '⏳ Đang tải...' : '⬇️ Tải thêm'}
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="plp-empty">
                 <div className="plp-empty-icon">📚</div>

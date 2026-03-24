@@ -1,9 +1,9 @@
 import { formatPrice } from '../utils/format';
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { productsApi, categoriesApi } from '../api/endpoints';
+import { productsApi, categoriesApi, uploadProductImage } from '../api/endpoints';
 import './PostProductPage.css';
 
 const FALLBACK_CATEGORIES = [
@@ -26,6 +26,8 @@ const CONDITIONS = [
 
 export default function PostProductPage() {
   const navigate = useNavigate();
+  const { id: editProductId } = useParams();
+  const isEditMode = Boolean(editProductId);
   const { user } = useAuth();
   const toast = useToast();
 
@@ -34,8 +36,10 @@ export default function PostProductPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImages, setPreviewImages] = useState([]);
-  const [imageBase64List, setImageBase64List] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(isEditMode);
+  /** URLs gửi lên BE: link ngoài hoặc `/api/files/...` sau upload */
+  const [imageUrls, setImageUrls] = useState([]);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
@@ -59,6 +63,51 @@ export default function PostProductPage() {
       }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!isEditMode || !editProductId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingEdit(true);
+      try {
+        const res = await productsApi.getById(editProductId);
+        if (cancelled) return;
+        const p = res.data;
+        const seller = p.sellerId || p.userId;
+        if (String(seller) !== String(user?.id)) {
+          toast.error('Bạn không thể sửa sản phẩm này.');
+          navigate(`/products/${editProductId}`);
+          return;
+        }
+        const urls = (Array.isArray(p.imageUrls) && p.imageUrls.length > 0)
+          ? p.imageUrls
+          : (p.imageUrl ? [p.imageUrl] : []);
+        setImageUrls(urls);
+        const catName = p.categoryName || p.category || '';
+        setForm({
+          name: p.name || '',
+          category: catName,
+          categoryId: p.categoryId != null ? String(p.categoryId) : '',
+          condition: p.condition || '',
+          price: p.price != null && Number(p.price) > 0 ? String(p.price) : '',
+          description: p.description || '',
+          contactNote: p.contactNote || '',
+          imageUrl: '',
+        });
+        const pt = !p.price || Number(p.price) === 0 ? 'contact' : 'fixed';
+        setPriceType(pt);
+      } catch {
+        if (!cancelled) {
+          toast.error('Không tải được sản phẩm để sửa.');
+          navigate('/dashboard');
+        }
+      } finally {
+        if (!cancelled) setLoadingEdit(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- load once when edit id known; categories prefilled separately
+  }, [isEditMode, editProductId, user?.id]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'category') {
@@ -73,33 +122,35 @@ export default function PostProductPage() {
   const handleImageUrlAdd = () => {
     const url = form.imageUrl.trim();
     if (!url) return;
-    if (previewImages.length >= 5) { toast.error('Tối đa 5 ảnh'); return; }
-    setPreviewImages(prev => [...prev, url]);
-    setImageBase64List(prev => [...prev, url]);
+    if (imageUrls.length >= 5) { toast.error('Tối đa 5 ảnh'); return; }
+    setImageUrls(prev => [...prev, url]);
     setForm(prev => ({ ...prev, imageUrl: '' }));
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-    const remaining = 5 - previewImages.length;
+    const remaining = 5 - imageUrls.length;
     if (remaining <= 0) { toast.error('Tối đa 5 ảnh'); return; }
-    files.slice(0, remaining).forEach(file => {
-      if (!file.type.startsWith('image/')) { toast.error(`"${file.name}" không phải ảnh`); return; }
-      if (file.size > 5 * 1024 * 1024) { toast.error(`"${file.name}" vượt 5MB`); return; }
-      const reader = new FileReader();
-      reader.onload = ev => {
-        setPreviewImages(prev => [...prev, ev.target.result]);
-        setImageBase64List(prev => [...prev, ev.target.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const toUpload = files.slice(0, remaining);
+    for (const file of toUpload) {
+      if (!file.type.startsWith('image/')) { toast.error(`"${file.name}" không phải ảnh`); continue; }
+      if (file.size > 5 * 1024 * 1024) { toast.error(`"${file.name}" vượt 5MB`); continue; }
+      setUploadingImages(true);
+      try {
+        const { url } = await uploadProductImage(file);
+        if (url) setImageUrls(prev => (prev.length >= 5 ? prev : [...prev, url]));
+      } catch (err) {
+        toast.error(err?.message || 'Tải ảnh lên thất bại');
+      } finally {
+        setUploadingImages(false);
+      }
+    }
     e.target.value = '';
   };
 
   const removeImage = (i) => {
-    setPreviewImages(prev => prev.filter((_,idx) => idx !== i));
-    setImageBase64List(prev => prev.filter((_,idx) => idx !== i));
+    setImageUrls(prev => prev.filter((_, idx) => idx !== i));
   };
 
   const validate = () => {
@@ -127,31 +178,46 @@ export default function PostProductPage() {
     try {
       const payload = {
         name: form.name.trim(), category: form.category,
-        categoryId: form.categoryId || undefined, condition: form.condition,
+        categoryId: form.categoryId ? Number(form.categoryId) : undefined,
+        condition: form.condition,
         price: priceType === 'contact' ? 0 : Number(form.price),
-        // Không gửi priceType — DTO BE không có field; trước đây + ObjectMapper strict → 500
         description: form.description.trim(),
         contactNote: priceType === 'contact'
           ? (form.contactNote.trim() || 'Giá liên hệ — vui lòng nhắn tin để thương lượng')
           : (form.contactNote.trim() || undefined),
-        imageUrl: imageBase64List[0] || undefined,
-        imageUrls: imageBase64List.length > 0 ? imageBase64List : undefined,
+        imageUrl: imageUrls[0] || undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       };
-      const res = await productsApi.create(payload);
-      toast.success('Đăng sản phẩm thành công! 🎉');
-      const newId = res.data?.id || res.data?.Id;
-      navigate(newId ? `/products/${newId}` : '/dashboard');
-    } catch (err) {
-      if (!err.response || err.code === 'ERR_NETWORK') {
-        toast.success('Đăng sản phẩm thành công! 🎉 (demo)');
-        navigate('/dashboard'); return;
+      if (isEditMode) {
+        await productsApi.update(editProductId, payload);
+        toast.success('Đã cập nhật! Sản phẩm chờ kiểm duyệt lại.');
+        navigate(`/products/${editProductId}`);
+      } else {
+        const res = await productsApi.create(payload);
+        toast.success('Đăng sản phẩm thành công! 🎉');
+        const newId = res.data?.id || res.data?.Id;
+        navigate(newId ? `/products/${newId}` : '/dashboard');
       }
-      toast.error(err.response?.data?.message || err.response?.data?.Message || 'Đăng thất bại. Vui lòng thử lại.');
+    } catch (err) {
+      const msg =
+        err.userFacingMessage ||
+        err.response?.data?.message ||
+        err.response?.data?.Message ||
+        'Thao tác thất bại. Vui lòng thử lại.';
+      toast.error(typeof msg === 'string' ? msg : 'Thao tác thất bại.');
     } finally { setIsSubmitting(false); }
   };
 
   const pricePreview = priceType === 'contact' ? 'Giá liên hệ'
     : form.price > 0 ? `${formatPrice(form.price)}đ` : '---';
+
+  if (loadingEdit) {
+    return (
+      <div className="post-product-page" style={{ textAlign: 'center', padding: '4rem' }}>
+        <p>⏳ Đang tải sản phẩm…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="post-product-page">
@@ -185,8 +251,10 @@ export default function PostProductPage() {
       <div className="post-product-container">
         <div className="post-product-header">
           <div>
-            <h1 className="post-product-title">📦 Đăng Bán Sản Phẩm</h1>
-            <p className="post-product-subtitle">Đăng sách, tài liệu hoặc dụng cụ học tập bạn muốn trao đổi</p>
+            <h1 className="post-product-title">{isEditMode ? '✏️ Sửa tin đăng' : '📦 Đăng Bán Sản Phẩm'}</h1>
+            <p className="post-product-subtitle">
+              {isEditMode ? 'Cập nhật thông tin — sau khi lưu tin sẽ chờ kiểm duyệt lại.' : 'Đăng sách, tài liệu hoặc dụng cụ học tập bạn muốn trao đổi'}
+            </p>
           </div>
           <Link to="/transactions/guide" style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', padding:'var(--space-2) var(--space-4)', background:'var(--primary-50)', color:'var(--primary-700)', borderRadius:'var(--radius-md)', textDecoration:'none', fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', border:'1px solid var(--primary-200)' }}>
             📖 Hướng dẫn giao dịch
@@ -295,18 +363,20 @@ export default function PostProductPage() {
               <div className="post-field">
                 <label className="post-label">Hình ảnh sản phẩm</label>
                 <div className="post-image-upload">
-                  <input type="file" ref={fileInputRef} accept="image/*" multiple onChange={handleFileUpload} style={{ display:'none' }} />
-                  <button type="button" className="post-file-upload-btn" onClick={() => fileInputRef.current?.click()}>📁 Chọn ảnh từ thiết bị</button>
+                  <input type="file" ref={fileInputRef} accept="image/*" multiple onChange={handleFileUpload} style={{ display:'none' }} disabled={uploadingImages} />
+                  <button type="button" className="post-file-upload-btn" onClick={() => fileInputRef.current?.click()} disabled={uploadingImages}>
+                    {uploadingImages ? '⏳ Đang tải ảnh…' : '📁 Chọn ảnh từ thiết bị'}
+                  </button>
                   <div className="post-image-divider"><span>hoặc dán link ảnh</span></div>
                   <div className="post-image-url-row">
                     <input type="text" name="imageUrl" className="post-input" placeholder="Dán link ảnh (URL)..." value={form.imageUrl} onChange={handleChange}
                       onKeyDown={e => { if (e.key==='Enter') { e.preventDefault(); handleImageUrlAdd(); } }} />
                     <button type="button" className="post-image-add-btn" onClick={handleImageUrlAdd}>+ Thêm</button>
                   </div>
-                  <span className="post-hint">Tối đa 5 ảnh · 5MB/ảnh · JPG, PNG, WebP</span>
-                  {previewImages.length > 0 && (
+                  <span className="post-hint">Tối đa 5 ảnh · 5MB/ảnh — ảnh tải lên lưu trên server (không nhét base64 vào DB)</span>
+                  {imageUrls.length > 0 && (
                     <div className="post-image-preview-grid">
-                      {previewImages.map((url, idx) => (
+                      {imageUrls.map((url, idx) => (
                         <div key={idx} className="post-image-preview-item">
                           <img src={url} alt={`Ảnh ${idx+1}`} onError={e => { e.target.src='https://via.placeholder.com/150?text=Loi'; }} />
                           <button type="button" className="post-image-remove-btn" onClick={() => removeImage(idx)}>✕</button>
@@ -315,7 +385,7 @@ export default function PostProductPage() {
                       ))}
                     </div>
                   )}
-                  {previewImages.length === 0 && (
+                  {imageUrls.length === 0 && (
                     <div className="post-image-empty">
                       <span className="post-image-empty-icon">📷</span>
                       <p>Chưa có ảnh nào</p>
@@ -328,8 +398,8 @@ export default function PostProductPage() {
               <div className="post-preview-card">
                 <h3 className="post-preview-title">👁️ Xem trước</h3>
                 <div className="post-preview-content">
-                  {previewImages[0] ? (
-                    <img className="post-preview-image" src={previewImages[0]} alt="Preview" onError={e => { e.target.src='https://via.placeholder.com/300x180?text=EduCycle'; }} />
+                  {imageUrls[0] ? (
+                    <img className="post-preview-image" src={imageUrls[0]} alt="Preview" onError={e => { e.target.src='https://via.placeholder.com/300x180?text=EduCycle'; }} />
                   ) : (
                     <div className="post-preview-image-placeholder">📚</div>
                   )}
@@ -361,8 +431,8 @@ export default function PostProductPage() {
 
           <div className="post-actions">
             <button type="button" className="post-btn-cancel" onClick={() => navigate(-1)}>Hủy</button>
-            <button type="submit" className="post-btn-submit" disabled={isSubmitting}>
-              {isSubmitting ? '⏳ Đang đăng...' : '📤 Đăng Bán Ngay'}
+            <button type="submit" className="post-btn-submit" disabled={isSubmitting || uploadingImages}>
+              {isSubmitting ? '⏳ Đang lưu...' : isEditMode ? '💾 Lưu thay đổi' : '📤 Đăng Bán Ngay'}
             </button>
           </div>
         </form>
