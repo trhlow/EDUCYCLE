@@ -5,94 +5,161 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vite.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
 
-**EduCycle** — nền tảng **P2P** để sinh viên trao đổi sách và tài liệu học tập: đăng bán, duyệt tin, giao dịch có trạng thái, chat thời gian thực, đánh giá uy tín.  
-Dự án cá nhân: **Trần Hoàng Long** (full-stack: Java/Spring + React).
+**Tiếng Việt** · Peer-to-peer marketplace for students to exchange books & study materials · **Java + React monorepo**
 
----
+**EduCycle** là nền tảng **P2P**: đăng bán tài liệu, duyệt tin, giao dịch có trạng thái, **OTP khi gặp mặt**, chat WebSocket, đánh giá uy tín, trợ lý AI (tuỳ chọn).  
+Full-stack cá nhân: **Trần Hoàng Long**.
 
-## Mục lục
+> **Note**  
+> Hai cách chạy (**Docker một lệnh** vs **dev hybrid** Postgres + `mvn` + Vite) là **cố ý thiết kế** — không merge thành một flow duy nhất để vừa demo gần prod, vừa sửa code nhanh. Chi tiết pitfall: [ARCHITECTURE.md](ARCHITECTURE.md).
 
-1. [Tài liệu trong repo](#tài-liệu-trong-repo)
-2. [Chạy nhanh — hai cách](#chạy-nhanh--hai-cách)
-3. [Yêu cầu môi trường](#yêu-cầu-môi-trường)
-4. [Biến môi trường & bảo mật](#biến-môi-trường--bảo-mật)
-5. [Cổng, proxy Vite & Postgres](#cổng-proxy-vite--postgres)
-6. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-7. [Stack kỹ thuật](#stack-kỹ-thuật)
-8. [Tính năng chính](#tính-năng-chính)
-9. [API tóm tắt](#api-tóm-tắt)
-10. [Luồng giao dịch & OTP](#luồng-giao-dịch--otp)
-11. [Email (SMTP)](#email-smtp)
-12. [AI chatbot](#ai-chatbot)
-13. [Kiểm thử & CI](#kiểm-thử--ci)
-14. [Đóng góp & nhánh](#đóng-góp--nhánh)
-15. [Giấy phép](#giấy-phép)
+**Repository:** [github.com/trhlow/EDUCYCLE](https://github.com/trhlow/EDUCYCLE)
 
 ---
 
-## Tài liệu trong repo
+## Table of Contents
 
-| File | Mục đích |
-|------|----------|
-| **README.md** | *(file này)* — clone, chạy, API tóm tắt, pitfall thường gặp |
-| [**ARCHITECTURE.md**](ARCHITECTURE.md) | Sơ đồ runtime, auth/WS, **đối chiếu checklist audit** (§10), onboarding chi tiết |
-| [**NOTES.md**](NOTES.md) | Trạng thái sprint, changelog, FE↔BE field mapping, quy tắc nội bộ |
-| [**SETUP_CHATBOT.md**](SETUP_CHATBOT.md) | Cấu hình Claude / `ANTHROPIC_API_KEY`, Docker |
-| [**.env.example**](.env.example) | Gợi ý biến cho Docker gốc (`JWT_SECRET`, SMTP, …) |
+- [EduCycle](#educycle)
+- [Documentation](#documentation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Running the Application](#running-the-application)
+  - [Option 1: Docker Compose (recommended for demo)](#option-1-docker-compose-recommended-for-demo)
+  - [Option 2: Local development (recommended for coding)](#option-2-local-development-recommended-for-coding)
+- [Access URLs](#access-urls)
+- [Advanced](#advanced)
+- [What EduCycle Is](#what-educycle-is)
+- [Core Features](#core-features)
+- [API Overview](#api-overview)
+- [Transaction & OTP Flow](#transaction--otp-flow)
+- [Email (SMTP)](#email-smtp)
+- [AI Chatbot](#ai-chatbot)
+- [Testing & CI](#testing--ci)
+- [Project Layout](#project-layout)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## Chạy nhanh — hai cách
+## Documentation
 
-### Cách A — Một lệnh Docker (gần production)
+| Document | Purpose |
+|----------|---------|
+| **README.md** | *(this file)* — clone, configure, run, API summary |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime topology, auth/WebSocket, onboarding checklist, **audit reconciliation (§10)** |
+| [NOTES.md](NOTES.md) | Sprint status, changelog, FE↔BE field mapping, internal rules |
+| [SETUP_CHATBOT.md](SETUP_CHATBOT.md) | `ANTHROPIC_API_KEY`, Docker, AI rate limits |
+| [.env.example](.env.example) | Template for root `docker-compose` (`JWT_SECRET`, optional SMTP, …) |
 
-Từ **thư mục gốc** repo (có `docker-compose.yml`):
+---
+
+## Quick Start
+
+### Clone the repository
 
 ```bash
-# Linux / macOS / Git Bash — JWT đủ dài, không commit
+git clone https://github.com/trhlow/EDUCYCLE.git
+cd EDUCYCLE
+```
+
+### Choose your path
+
+| Goal | Go to |
+|------|--------|
+| **“I want to see the app running”** (one stack, browser only) | [Option 1: Docker Compose](#option-1-docker-compose-recommended-for-demo) → open **http://localhost** |
+| **“I’m developing FE/BE”** (hot reload, breakpoints) | [Option 2: Local development](#option-2-local-development-recommended-for-coding) → **5173** + **8081** |
+
+Complete **[Configuration](#configuration)** before local dev if you use OAuth, SMTP, or AI in Docker.
+
+---
+
+## Configuration
+
+### Prerequisites
+
+- **JDK 17+**
+- **Node.js 18+** (CI uses Node **20**)
+- **Maven 3.9+**
+- **Docker Desktop** (Postgres and/or full stack)
+
+### Environment variables (summary)
+
+**Do not commit** real secrets. Use [.env.example](.env.example) as a template for the **root** `docker-compose` workflow.
+
+| Variable | Where | Purpose |
+|----------|--------|---------|
+| `JWT_SECRET` | Shell or `.env` next to root `docker-compose.yml` | HMAC signing for JWT (length ≥ 32) |
+| `APP_FRONTEND_BASE_URL` | Docker `.env` | Links in reset-password emails (`http://localhost` in compose) |
+| `ANTHROPIC_API_KEY` | Docker `api` / BE env | AI chat on **server** only (`POST /api/ai/chat`) |
+| `SPRING_PROFILES_ACTIVE` | e.g. `production,smtp` | Enable real SMTP when `MAIL_*` are set |
+| `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, … | `.env` + profile `smtp` | Real email — see [Email (SMTP)](#email-smtp) |
+| `VITE_DEV_PROXY_TARGET` | `source/frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
+| `VITE_GOOGLE_CLIENT_ID`, `VITE_MICROSOFT_CLIENT_ID` | Frontend `.env` | OAuth; must align with backend `application.yml` |
+
+**OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [NOTES.md](NOTES.md) (FE↔BE mapping).
+
+**Security:** Never put Anthropic (or any LLM) **secret keys** in frontend bundles; the SPA calls the backend proxy only.
+
+---
+
+## Running the Application
+
+### Option 1: Docker Compose (recommended for demo)
+
+From the **repository root** (where `docker-compose.yml` lives):
+
+**Bash / Git Bash / macOS / Linux**
+
+```bash
 export JWT_SECRET="$(openssl rand -base64 48)"
 docker compose up --build
 ```
 
-**PowerShell (Windows):**
+**PowerShell (Windows)**
 
 ```powershell
 $env:JWT_SECRET = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 48 | ForEach-Object { [char]$_ })
 docker compose up --build
 ```
 
-- **Ứng dụng:** http://localhost — nginx phục vụ SPA build + reverse proxy **`/api`** và **`/ws`** tới container API.
-- **Postgres:** chỉ trong mạng Docker (**không** mở cổng DB ra máy host).
-- **Upload ảnh:** volume `educycle_uploads` → `/app/data/uploads` trong container API.
+**What you get**
 
-Tuỳ chọn: copy [`.env.example`](.env.example) → `.env` cạnh `docker-compose.yml` (`JWT_SECRET`, `ANTHROPIC_API_KEY`, `SPRING_PROFILES_ACTIVE=production,smtp` + `MAIL_*` nếu cần email thật).
+- **nginx** serves the production-built SPA and proxies **`/api`** and **`/ws`** to the API container.
+- **PostgreSQL** runs on the internal Docker network only (no DB port published to the host by default).
+- **Uploads** persist in volume `educycle_uploads` → `/app/data/uploads` in the API container.
 
-### Cách B — Dev hybrid (sửa code nhanh)
+Optional: copy [.env.example](.env.example) → `.env` in the same directory for `JWT_SECRET`, `ANTHROPIC_API_KEY`, or SMTP-related variables.
 
-Phù hợp khi develop FE + BE trên máy, Postgres trong Docker.
+### Option 2: Local development (recommended for coding)
 
-1. **Postgres** (map **5433** → host):
+Use this when you edit Java/React and want Vite HMR + fast iteration.
+
+**1) PostgreSQL (host port 5433)**
 
 ```bash
 cd source/backend/educycle-java
 docker compose up -d
 ```
 
-2. **Backend** (API **8081**, DB `localhost:5433`):
+**2) Backend (API on 8081, uses `application-docker.yml`)**
 
 ```bash
 cd source/backend/educycle-java
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
-3. **Frontend** — proxy phải trỏ **8081**:
+**3) Frontend — set proxy target to 8081**
 
-Tạo `source/frontend/.env.local` (hoặc chỉnh `.env.development`):
+Create `source/frontend/.env.local` (or edit `.env.development`):
 
 ```env
 VITE_DEV_PROXY_TARGET=http://localhost:8081
 ```
+
+**4) Install and run Vite**
 
 ```bash
 cd source/frontend
@@ -100,61 +167,158 @@ npm ci
 npm run dev
 ```
 
-- **App:** http://localhost:5173  
-- **Swagger:** http://localhost:8081/swagger-ui.html  
+**5) Test login**
 
-4. **Tài khoản thử nghiệm**
-
-| Vai trò | Email | Mật khẩu |
-|---------|-------|----------|
+| Role | Email | Password |
+|------|-------|----------|
 | Admin | `admin@educycle.com` | `admin@1` |
 
----
-
-## Yêu cầu môi trường
-
-- **JDK 17+**
-- **Node.js 18+** (CI dùng Node 20)
-- **Maven 3.9+**
-- **Docker Desktop** (Postgres dev hoặc full stack)
+> **Note**  
+> Default Vite proxy targets **8080**. If the API runs on **8081** (profile `docker`) and you skip `VITE_DEV_PROXY_TARGET`, `/api` calls will fail or hit the wrong process.
 
 ---
 
-## Biến môi trường & bảo mật
+## Access URLs
 
-- **Không** commit file `.env` chứa secret; dùng [`.env.example`](.env.example) làm mẫu.
-- **`JWT_SECRET`:** chuỗi ngẫu nhiên đủ dài (≥ 32 ký tự) cho mọi môi trường không phải toy.
-- **OAuth (Google / Microsoft):** Client ID cấu hình ở FE (`VITE_*`) và khớp backend (`application.yml` / env) — xem [NOTES.md](NOTES.md) phần FE↔BE.
-- **Anthropic:** API key chỉ nên có trên **server** (Docker `api` / biến môi trường BE). Widget FE gọi **`POST /api/ai/chat`** — không nhúng key vào bundle.
-
----
-
-## Cổng, proxy Vite & Postgres
-
-| Thành phần | Dev hybrid (Cách B) | Docker full stack (Cách A) |
-|------------|---------------------|----------------------------|
-| SPA | http://localhost:5173 | http://localhost (**nginx**, cổng **80**) |
-| API (host) | http://localhost:8081 | *(không publish; chỉ qua `/api`)* |
-| Postgres (host) | **localhost:5433** *(chỉ khi chạy `educycle-java/docker-compose`)* | *(không có trên host)* |
-| Swagger | http://localhost:8081/swagger-ui.html | qua tunnel/exec hoặc tạm publish cổng *(mặc định không)* |
-
-**Pitfall thường gặp**
-
-- Vite mặc định proxy tới **8080**. Nếu BE chạy profile **docker** trên **8081** mà quên `VITE_DEV_PROXY_TARGET` → lỗi network / 500.
-- **pgAdmin** `localhost:5433` **timeout** nếu bạn chỉ chạy `docker-compose` **gốc repo** (DB không publish). Dùng `source/backend/educycle-java/docker-compose.yml` hoặc tự thêm `ports` cho service `db`.
-
-Chi tiết: [ARCHITECTURE.md](ARCHITECTURE.md) §2, §7–§8.
+| Service | Docker full stack (Option 1) | Local dev (Option 2) |
+|---------|------------------------------|----------------------|
+| **Web app** | http://localhost (port **80**) | http://localhost:**5173** |
+| **API (from host)** | Use **same origin** `/api` via nginx | http://localhost:**8081** |
+| **Swagger UI** | Not exposed by default | http://localhost:8081/swagger-ui.html |
+| **Postgres on host** | Not available | **localhost:5433** (only with `educycle-java/docker compose`) |
 
 ---
 
-## Cấu trúc thư mục
+## Advanced
+
+### Postgres & pgAdmin
+
+Root `docker-compose` **does not publish** `5432/5433`. Tools like pgAdmin on `localhost:5433` need either:
+
+- `source/backend/educycle-java/docker-compose.yml` (maps **5433:5432**), or  
+- a custom `ports:` override on the `db` service, or  
+- `docker exec` + `psql` inside the container.
+
+### CORS & production
+
+Allowed origins are listed in `application.yml` (`cors.allowed-origins`). Update them when deploying to a real domain.
+
+### Default backend port without `docker` profile
+
+If you run `mvn spring-boot:run` **without** the `docker` profile, the API listens on **8080** and expects Postgres on **5432**. Then use:
+
+```env
+VITE_DEV_PROXY_TARGET=http://localhost:8080
+```
+
+### Flyway
+
+Migrations **V1–V8** are in the repo; the next file must be **`V9__....sql`**. Never edit migrations that have already been applied to a shared database.
+
+More detail: [ARCHITECTURE.md](ARCHITECTURE.md) §8–§10.
+
+---
+
+## What EduCycle Is
+
+EduCycle is a **student-to-student** marketplace: listings are moderated, deals go through explicit **transaction states**, and **face-to-face handoff** is guarded by a **buyer-generated / seller-verified OTP** — not a shopping-cart checkout flow.  
+The stack is intentionally **boring and hireable**: Spring Boot, PostgreSQL, Flyway, React, and transparent REST + WebSocket contracts.
+
+---
+
+## Core Features
+
+- **Auth:** Email (`.edu.vn` policy in product rules), Google, Microsoft; JWT + rotating refresh token; OTP verification for email.
+- **Password:** Forgot / reset (token link); change password when logged in.
+- **Listings:** CRUD, **server-side pagination** (`GET /api/products?page=&size=&direction=`), image **upload** to server disk (volume in Docker), admin approve / reject with reason.
+- **Transactions:** State machine, **buyer-only OTP generate**, **seller-only OTP verify**, dispute + admin resolution.
+- **Realtime:** STOMP/SockJS chat per transaction; notifications (DB + push over WS where configured).
+- **Trust:** Public seller profile **`/users/:id`** backed by `GET /api/public/users/{userId}`.
+- **Profile:** PATCH profile and **notification preferences** persisted on the server.
+- **AI (optional):** Server-side Claude proxy — [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
+
+---
+
+## API Overview
+
+Base path: **`/api`**. Interactive docs: **Swagger UI** when the API is running ([Access URLs](#access-urls)).
+
+| Area | Examples |
+|------|----------|
+| **Auth** | `/api/auth/login`, `register`, `refresh`, `social-login`, `forgot-password`, `reset-password`, `change-password` |
+| **Users** | `GET/PATCH /api/users/me`, `PATCH .../notification-preferences` |
+| **Public** | `GET /api/public/users/{userId}` |
+| **Products** | `GET /api/products` (paged), `GET /api/products/{id}`, `POST /api/upload/product-image`, `GET /api/files/**` |
+| **Transactions** | `POST /api/transactions`, `PATCH .../status`, `POST .../otp`, `POST .../verify-otp`, `POST .../dispute` |
+| **Admin** | `GET /api/admin/transactions/disputed`, `PATCH /api/admin/transactions/{id}/resolve`, product moderation routes (see Swagger) |
+| **Other** | `GET /api/categories`, `POST /api/reviews`, `GET /api/notifications`, `POST /api/ai/chat` |
+| **WebSocket** | `/ws/**` (SockJS + STOMP) |
+
+---
+
+## Transaction & OTP Flow
+
+```
+PENDING → ACCEPTED → MEETING → COMPLETED
+                    ↘ DISPUTED   (buyer, typically before OTP completion)
+         ↘ REJECTED
+         ↘ CANCELLED
+```
+
+1. **Buyer** calls generate OTP (enforced server-side).  
+2. Buyer tells the **6-digit code** to the **seller** in person.  
+3. **Seller** calls verify OTP → transaction **COMPLETED**, product **SOLD**.
+
+---
+
+## Email (SMTP)
+
+Without Spring profile **`smtp`**, `MailService` **logs** email bodies — enough for local demos (OTP visible in API logs).
+
+For real delivery:
+
+1. Activate profile **`smtp`** and set `MAIL_*` (see `source/backend/educycle-java/src/main/resources/application-smtp.yml`).  
+2. Gmail: [App Passwords](https://support.google.com/accounts/answer/185833).  
+3. Docker: set `SPRING_PROFILES_ACTIVE=production,smtp` and mail variables in `.env` (see [.env.example](.env.example) comments).  
+   Do **not** set empty `MAIL_HOST` if you are not using SMTP (avoids broken Spring mail auto-config).
+
+---
+
+## AI Chatbot
+
+Configure **`ANTHROPIC_API_KEY`** on the **API** process (Docker or local). The browser talks only to **`POST /api/ai/chat`**.  
+Full steps: [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
+
+---
+
+## Testing & CI
+
+Workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml)
+
+| Job | Command |
+|-----|---------|
+| Backend | `mvn -f source/backend/educycle-java/pom.xml clean verify` |
+| Frontend | `npm ci` → `npm test` → `npm run build` in `source/frontend` |
+
+Triggers: **push** and **pull_request** to `main` and `dev`.
+
+Local sanity check before push:
+
+```bash
+cd source/backend/educycle-java && mvn -q clean verify
+cd source/frontend && npm run build
+```
+
+---
+
+## Project Layout
 
 ```
 EDUCYCLE/
 ├── source/
-│   ├── backend/educycle-java/     # Spring Boot API, Flyway V1–V8 (tiếp theo: V9)
-│   └── frontend/                  # React 19 + Vite 7
-├── docker-compose.yml             # db + api + web (nginx)
+│   ├── backend/educycle-java/    # Spring Boot API, Flyway
+│   └── frontend/                   # Vite + React
+├── docker-compose.yml              # db + api + nginx (production-style)
 ├── .github/workflows/ci.yml
 ├── .env.example
 ├── ARCHITECTURE.md
@@ -165,175 +329,38 @@ EDUCYCLE/
 
 ---
 
-## Stack kỹ thuật
+## Tech Stack
 
-| Lớp | Công nghệ |
-|-----|-----------|
-| Backend | Java 17, Spring Boot 3.2.5, Spring Security, Spring Data JPA, Flyway |
-| Auth | JWT (JJWT), refresh token (SecureRandom), OAuth ID token verify (Google / Microsoft JWKS) |
+| Layer | Technologies |
+|-------|----------------|
+| API | Java 17, Spring Boot 3.2.5, Spring Security, Spring Data JPA, Flyway |
+| Auth | JWT (JJWT), refresh token (SecureRandom), OAuth token verification (Google / Microsoft) |
 | DB | PostgreSQL 16 |
-| Realtime | WebSocket STOMP + SockJS, thông báo DB + broadcast |
-| Hạn chế tải | Bucket4j (theo IP); AI chat: rate limit in-memory (xem code / SETUP_CHATBOT) |
-| Frontend | React 19, Vite 7, React Router 7, Axios, Context API |
-| OAuth FE | @react-oauth/google, @azure/msal-browser |
-| Build | Maven (BE), npm + Vite (FE) |
-| Container | Multi-stage Dockerfile (BE/FE), Compose |
+| Realtime | WebSocket STOMP + SockJS |
+| Rate limiting | Bucket4j (IP-based); separate in-memory limiter for AI chat |
+| SPA | React 19, Vite 7, React Router 7, Axios |
+| OAuth clients | @react-oauth/google, @azure/msal-browser |
+| Build | Maven, npm |
+| Deploy artifact | Docker multi-stage images + Compose |
 
 ---
 
-## Tính năng chính
+## Contributing
 
-- Đăng ký / đăng nhập (email `.edu.vn`, Google, Microsoft), OTP email, refresh token
-- Quên mật khẩu / đặt lại mật khẩu (link + token; cần SMTP nếu muốn email thật)
-- Sản phẩm: CRUD, **phân trang** (`GET /api/products?page=&size=&direction=`), upload ảnh cục bộ, duyệt / từ chối (admin + lý do)
-- Giao dịch P2P: trạng thái, **OTP chỉ buyer tạo / seller xác nhận**, tranh chấp, admin xử lý
-- Chat theo giao dịch (STOMP), thông báo
-- Hồ sơ người dùng, **hồ sơ công khai** `/users/:id`, cài đặt thông báo (BE)
-- Trợ lý AI (Claude) qua backend — [SETUP_CHATBOT.md](SETUP_CHATBOT.md)
-- Trang hướng dẫn giao dịch, About/Contact
+- Primary branch: **`dev`**; releases merge to **`main`**.  
+- Use [Conventional Commits](https://www.conventionalcommits.org/) — see [NOTES.md](NOTES.md) §4.  
+- Prefer **`git add <file>`** over `git add .`.
 
 ---
 
-## API tóm tắt
+## License
 
-Base path: **`/api`**. Tài liệu đầy đủ: **Swagger UI** khi BE đang chạy (xem bảng cổng).
-
-### Auth
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/auth/register` | Đăng ký + OTP email |
-| POST | `/api/auth/login` | Đăng nhập |
-| POST | `/api/auth/verify-otp` | Xác thực email |
-| POST | `/api/auth/resend-otp` | Gửi lại OTP |
-| POST | `/api/auth/social-login` | Google / Microsoft (body: `provider`, `token`) |
-| POST | `/api/auth/refresh` | Làm mới JWT |
-| POST | `/api/auth/logout` | Thu hồi refresh token |
-| POST | `/api/auth/verify-phone` | Cập nhật & xác thực SĐT |
-| POST | `/api/auth/forgot-password` | Gửi link đặt lại mật khẩu |
-| POST | `/api/auth/reset-password` | Đặt lại mật khẩu (`token`, `newPassword`) |
-| POST | `/api/auth/change-password` | Đổi mật khẩu (JWT) |
-
-### Users & public
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| GET | `/api/users/me` | Hồ sơ (JWT) |
-| PATCH | `/api/users/me` | Cập nhật hồ sơ |
-| PATCH | `/api/users/me/notification-preferences` | Bật/tắt loại thông báo |
-| GET | `/api/public/users/{userId}` | Hồ sơ công khai + review gần đây |
-
-### Products & files
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| GET | `/api/products` | Danh sách (công khai, phân trang) |
-| GET | `/api/products/{id}` | Chi tiết |
-| GET | `/api/products/mine` | Sản phẩm của tôi (JWT) |
-| POST | `/api/products` | Tạo (JWT) |
-| PUT | `/api/products/{id}` | Sửa (JWT) |
-| DELETE | `/api/products/{id}` | Xóa (JWT) |
-| POST | `/api/upload/product-image` | Upload ảnh (JWT) |
-| GET | `/api/files/**` | Phục vụ file đã upload (đọc công khai theo cấu hình) |
-
-Admin duyệt / từ chối: các route **`/api/products/...`** có `@PreAuthorize("hasRole('ADMIN')")` (Swagger).
-
-### Transactions & chat
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| POST | `/api/transactions` | Tạo giao dịch |
-| GET | `/api/transactions/mine` | Danh sách của tôi |
-| PATCH | `/api/transactions/{id}/status` | Đổi trạng thái |
-| POST | `/api/transactions/{id}/otp` | **Buyer** tạo OTP |
-| POST | `/api/transactions/{id}/verify-otp` | **Seller** xác nhận OTP |
-| POST | `/api/transactions/{id}/confirm` | Xác nhận nhận hàng |
-| POST | `/api/transactions/{id}/dispute` | Báo tranh chấp (buyer, MEETING) |
-| GET/POST | `/api/messages/...` | Tin nhắn (HTTP fallback) |
-| — | `/ws/**` | WebSocket STOMP (SockJS) |
-
-### Admin
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| GET | `/api/admin/stats` | Thống kê |
-| GET | `/api/admin/users` | Người dùng |
-| GET | `/api/admin/transactions/disputed` | Giao dịch tranh chấp |
-| PATCH | `/api/admin/transactions/{id}/resolve` | `resolution`: COMPLETED / CANCELLED |
-
-### Khác
-
-| Method | Path | Mô tả |
-|--------|------|--------|
-| GET | `/api/categories` | Danh mục |
-| POST | `/api/reviews` | Tạo đánh giá |
-| GET | `/api/notifications` | Thông báo |
-| POST | `/api/ai/chat` | Chat AI (JWT) |
-| GET | `/actuator/health` | Health (cấu hình permit) |
+Educational / personal project — not for commercial use without separate agreement.
 
 ---
 
-## Luồng giao dịch & OTP
+## Acknowledgments
 
-```
-PENDING → ACCEPTED → MEETING → COMPLETED
-                    ↘ DISPUTED   (buyer, trước khi hoàn tất OTP)
-         ↘ REJECTED
-         ↘ CANCELLED
-```
+Built with **Spring Boot**, **React**, **PostgreSQL**, and the broader open-source ecosystem. OAuth and AI integrations rely on provider APIs documented in [NOTES.md](NOTES.md) and [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
 
-1. **Buyer** gọi tạo OTP (chỉ buyer).  
-2. Buyer đọc mã 6 số cho **seller** tại chỗ.  
-3. **Seller** gọi verify OTP (chỉ seller) → `COMPLETED`, sản phẩm **SOLD**.  
-
-Admin xử lý tranh chấp qua `/api/admin/transactions/...`.
-
----
-
-## Email (SMTP)
-
-- **`MailService`:** nếu **không** bật profile **`smtp`** → nội dung mail được **log** (đủ cho dev / demo có log OTP).
-- **Email thật:** thêm profile **`smtp`**, biến `MAIL_*`, xem [`application-smtp.yml`](source/backend/educycle-java/src/main/resources/application-smtp.yml) và mục tương ứng trước đây trong README cũ — chi tiết đầy đủ: [Gmail App Password](https://support.google.com/accounts/answer/185833), `SPRING_PROFILES_ACTIVE=production,smtp` trong `.env` khi dùng Compose.
-
----
-
-## AI chatbot
-
-- Cấu hình server-side: [**SETUP_CHATBOT.md**](SETUP_CHATBOT.md) (`ANTHROPIC_API_KEY` trên container API / env BE).
-
----
-
-## Kiểm thử & CI
-
-Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
-
-- **Trigger:** `push` / `pull_request` lên `main`, `dev`
-- **Backend:** `mvn -f source/backend/educycle-java/pom.xml clean verify`
-- **Frontend:** `npm ci`, `npm test`, `npm run build` trong `source/frontend`
-
-Trước khi push (local):
-
-```bash
-cd source/backend/educycle-java && mvn -q clean verify
-cd source/frontend && npm run build
-```
-
----
-
-## Đóng góp & nhánh
-
-- Nhánh chính: **`dev`** → **`main`** khi release.
-- Commit: [Conventional Commits](https://www.conventionalcommits.org/) — xem [NOTES.md §4](NOTES.md).
-- **Không** `git add .` — stage từng file.
-
----
-
-## Tác giả
-
-**Trần Hoàng Long** — thiết kế và phát triển EduCycle.
-
----
-
-## Giấy phép
-
-Dự án phục vụ mục đích học tập — không sử dụng cho mục đích thương mại trừ khi có thỏa thuận riêng.
+**Author:** Trần Hoàng Long
