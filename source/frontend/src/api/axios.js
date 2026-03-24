@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { clearAuthStorage } from '../utils/safeSession';
 import { resolveApiBaseUrl } from '../utils/apiBase';
+import { getApiErrorMessage } from '../utils/apiError';
 
 const API_BASE_URL = resolveApiBaseUrl();
 
@@ -96,7 +97,9 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    const enriched = error;
+    enriched.userFacingMessage = getApiErrorMessage(error);
+    return Promise.reject(enriched);
   }
 );
 

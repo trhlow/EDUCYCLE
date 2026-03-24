@@ -1,5 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import ChatbotWidget from '../ChatbotWidget';
 import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
 
@@ -59,6 +60,9 @@ export default function Layout() {
           </div>
         </div>
       </footer>
+
+      {/* AI Chatbot — fixed floating widget, available on all pages */}
+      <ChatbotWidget />
     </div>
   );
 }

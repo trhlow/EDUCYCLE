@@ -26,6 +26,9 @@ function mapMeResponse(data) {
     phone: data.phone ?? null,
     bio: data.bio ?? '',
     avatar: data.avatar ?? null,
+    notifyProductModeration: data.notifyProductModeration ?? true,
+    notifyTransactions: data.notifyTransactions ?? true,
+    notifyMessages: data.notifyMessages ?? true,
   };
 }
 
@@ -222,6 +225,26 @@ export function AuthProvider({ children }) {
     await authApi.changePassword({ currentPassword, newPassword });
   }, []);
 
+  /** Sprint 3: PATCH /users/me/notification-preferences */
+  const saveNotificationPrefsToServer = useCallback(
+    async ({ notifyProductModeration, notifyTransactions, notifyMessages }) => {
+      const res = await usersApi.patchNotificationPrefs({
+        notifyProductModeration,
+        notifyTransactions,
+        notifyMessages,
+      });
+      const nextUser = mapMeResponse(res.data);
+      setSession((s) => {
+        if (!s.token) return s;
+        const rt = localStorage.getItem('refreshToken');
+        persistSession(nextUser, s.token, rt);
+        return { user: nextUser, token: s.token };
+      });
+      return nextUser;
+    },
+    [],
+  );
+
   const handleOAuthCallback = (jwtToken) => {
     if (!jwtToken || typeof jwtToken !== 'string') return;
     try {
@@ -260,6 +283,7 @@ export function AuthProvider({ children }) {
         refreshUser,
         saveProfileToServer,
         changePassword,
+        saveNotificationPrefsToServer,
         verifyOtp,
         resendOtp,
         socialLogin,

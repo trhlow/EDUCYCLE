@@ -57,6 +57,7 @@ export default function App() {
         <Route path="products" element={<ProductsRedirect />} />
 
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="products/:id/edit" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="users/:id" element={<SuspenseWrapper><UserPublicProfilePage /></SuspenseWrapper>} />
         <Route path="cart" element={<SuspenseWrapper><CartPage /></SuspenseWrapper>} />

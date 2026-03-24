@@ -1,4 +1,5 @@
 import api from './axios';
+import { resolveApiBaseUrl } from '../utils/apiBase';
 
 // ─── Auth ────────────────────────────────────────────
 export const authApi = {
@@ -20,6 +21,7 @@ export const authApi = {
 export const usersApi = {
   getMe:    () => api.get('/users/me'),
   patchMe:  (data) => api.patch('/users/me', data),
+  patchNotificationPrefs: (data) => api.patch('/users/me/notification-preferences', data),
 };
 
 // ─── Products ────────────────────────────────────────
@@ -29,12 +31,13 @@ export const productsApi = {
   create:         (data)   => api.post('/products', data),
   update:         (id, data) => api.put(`/products/${id}`, data),
   delete:         (id)     => api.delete(`/products/${id}`),
-  getMyProducts:  ()       => api.get('/products/mine'),
+  getMyProducts:  (params) => api.get('/products/mine', { params }),
   // Admin
   getPending:     ()       => api.get('/products/pending'),
   getAllForAdmin:  ()       => api.get('/products/admin/all'),
   approve:        (id)     => api.patch(`/products/${id}/approve`),
-  reject:         (id)     => api.patch(`/products/${id}/reject`),
+  /** @param {object} [data] — optional `{ reason: string }` */
+  reject:         (id, data) => api.patch(`/products/${id}/reject`, data ?? {}),
 };
 
 // ─── Categories ──────────────────────────────────────
@@ -97,3 +100,35 @@ export const adminApi = {
 export const publicProfileApi = {
   getUser: (userId) => api.get(`/public/users/${userId}`),
 };
+
+/** AI chatbot — JWT bắt buộc; key Anthropic chỉ trên BE */
+export const aiApi = {
+  chat: (data) => api.post('/ai/chat', data),
+};
+
+/**
+ * Multipart upload — bypass default JSON Content-Type on axios instance.
+ * Returns `{ url: "/api/files/<uuid>.ext" }` (relative; use as img src on same origin).
+ */
+export async function uploadProductImage(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  const base = resolveApiBaseUrl().replace(/\/+$/, '');
+  const res = await fetch(`${base}/upload/product-image`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: fd,
+  });
+  if (!res.ok) {
+    let msg = 'Tải ảnh thất bại';
+    try {
+      const j = await res.json();
+      msg = j.message || j.error || msg;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(typeof msg === 'string' ? msg : 'Tải ảnh thất bại');
+  }
+  return res.json();
+}

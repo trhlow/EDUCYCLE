@@ -21,6 +21,9 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-secondary);
   min-height: 100vh;
+  /* Mobile / notch — Sprint 4 */
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
 }
 
 #root {
@@ -73,6 +76,18 @@ textarea {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/* Touch targets ≥ 44px (WCAG / mobile audit) */
+@media (pointer: coarse) {
+  .navbar-hamburger,
+  .navbar-icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    display: inline-flex;
+  }
 }
 
 /* Loading spinner for ProtectedRoute */
