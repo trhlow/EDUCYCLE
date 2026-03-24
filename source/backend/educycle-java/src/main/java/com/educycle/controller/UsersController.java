@@ -1,5 +1,6 @@
 package com.educycle.controller;
 
+import com.educycle.dto.user.UpdateNotificationPrefsRequest;
 import com.educycle.dto.user.UpdateUserProfileRequest;
 import com.educycle.dto.user.UserMeResponse;
 import com.educycle.service.UserProfileService;
@@ -29,5 +30,13 @@ public class UsersController {
             @Valid @RequestBody UpdateUserProfileRequest request) {
 
         return ResponseEntity.ok(userProfileService.updateMe(UUID.fromString(userId), request));
+    }
+
+    @PatchMapping("/me/notification-preferences")
+    public ResponseEntity<UserMeResponse> updateNotificationPrefs(
+            @AuthenticationPrincipal String userId,
+            @Valid @RequestBody UpdateNotificationPrefsRequest request) {
+
+        return ResponseEntity.ok(userProfileService.updateNotificationPrefs(UUID.fromString(userId), request));
     }
 }

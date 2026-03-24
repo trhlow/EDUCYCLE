@@ -1,11 +1,16 @@
 package com.educycle.controller;
 
+import com.educycle.dto.common.PageResponse;
+import com.educycle.dto.product.AdminRejectProductRequest;
 import com.educycle.dto.product.CreateProductRequest;
 import com.educycle.dto.product.ProductResponse;
 import com.educycle.dto.product.UpdateProductRequest;
 import com.educycle.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,18 +44,35 @@ public class ProductsController {
         return ResponseEntity.ok(productService.create(request, UUID.fromString(userId)));
     }
 
-    // GET /api/products  [AllowAnonymous]
+    // GET /api/products  [AllowAnonymous] — phân trang: ?page=0&size=24&direction=desc
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAll() {
-        return ResponseEntity.ok(productService.getAll());
+    public ResponseEntity<PageResponse<ProductResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "24") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort sort = "asc".equalsIgnoreCase(direction)
+                ? Sort.by("createdAt").ascending()
+                : Sort.by("createdAt").descending();
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sort);
+        return ResponseEntity.ok(productService.getAll(p));
     }
 
     // GET /api/products/mine  [Authorize]
     @GetMapping("/mine")
-    public ResponseEntity<List<ProductResponse>> getMyProducts(
-            @AuthenticationPrincipal String userId) {
+    public ResponseEntity<PageResponse<ProductResponse>> getMyProducts(
+            @AuthenticationPrincipal String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
 
-        return ResponseEntity.ok(productService.getMyProducts(UUID.fromString(userId)));
+        Sort sort = "asc".equalsIgnoreCase(direction)
+                ? Sort.by("createdAt").ascending()
+                : Sort.by("createdAt").descending();
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sort);
+        return ResponseEntity.ok(productService.getMyProducts(UUID.fromString(userId), p));
     }
 
     // GET /api/products/pending  [Authorize(Roles="Admin")]
@@ -103,7 +125,10 @@ public class ProductsController {
     // PATCH /api/products/{id}/reject  [Authorize(Roles="Admin")]
     @PatchMapping("/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductResponse> reject(@PathVariable UUID id) {
-        return ResponseEntity.ok(productService.reject(id));
+    public ResponseEntity<ProductResponse> reject(
+            @PathVariable UUID id,
+            @Valid @RequestBody(required = false) AdminRejectProductRequest request) {
+
+        return ResponseEntity.ok(productService.reject(id, request));
     }
 }

@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/educycledb}
     username: ${SPRING_DATASOURCE_USERNAME:educycle}
@@ -23,18 +28,25 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
-# Gửi email (OTP, quên mật khẩu): chỉ cấu hình khi có MAIL_HOST — xem README / NOTES
-# spring.mail.host, spring.mail.port, spring.mail.username, spring.mail.password
+# ── SMTP (tuỳ chọn) ─────────────────────────────────────────────────────────
+# Thêm profile "smtp" + biến MAIL_* — xem application-smtp.yml và README (mục Email).
+# Ví dụ local: mvn spring-boot:run "-Dspring-boot.run.profiles=docker,smtp"
+# Docker: SPRING_PROFILES_ACTIVE=production,smtp trong .env (cùng MAIL_HOST, …).
 
 app:
   frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
   mail-from: ${APP_MAIL_FROM:EduCycle <noreply@educycle.local>}
+  # Ảnh sản phẩm (local). Production: dùng object storage + URL công khai.
+  upload-dir: ${APP_UPLOAD_DIR:./data/uploads}
 
 cors:
   allowed-origins:
     - "http://localhost:5173"
     - "http://127.0.0.1:5173"
     - "http://localhost:3000"
+    # Docker Compose / nginx phục vụ SPA tại cổng 80 (Sprint 4)
+    - "http://localhost"
+    - "http://127.0.0.1"
 
 jwt:
   secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_AT_LEAST_32_CHARS_LONG}
@@ -42,19 +54,21 @@ jwt:
   audience: EduCycleUsers
   expiration-hours: 2
 
-# ── OAuth2 Social Login ────────────────────────────────────────────────────
-# Điền Client ID từ Google Console và Azure Portal vào đây
-# HOẶC dùng biến môi trường để không commit credentials lên git
 oauth:
   google:
     client-id: 655696942996-23v3ded01q45mth3lufocjntei1mnfp9.apps.googleusercontent.com
     jwks-uri: https://www.googleapis.com/oauth2/v3/certs
   microsoft:
     client-id: 26196491-b38e-48fb-b900-72c05aaec7c0
-    # "common" cho phép cả tài khoản cá nhân + tổ chức (trường học)
-    # Nếu chỉ muốn tài khoản trường học: đổi thành tenant ID của tổ chức
     tenant-id: common
     jwks-uri: https://login.microsoftonline.com/common/discovery/v2.0/keys
+
+# ── Anthropic AI Chatbot ────────────────────────────────────────────────────
+# Lấy API key tại: https://console.anthropic.com/
+# Dùng biến môi trường ANTHROPIC_API_KEY để không commit key lên git
+anthropic:
+  api-key: k-ant-api03-ISbCso6bYPa98uTuL8XqRl6-C3lXC3yU4pE2vWt_giDb8s0AXtLE2sn1pYb2RNph4fTM56erJW74-ZNgHd3JdA-JOumHgAA
+  model: claude-sonnet-4-20250514
 
 springdoc:
   api-docs:

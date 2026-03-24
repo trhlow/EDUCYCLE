@@ -95,4 +95,17 @@ public class User {
 
     @Column(name = "refresh_token_expiry")
     private Instant refreshTokenExpiry;
+
+    // ===== Notification preferences (Sprint 3) =====
+    @Column(name = "notify_product_moderation", nullable = false)
+    @Builder.Default
+    private boolean notifyProductModeration = true;
+
+    @Column(name = "notify_transactions", nullable = false)
+    @Builder.Default
+    private boolean notifyTransactions = true;
+
+    @Column(name = "notify_messages", nullable = false)
+    @Builder.Default
+    private boolean notifyMessages = true;
 }

@@ -1,5 +1,7 @@
 package com.educycle.service.impl;
 
+import com.educycle.dto.common.PageResponse;
+import com.educycle.dto.product.AdminRejectProductRequest;
 import com.educycle.dto.product.CreateProductRequest;
 import com.educycle.dto.product.ProductResponse;
 import com.educycle.dto.product.UpdateProductRequest;
@@ -19,6 +21,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,9 +103,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> getAll() {
-        List<Product> products = productRepository.findByStatusWithUser(ProductStatus.APPROVED);
-        return mapAllWithReviews(products);
+    public PageResponse<ProductResponse> getAll(Pageable pageable) {
+        Page<Product> page = productRepository.findByStatus(ProductStatus.APPROVED, pageable);
+        List<ProductResponse> content = mapAllWithReviews(page.getContent());
+        return new PageResponse<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isFirst(),
+                page.isLast());
     }
 
     // ===== GET ALL FOR ADMIN (every status) =====
@@ -125,9 +137,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> getMyProducts(UUID userId) {
-        return mapAllWithReviews(
-                productRepository.findByUserIdWithUser(userId));
+    public PageResponse<ProductResponse> getMyProducts(UUID userId, Pageable pageable) {
+        Page<Product> page = productRepository.findByUser_Id(userId, pageable);
+        List<ProductResponse> content = mapAllWithReviews(page.getContent());
+        return new PageResponse<>(
+                content,
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isFirst(),
+                page.isLast());
     }
 
     // ===== UPDATE =====
@@ -155,6 +175,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCondition(request.condition());
         product.setContactNote(request.contactNote());
         product.setStatus(ProductStatus.PENDING); // reset to pending on edit
+        product.setRejectReason(null);
 
         productRepository.save(product);
         return mapToResponse(product, Collections.emptyList());
@@ -183,6 +204,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
         product.setStatus(ProductStatus.APPROVED);
+        product.setRejectReason(null);
         productRepository.save(product);
         log.info("Product approved: {}", id);
 
@@ -199,19 +221,31 @@ public class ProductServiceImpl implements ProductService {
     // ===== REJECT =====
 
     @Override
-    public ProductResponse reject(UUID id) {
+    public ProductResponse reject(UUID id, AdminRejectProductRequest request) {
         Product product = productRepository.findByIdWithUser(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
 
+        String reason = null;
+        if (request != null && request.reason() != null) {
+            String r = request.reason().trim();
+            reason = r.isEmpty() ? null : r;
+        }
+
         product.setStatus(ProductStatus.REJECTED);
+        product.setRejectReason(reason);
         productRepository.save(product);
         log.info("Product rejected: {}", id);
+
+        String msg = "Sản phẩm '" + product.getName() + "' đã bị từ chối. Vui lòng chỉnh sửa và đăng lại.";
+        if (reason != null) {
+            msg += "\nLý do: " + reason;
+        }
 
         notificationService.create(
                 product.getUser().getId(),
                 "PRODUCT_REJECTED",
                 "Sản phẩm bị từ chối",
-                "Sản phẩm '" + product.getName() + "' đã bị từ chối. Vui lòng chỉnh sửa và đăng lại.",
+                msg,
                 product.getId());
 
         return mapToResponse(product, Collections.emptyList());
@@ -223,6 +257,9 @@ public class ProductServiceImpl implements ProductService {
      * Batch-loads reviews for all products in a SINGLE query (fixes N+1).
      */
     private List<ProductResponse> mapAllWithReviews(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return List.of();
+        }
         Set<UUID> ids = products.stream().map(Product::getId).collect(Collectors.toSet());
         Map<UUID, List<Review>> reviewMap = reviewRepository.findByProductIdIn(ids)
                 .stream()
@@ -263,7 +300,8 @@ public class ProductServiceImpl implements ProductService {
                 p.getStatus().name(),
                 avgRating,
                 reviews.size(),
-                p.getCreatedAt()
+                p.getCreatedAt(),
+                p.getRejectReason()
         );
     }
 

@@ -23,5 +23,6 @@ public record ProductResponse(
         String status,
         double averageRating,
         int reviewCount,
-        Instant createdAt
+        Instant createdAt,
+        String rejectReason
 ) {}

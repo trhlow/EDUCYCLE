@@ -27,7 +27,15 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void create(UUID userId, String type, String title, String message, UUID relatedId) {
-        User user = userRepository.getReferenceById(userId);
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            log.warn("Skip notification: user {} not found", userId);
+            return;
+        }
+        if (!shouldNotify(user, type)) {
+            log.debug("Skip notification type={} for user {} (preferences)", type, userId);
+            return;
+        }
 
         Notification n = Notification.builder()
                 .user(user)
@@ -46,6 +54,17 @@ public class NotificationServiceImpl implements NotificationService {
                 dto
         );
         log.debug("Notification sent: type={} userId={}", type, userId);
+    }
+
+    private static boolean shouldNotify(User user, String type) {
+        if (type == null) {
+            return true;
+        }
+        return switch (type) {
+            case "PRODUCT_APPROVED", "PRODUCT_REJECTED" -> user.isNotifyProductModeration();
+            case "NEW_MESSAGE" -> user.isNotifyMessages();
+            default -> user.isNotifyTransactions();
+        };
     }
 
     @Override

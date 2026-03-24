@@ -2,6 +2,7 @@ package com.educycle.service.impl;
 
 import com.educycle.dto.user.PublicReviewSnippet;
 import com.educycle.dto.user.PublicUserProfileResponse;
+import com.educycle.dto.user.UpdateNotificationPrefsRequest;
 import com.educycle.dto.user.UpdateUserProfileRequest;
 import com.educycle.dto.user.UserMeResponse;
 import com.educycle.exception.NotFoundException;
@@ -50,6 +51,16 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
+    public UserMeResponse updateNotificationPrefs(UUID userId, UpdateNotificationPrefsRequest request) {
+        User u = loadUser(userId);
+        u.setNotifyProductModeration(request.notifyProductModeration());
+        u.setNotifyTransactions(request.notifyTransactions());
+        u.setNotifyMessages(request.notifyMessages());
+        userRepository.save(u);
+        return toResponse(u);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PublicUserProfileResponse getPublicProfile(UUID userId) {
         User u = userRepository.findById(userId)
@@ -91,7 +102,10 @@ public class UserProfileServiceImpl implements UserProfileService {
                 u.isPhoneVerified(),
                 u.getPhone(),
                 u.getBio(),
-                u.getAvatar()
+                u.getAvatar(),
+                u.isNotifyProductModeration(),
+                u.isNotifyTransactions(),
+                u.isNotifyMessages()
         );
     }
 }

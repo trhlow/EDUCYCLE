@@ -71,6 +71,10 @@ public class Product {
     @Builder.Default
     private ProductStatus status = ProductStatus.PENDING;
 
+    /** Lý do từ chối gần nhất (admin moderation) */
+    @Column(name = "reject_reason", columnDefinition = "TEXT")
+    private String rejectReason;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

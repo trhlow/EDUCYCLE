@@ -1,6 +1,9 @@
 package com.educycle.service;
 
+import com.educycle.dto.common.PageResponse;
 import com.educycle.dto.product.*;
+
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,13 +14,13 @@ public interface ProductService {
 
     ProductResponse getById(UUID id);
 
-    List<ProductResponse> getAll();
+    PageResponse<ProductResponse> getAll(Pageable pageable);
 
     List<ProductResponse> getAllForAdmin();
 
     List<ProductResponse> getPending();
 
-    List<ProductResponse> getMyProducts(UUID userId);
+    PageResponse<ProductResponse> getMyProducts(UUID userId, Pageable pageable);
 
     ProductResponse update(UUID id, UpdateProductRequest request, UUID userId);
 
@@ -25,5 +28,5 @@ public interface ProductService {
 
     ProductResponse approve(UUID id);
 
-    ProductResponse reject(UUID id);
+    ProductResponse reject(UUID id, AdminRejectProductRequest request);
 }

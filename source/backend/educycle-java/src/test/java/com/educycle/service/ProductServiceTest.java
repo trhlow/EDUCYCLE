@@ -1,5 +1,6 @@
 package com.educycle.service;
 
+import com.educycle.dto.common.PageResponse;
 import com.educycle.dto.product.CreateProductRequest;
 import com.educycle.dto.product.ProductResponse;
 import com.educycle.dto.product.UpdateProductRequest;
@@ -22,6 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -164,27 +168,30 @@ class ProductServiceTest {
                     buildProduct(UUID.randomUUID(), testUser, "P1", "10.00"),
                     buildProduct(UUID.randomUUID(), testUser, "P2", "20.00")
             );
-            given(productRepository.findByStatusWithUser(ProductStatus.APPROVED)).willReturn(products);
+            Pageable pageable = PageRequest.of(0, 20);
+            given(productRepository.findByStatus(eq(ProductStatus.APPROVED), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(products, pageable, products.size()));
 
             // Act
-            List<ProductResponse> result = productService.getAll();
+            PageResponse<ProductResponse> result = productService.getAll(pageable);
 
             // Assert
-            assertThat(result).hasSize(2);
+            assertThat(result.content()).hasSize(2);
         }
 
         @Test
         @DisplayName("should return empty list when no products exist")
         void shouldReturnEmpty_whenNoProducts() {
             // Arrange — maps C# GetAllAsync_ShouldReturnEmpty_WhenNoProducts
-            given(productRepository.findByStatusWithUser(ProductStatus.APPROVED))
-                    .willReturn(Collections.emptyList());
+            Pageable pageable = PageRequest.of(0, 20);
+            given(productRepository.findByStatus(eq(ProductStatus.APPROVED), any(Pageable.class)))
+                    .willReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             // Act
-            List<ProductResponse> result = productService.getAll();
+            PageResponse<ProductResponse> result = productService.getAll(pageable);
 
             // Assert
-            assertThat(result).isEmpty();
+            assertThat(result.content()).isEmpty();
         }
     }
 

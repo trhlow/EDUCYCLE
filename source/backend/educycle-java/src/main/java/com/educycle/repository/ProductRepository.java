@@ -2,6 +2,8 @@ package com.educycle.repository;
 
 import com.educycle.enums.ProductStatus;
 import com.educycle.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,6 +22,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT p FROM Product p JOIN FETCH p.user WHERE p.status = :status")
     List<Product> findByStatusWithUser(ProductStatus status);
+
+    Page<Product> findByStatus(ProductStatus status, Pageable pageable);
+
+    Page<Product> findByUser_Id(UUID userId, Pageable pageable);
 
     @Query("SELECT p FROM Product p JOIN FETCH p.user WHERE p.user.id = :userId")
     List<Product> findByUserIdWithUser(UUID userId);

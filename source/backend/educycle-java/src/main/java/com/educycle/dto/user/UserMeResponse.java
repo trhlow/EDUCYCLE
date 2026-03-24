@@ -11,5 +11,8 @@ public record UserMeResponse(
         boolean phoneVerified,
         String phone,
         String bio,
-        String avatar
+        String avatar,
+        boolean notifyProductModeration,
+        boolean notifyTransactions,
+        boolean notifyMessages
 ) {}
