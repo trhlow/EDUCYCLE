@@ -11,8 +11,11 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Security: run as non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Healthcheck + thư mục upload (volume mount)
+RUN apk add --no-cache wget \
+  && addgroup -S appgroup && adduser -S appuser -G appgroup \
+  && mkdir -p /app/data/uploads && chown -R appuser:appgroup /app/data
+
 USER appuser
 
 ENV SPRING_PROFILES_ACTIVE=production

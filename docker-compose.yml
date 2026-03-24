@@ -1,0 +1,66 @@
+# EduCycle — full stack production-style (Sprint 4)
+# Chạy từ thư mục gốc repo:  docker compose up --build
+#
+# Sau khi lên: http://localhost  (nginx → SPA + proxy /api, /ws)
+# Đặt JWT_SECRET mạnh trong .env hoặc shell trước khi chạy.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: educycledb
+      POSTGRES_USER: educycle
+      POSTGRES_PASSWORD: educycle123
+    volumes:
+      - educycle_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U educycle -d educycledb']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./source/backend/educycle-java
+      dockerfile: Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
+      SPRING_DATASOURCE_USERNAME: educycle
+      SPRING_DATASOURCE_PASSWORD: educycle123
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
+      APP_UPLOAD_DIR: /app/data/uploads
+      # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
+      # AI chatbot (tuỳ chọn) — xem SETUP_CHATBOT.md
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - educycle_uploads:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - '8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/actuator/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  web:
+    build:
+      context: ./source/frontend
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  educycle_pg_data:
+  educycle_uploads:

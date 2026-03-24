@@ -17,9 +17,12 @@ You are a thoughtful Senior Developer working on EduCycle — a P2P platform for
 **Stack**
 - Backend: Java 17 + Spring Boot 3.2.5 + PostgreSQL + Flyway + JJWT 0.12.5 + Bucket4j 8.10.1
 - Frontend: React 19 + Vite 7 + JavaScript + Axios + Context API + @stomp/stompjs + sockjs-client
-- Backend path: `source/backend/educycle-java/` | run: `mvn spring-boot:run` | default port **8080**; profile **`docker`**: **8081** + Postgres **5433** (`docker-compose.yml`, `application-docker.yml`)
-- Frontend path: `source/frontend/` | run: `npm run dev` | port: 5173 | Vite proxy `/api` + `/ws` → `VITE_DEV_PROXY_TARGET` (mặc định **8081**)
-- Flyway migrations: V1–V4 exist — **next is V5**
+- Backend path: `source/backend/educycle-java/` | `mvn spring-boot:run` → API **8080** (Postgres URL mặc định **5432**). Profile **`docker`**: `mvn spring-boot:run "-Dspring-boot.run.profiles=docker"` → API **8081** + Postgres **`localhost:5433`** (`application-docker.yml`). Postgres dev có cổng host: `source/backend/educycle-java/docker-compose.yml` (**5433:5432**).
+- **Docker full stack (repo root):** `docker-compose.yml` — db + api + nginx; service **`db` không publish** cổng ra host → pgAdmin `localhost:5433` **timeout** nếu chỉ chạy stack này (dùng compose backend ở trên, `ports` override, hoặc `docker exec` + `psql`). Service **`api` không publish** ra host — `npm run dev` + Vite proxy cần BE trên máy (`mvn`) hoặc publish cổng `api`.
+- Frontend path: `source/frontend/` | `npm run dev` | port **5173** | Vite proxy `/api` + `/ws` — mặc định tới **`http://localhost:8080`** (`vite.config.js`). Khi BE chạy profile **docker** (**8081**): đặt `VITE_DEV_PROXY_TARGET=http://localhost:8081` trong `.env.local` hoặc `.env.development`, restart dev server.
+- **SMTP (tuỳ chọn):** profile Spring **`smtp`** + `application-smtp.yml` + biến `MAIL_*` — xem `README.md`, `.env.example`; không bật → `MailService` chỉ log email (dev).
+- **AI chat:** `ANTHROPIC_API_KEY`, rate limit in-memory (`AiChatRateLimiter`, 30/user/giờ) — xem `SETUP_CHATBOT.md`.
+- Flyway: migrations **V1–V8** đã có — file tiếp theo **V9**. Không sửa file migration đã apply.
 
 ---
 
@@ -47,7 +50,7 @@ You are a thoughtful Senior Developer working on EduCycle — a P2P platform for
 ## 3. NON-NEGOTIABLE PROJECT RULES
 
 1. **Status enums are UPPERCASE from backend**: `"PENDING"` `"ACCEPTED"` `"APPROVED"` `"ADMIN"` — always `.toUpperCase()` before comparing in frontend
-2. **Flyway**: V1, V2, V3 exist — next is **V4**. Never modify existing migration files
+2. **Flyway**: **V1–V8** đã tồn tại — migration tiếp theo **V9**. Không sửa file migration đã chạy trên DB
 3. **Refresh token**: always `SecureRandom` 64 bytes — never `UUID.randomUUID()`
 4. **No mock fallback** in `AuthContext` — throw real errors when backend is down
 5. **CSS**: always `var(--token-name)` from `tokens.css` — never hardcode hex or pixel values
@@ -142,6 +145,8 @@ products.stream().map(p -> {
 List<Product> findByStatusWithReviews(@Param("status") ProductStatus status);
 ```
 
+- **EduCycle:** `ProductServiceImpl.mapAllWithReviews` dùng batch `ReviewRepository.findByProductIdIn` (không gọi `findByProductId` trong vòng lặp).
+
 ### Logging — @Slf4j
 ```java
 log.info("Product created: {} by user {}", product.getId(), userId);  // business events
@@ -186,12 +191,13 @@ const handleSubmit = async (e) => {            // const arrow + handle prefix
 ### API calls
 ```javascript
 import { authApi, productsApi, transactionsApi, messagesApi,
-         reviewsApi, notificationsApi, categoriesApi, adminApi } from '../api/endpoints';
+         reviewsApi, notificationsApi, categoriesApi, adminApi, aiApi } from '../api/endpoints';
 
 const res = await productsApi.getById(id);     // call
 return res.data;                               // use
 
 const msg = err.response?.data?.message || err.response?.data || 'Lỗi không xác định'; // error
+// Hoặc err.userFacingMessage từ interceptor (`getApiErrorMessage` trong `apiError.js`)
 ```
 
 ### Contexts

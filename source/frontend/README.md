@@ -167,6 +167,8 @@ npm run dev
 
 Truy cập → **[http://localhost:5173](http://localhost:5173)** — Tự động proxy API requests đến backend.
 
+**Production (Docker):** từ thư mục gốc monorepo chạy `docker compose up --build` — image FE build bằng `Dockerfile` + `nginx.conf` (proxy `/api`, `/ws`). Chi tiết: `README.md` ở root repo.
+
 > **Yêu cầu**: Node.js ≥ 18 · Backend chạy tại cổng trùng `VITE_DEV_PROXY_TARGET` (mặc định **8081** / profile `docker`)
 
 ---

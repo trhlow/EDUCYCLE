@@ -76,6 +76,11 @@ jwt:
   expiration-hours: 2
 ```
 
+**Ảnh sản phẩm (Sprint 3)** — mặc định lưu đĩa cục bộ, không nhét base64 vào DB:
+- `app.upload-dir` (default `./data/uploads`) hoặc biến môi trường **`APP_UPLOAD_DIR`**
+- `POST /api/upload/product-image` (multipart, cần JWT) → `{ "url": "/api/files/<uuid>.ext" }`
+- `GET /api/files/**` phục vụ file tĩnh (anonymous). Production nên chuyển sang S3 / MinIO / Cloudinary nếu scale nhiều instance.
+
 ### 3. Run
 ```bash
 mvn spring-boot:run

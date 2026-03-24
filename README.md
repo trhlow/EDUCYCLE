@@ -14,6 +14,8 @@
 
 EduCycle giúp sinh viên tìm, đăng bán và trao đổi sách giáo trình, tài liệu học tập một cách nhanh gọn, minh bạch và tiết kiệm chi phí. Hệ thống bao gồm REST API (Java 17 + Spring Boot) và giao diện SPA (React 19 + Vite 7).
 
+**Kiến trúc & onboarding nhanh:** xem [`ARCHITECTURE.md`](ARCHITECTURE.md) (sơ đồ, hai kiểu chạy Docker/dev, pitfall proxy/Postgres).
+
 ### Tính năng chính
 
 - Đăng ký / đăng nhập bằng email `.edu.vn`, Google hoặc Microsoft
@@ -22,6 +24,7 @@ EduCycle giúp sinh viên tìm, đăng bán và trao đổi sách giáo trình, 
 - Giao dịch P2P với OTP xác nhận khi gặp mặt
 - Chat thời gian thực qua WebSocket (STOMP)
 - Hệ thống thông báo (database + STOMP)
+- Trợ lý AI (Claude) — widget toàn site; cấu hình: [`SETUP_CHATBOT.md`](SETUP_CHATBOT.md)
 - Đánh giá người bán / người mua
 - Trang quản trị duyệt sản phẩm, quản lý người dùng
 
@@ -36,6 +39,7 @@ EDUCYCLE/
 │   └── frontend/                # SPA — React 19 + Vite 7
 ├── .github/workflows/           # CI/CD
 ├── NOTES.md                     # Trạng thái dự án, changelog, quy tắc
+├── ARCHITECTURE.md              # Kiến trúc runtime, luồng auth/WS, onboarding checklist
 └── README.md
 ```
 
@@ -53,7 +57,32 @@ EDUCYCLE/
 | Frontend | React 19, Vite 7, Axios, Context API, React Router 7 |
 | OAuth SDK | @react-oauth/google, @azure/msal-browser |
 | Build | Maven (BE), npm + Vite (FE) |
-| Container | Docker Compose (PostgreSQL) |
+| Container | Docker Compose (Postgres; full stack xem mục **Docker — cả hệ thống**) |
+
+---
+
+## Docker — cả hệ thống (Sprint 4)
+
+Từ thư mục gốc repo (có file `docker-compose.yml`):
+
+```bash
+# Bắt buộc: JWT bí mật đủ dài (hoặc tạo file .env từ .env.example)
+export JWT_SECRET="$(openssl rand -base64 48)"   # Linux / macOS / Git Bash
+docker compose up --build
+```
+
+PowerShell (Windows):
+
+```powershell
+$env:JWT_SECRET = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 48 | ForEach-Object { [char]$_ })
+docker compose up --build
+```
+
+- **Ứng dụng:** http://localhost (nginx phục vụ SPA + reverse proxy `/api` và `/ws` tới API)
+- **Postgres:** chỉ trong mạng nội bộ Docker (không publish cổng DB ra host)
+- **Upload ảnh:** volume `educycle_uploads` gắn vào `/app/data/uploads` trên container API
+
+Chi tiết biến môi trường: `.env.example`. Backend vẫn có `source/backend/educycle-java/docker-compose.yml` chỉ chạy Postgres (dev).
 
 ---
 
@@ -127,20 +156,31 @@ npm run dev
 
 ### Email (SMTP — tuỳ chọn)
 
-OTP đăng ký, gửi lại OTP và **quên mật khẩu** dùng `MailService`. Nếu chưa cấu hình SMTP, backend vẫn chạy và **ghi nội dung email vào log** (tiện cho dev).
+OTP đăng ký, gửi lại OTP và **quên mật khẩu** dùng `MailService`. Nếu không bật profile `smtp`, backend **không** tạo `JavaMailSender` và **ghi nội dung email vào log** (tiện cho dev).
 
-Để gửi email thật, cấu hình Spring Mail (ví dụ Gmail [App Password](https://support.google.com/accounts/answer/185833)) trong `application.yml` hoặc biến môi trường, ví dụ:
+Để gửi email thật:
 
-| Mục | Ví dụ |
-|-----|--------|
-| `spring.mail.host` | `smtp.gmail.com` |
-| `spring.mail.port` | `587` |
-| `spring.mail.username` | địa chỉ Gmail |
-| `spring.mail.password` | App Password |
-| `spring.mail.properties.mail.smtp.auth` | `true` |
-| `spring.mail.properties.mail.smtp.starttls.enable` | `true` |
-| `app.mail-from` | `EduCycle <your@gmail.com>` |
-| `app.frontend-base-url` | `http://localhost:5173` (link trong email đặt lại mật khẩu) |
+1. Bật profile **`smtp`** (file `application-smtp.yml` map biến môi trường → `spring.mail.*`).
+2. Đặt biến môi trường (Gmail: tạo [App Password](https://support.google.com/accounts/answer/185833)).
+
+| Biến | Mô tả |
+|------|--------|
+| `MAIL_HOST` | Ví dụ `smtp.gmail.com` |
+| `MAIL_PORT` | Mặc định `587` nếu không set |
+| `MAIL_USERNAME` | Tài khoản SMTP (ví dụ Gmail) |
+| `MAIL_PASSWORD` | Mật khẩu ứng dụng / SMTP |
+| `APP_MAIL_FROM` | Header From, ví dụ `EduCycle <you@gmail.com>` |
+| `APP_FRONTEND_BASE_URL` | Link trong email đặt lại mật khẩu (Vite dev: `http://localhost:5173`; Docker stack: `http://localhost`) |
+
+**Chạy local (Postgres Docker 5433):**
+
+```bash
+export MAIL_HOST=smtp.gmail.com MAIL_USERNAME=you@gmail.com MAIL_PASSWORD=xxxx
+export APP_MAIL_FROM="EduCycle <you@gmail.com>"
+mvn spring-boot:run "-Dspring-boot.run.profiles=docker,smtp"
+```
+
+**Docker Compose:** service `api` đọc file `.env` ở thư mục gốc (tuỳ chọn, `required: false`). Trong `.env` đặt `SPRING_PROFILES_ACTIVE=production,smtp`, các biến `MAIL_*`, `APP_MAIL_FROM` (và các biến khác như `JWT_SECRET`). Không khai báo `MAIL_HOST` nếu không dùng SMTP — tránh bind rỗng khiến Spring tạo mail sender lỗi. Mặc định compose vẫn `SPRING_PROFILES_ACTIVE=production` (không SMTP) nếu không ghi đè trong `.env`.
 
 ---
 

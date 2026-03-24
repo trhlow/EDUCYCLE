@@ -1,0 +1,15 @@
+# Profile "smtp" — bật JavaMailSender + gửi email thật (OTP, quên mật khẩu).
+# Kích hoạt: thêm `smtp` vào spring.profiles.active (ví dụ docker,smtp hoặc production,smtp).
+# Bắt buộc: MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD (xem README, .env.example).
+spring:
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

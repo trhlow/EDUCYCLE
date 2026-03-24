@@ -1,6 +1,7 @@
 # EduCycle — NOTES
 > Một file duy nhất cho: trạng thái dự án, bugs, roadmap, git workflow, prompt AI, design rules.
 > Cập nhật mỗi khi xong task. AI rules chi tiết ở `.cursor/rules/educycle.mdc`.
+> **Kiến trúc + checklist onboarding:** `ARCHITECTURE.md` ở gốc repo.
 
 ---
 
@@ -10,10 +11,11 @@
 **Paths:** `source/backend/educycle-java/` · `source/frontend/`
 
 **Ports (dev):**
-- `mvn spring-boot:run` (default) → API **8080**, Postgres **5432**
-- `mvn spring-boot:run -Dspring-boot.run.profiles=docker` → API **8081**, Postgres **5433**
-- Vite proxy mặc định → `http://localhost:8080` (đã fix, trước là 8081)
-- Nếu cần dùng docker profile: tạo `source/frontend/.env.local` → `VITE_DEV_PROXY_TARGET=http://localhost:8081`
+- `mvn spring-boot:run` (default) → API **8080**, Postgres **5432** (local hoặc Docker map 5432)
+- `mvn spring-boot:run "-Dspring-boot.run.profiles=docker"` → API **8081**, Postgres URL mặc định **`localhost:5433`** (`application-docker.yml`)
+- Vite proxy mặc định → `http://localhost:8080` — nếu BE chạy profile **docker** (8081): đặt `VITE_DEV_PROXY_TARGET=http://localhost:8081` trong `source/frontend/.env.local` hoặc `.env.development`, rồi restart `npm run dev`
+- **Postgres / pgAdmin:** `docker-compose.yml` **gốc repo** (db + api + web) **không publish** cổng DB ra máy host → pgAdmin `localhost:5433` sẽ **timeout** nếu chỉ chạy stack đó. Để có **5433** trên Windows: chạy `source/backend/educycle-java/docker-compose.yml` (`ports: 5433:5432`), hoặc thêm `ports` cho service `db` trong compose gốc (override), hoặc `docker exec` vào container `db` dùng `psql`
+- Chỉ chạy stack Docker gốc + `npm run dev`: API **không** lộ ra host — cần thêm `mvn` local hoặc publish cổng `api` nếu muốn proxy Vite tới BE
 
 **Branch hiện tại:** `dev` — v0.6.x
 
@@ -37,25 +39,28 @@
 | OTP transaction: buyer/seller guard | ✅ | — | `generateOtp(actor)`, `verifyOtp(actor)` + 403 |
 | Cart P2P (không giỏ checkout) | — | ✅ | `/cart` → hướng dẫn; xóa `CartContext` |
 | Wishlist copy + CTA yêu cầu mua | — | ✅ | Bỏ thêm giỏ; link chi tiết sản phẩm |
+| Sprint 3 — upload ảnh + phân trang + sửa tin + notif prefs + reject lý do | ✅ | ✅ | `V8` migration, `FileUploadController`, `PageResponse`, `/products/:id/edit` |
+| Sprint 4 — production polish + Docker full stack | ✅ | ✅ | `docker-compose.yml`, FE `Dockerfile`+nginx, `apiError.js`, Vitest OAuth |
+| SMTP email thật (tuỳ chọn) | ✅ | — | Profile **`smtp`** + `application-smtp.yml`, biến `MAIL_*`, README + `.env.example`; không bật = `MailService` log console |
+| AI chat rate limit | ✅ | — | `AiChatRateLimiter` 30/user/giờ (in-memory) |
 
 ---
 
 ## 2. OPEN TASKS — Fix trước khi làm tính năng mới
 
-### 🔴 Cần làm (liên quan logic nghiệp vụ đã spec)
+### 🔴 Cần làm (blocker nghiệp vụ / đã xác nhận)
 
-| Issue | File | Impact |
-|-------|------|--------|
-| Thêm endpoint `POST /transactions/{id}/dispute` | `TransactionsController` + `TransactionServiceImpl` | DISPUTED flow chưa có BE |
-| Thêm endpoint `PATCH /admin/transactions/{id}/resolve` | `AdminController` + `AdminService` | Admin xử lý tranh chấp |
+Hiện **không** có mục đỏ đang mở. *(Trước đây NOTES còn ghi thiếu `POST …/dispute` và admin resolve — đã có trong repo: `TransactionsController`, `AdminController` + service.)*
 
-### 🟡 Nợ kỹ thuật (không urgent)
+### 🟡 Nợ kỹ thuật / polish (không urgent)
 
-| Issue | File | Impact |
-|-------|------|--------|
-| N+1 query trong `mapAllWithReviews` | `ProductServiceImpl.java` | Perf >50 sản phẩm |
-| Social login buttons chưa kết nối thật | `AuthPage.jsx` | UX |
-| Email service chưa cấu hình | `AuthServiceImpl.java` | OTP hiện chỉ log ra console |
+| Issue | File / vị trí | Ghi chú |
+|-------|---------------|---------|
+| Scale AI rate limit | `AiChatRateLimiter` | Multi-instance → Redis (hoặc tương đương) |
+| Xóa tài khoản / GDPR | Profile + BE | Chưa có API; chỉ thông báo “chưa hỗ trợ” |
+| Email production | `MailService` + SMTP | Bật profile `smtp` + `MAIL_*`; recruiter demo vẫn có thể dùng log OTP nếu không cấu hình |
+| MSAL / COOP cảnh báo console (dev) | `AuthPage` + Vite | Popup OAuth đôi khi log `Cross-Origin-Opener-Policy`; không phải lỗi API |
+| Pagination `findByStatus` + lazy `user` | `ProductRepository` / service | Đã batch reviews (`findByProductIdIn`); nếu list rất lớn có thể cân nhắc query tối ưu thêm |
 
 ### Chạy để kiểm tra sau khi fix
 ```powershell
@@ -77,6 +82,8 @@ npm run dev
 ---
 
 ## 2.5 EXTERNAL REVIEW — Audit ngoại bộ (2026-03-22)
+
+> **Đối chiếu từng ý checklist (Critical/Medium/Minor) với code hiện tại:** `ARCHITECTURE.md` §**10** — tránh làm trùng việc đã xong trong Sprint 1–4.
 
 > Nguồn: đánh giá tổng quan EduCycle (template khóa học vs P2P, FE giả API, thiếu endpoint).  
 > Mục đích: giữ ngữ cảnh cho roadmap; checklist bên dưới được cập nhật khi hoàn thành từng mục.
@@ -108,20 +115,45 @@ npm run dev
 
 #### Sprint 3 — Scale & polish
 
-- [ ] Ảnh: Cloudinary / S3 / MinIO (thay base64 DB)
-- [ ] Pagination API + FE
-- [ ] Edit sản phẩm `/products/:id/edit`
-- [ ] Notification preferences lưu BE
-- [ ] Admin duyệt: xem ảnh, reject reason, notify seller
+- [x] Ảnh: upload cục bộ `POST /api/upload/product-image` + `GET /api/files/{uuid}.ext` (thay base64 DB; S3/Cloudinary tuỳ chọn prod)
+- [x] Pagination API + FE (`PageResponse`, Home + PLP + dashboard mine)
+- [x] Edit sản phẩm `/products/:id/edit` (PUT, chờ duyệt lại)
+- [x] Notification preferences lưu BE (`PATCH /users/me/notification-preferences`)
+- [x] Admin duyệt: xem ảnh thumbnail, reject kèm lý do → notify seller
 
 #### Sprint 4 — Production
 
-- [ ] OAuth E2E test; skeleton loading; error messages; mobile audit
-- [ ] README + deployment (Docker Compose)
+- [x] OAuth flow test (`OAuthCallbackPage.test.jsx` + Vitest); skeleton grid (Home/PLP); `getApiErrorMessage` + `userFacingMessage` trên Axios
+- [x] Mobile audit: viewport-fit, theme-color, safe-area, touch target ≥44px (navbar)
+- [x] README + `docker-compose.yml` gốc repo (db + api + nginx SPA, proxy `/api` + `/ws`)
 
 ### Page scorecard (tham chiếu — không đổi logic code)
 
-Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 (base64) · Transactions ~7 · TransactionDetail ~7 · Guide ~7 · Dashboard ~5 · Profile ~4 → ~3 sau Sprint 1 nếu fix API · Wishlist ~3 → cần copy+CTA · Cart ~1 → repurpose · Admin ~6 · OAuthCallback ~5.
+**Cập nhật sau Sprint 1–4 (ước lượng UX/độ “xong”, không phải metric code):**  
+Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 (upload server + sửa tin) · Transactions ~7 · TransactionDetail ~7 · Guide ~7 · Dashboard ~7 · Profile ~7 (BE prefs, đổi MK) · Wishlist ~7 · Cart ~6 (P2P, không checkout ảo) · Admin ~7 · OAuthCallback ~7 · **Chatbot AI ~7** (cần `ANTHROPIC_API_KEY` — xem `SETUP_CHATBOT.md`).
+
+*Lịch sử audit (trước Sprint 1):* Profile ~4 · Wishlist ~3 · Cart ~1 · Dashboard ~5 · OAuthCallback ~5.
+
+### Đối chiếu audit “production-readiness” (bản ngoài) với repo hiện tại
+
+Nhiều dòng trong bảng đánh giá lan truyền **đã lỗi thời** so với code sau Sprint 2–4. Bảng dưới chỉ để **đồng bộ sự thật trong repo**, không thay đổi logic nghiệp vụ.
+
+| Khẳng định trong audit | Thực tế repo (kiểm tra code) |
+|------------------------|------------------------------|
+| FE pagination / mapping `PageResponse` sai → list rỗng | Đã fix: `extractPage`, Home + ProductListing “Tải thêm”, Dashboard `getMyProducts` có `page/size`. |
+| `patchNotificationPrefs` không có trong `endpoints.js` | **Có:** `usersApi.patchNotificationPrefs`. |
+| Không có Edit Product / route | **Có:** `/products/:id/edit`, nút Sửa dashboard, `PUT` BE. |
+| Ảnh vẫn base64 DB | **Đã chuyển:** upload `POST /api/upload/product-image`, URL `/api/files/...` (local disk; Cloudinary/S3 tuỳ chọn prod). |
+| Không có skeleton | **Có:** `ProductGridSkeleton` (Home + PLP); `PageLoader` có `aria-*`. |
+| `GET /api/public/users/{id}` không chắc có | **Có:** `PublicProfileController` + FE `UserPublicProfilePage`. |
+| ProductDetail không link hồ sơ bán | **Có:** `Link` tới `/users/{sellerId}`. |
+| Không có `docker-compose` full stack | **Có:** `docker-compose.yml` gốc repo (db + api + nginx). |
+| AI chat không rate limit | **Có:** `AiChatRateLimiter` — **30 tin/user/giờ** (in-memory; scale sau cần Redis). |
+| SMTP / email thật | **Tuỳ chọn:** profile **`smtp`** + `MAIL_*` (`application-smtp.yml`, README). Không bật = log console — vẫn đủ dev; demo recruiter cần email thật thì phải cấu hình. |
+| Xóa tài khoản | **Vẫn chưa BE:** Profile chỉ logout + thông báo — đúng như spec “chưa hỗ trợ”. |
+| `robots.txt` / `sitemap` | **Có:** `source/frontend/public/` (Vite copy ra `dist`). |
+
+**Kết luận ngắn:** Điểm yếu **thực sự** để “production-ready” vẫn là: **cấu hình SMTP** (hoặc provider khác), **xóa tài khoản/GDPR** nếu bắt buộc, và **vận hành** (backup DB, secret rotation, multi-instance → Redis cho rate limit AI). Phần còn lại của audit cần **chạy lại trên branch hiện tại** trước khi copy vào CV/PR.
 
 ---
 
@@ -190,7 +222,7 @@ chore(fe): remove unused npm dependencies
 cd D:\EDUCYCLE
 git checkout dev && git pull origin dev
 git add <specific files>          # KHÔNG git add .
-git commit -m "<type>(<scope>): <mô tả>"
+git commit -m "<type>(<scope>): <mô tả>" # không dồn tất cả vào 1 commit mà chia ra nhiều commit
 git push origin dev
 git log -1 --oneline
 ```
@@ -242,7 +274,7 @@ git push origin dev
 ## 5. RULES BẮT BUỘC
 
 1. **Status UPPERCASE** — BE trả `"PENDING"` `"ADMIN"` `"APPROVED"` `"SOLD"` → FE dùng `.toUpperCase()`
-2. **Flyway** — V1/V2/V3/V4 không được sửa → thêm V5...
+2. **Flyway** — Không sửa migration đã chạy (hiện **V1–V8**) → file tiếp theo **V9**
 3. **Token** — dùng `SecureRandom` 64 bytes, không `UUID.randomUUID()`
 4. **CSS** — dùng `var(--token)` từ `tokens.css`, không hardcode hex
 5. **AuthContext** — không có mock fallback, throw lỗi thật
@@ -267,7 +299,7 @@ git push origin dev
 
 | API / cấu hình | FE gửi / giá trị | BE nhận (record field) |
 |----------------|------------------|-------------------------|
-| **Dev — Vite proxy** | `VITE_DEV_PROXY_TARGET` trong `.env.local` nếu cần | Mặc định `http://localhost:8080`; chỉ `8081` khi BE profile `docker` |
+| **Dev — Vite proxy** | `VITE_DEV_PROXY_TARGET` trong `.env.local` hoặc `.env.development` | Mặc định `http://localhost:8080`; **`8081`** khi BE profile **`docker`** |
 | `POST /auth/login` | `{ email, password }` | `LoginRequest { email, password }` |
 | `POST /auth/register` | `{ username, email, password }` | `RegisterRequest { username, email, password }` |
 | `POST /auth/refresh` | `{ refreshToken }` | `RefreshTokenRequest { refreshToken }` |
@@ -304,6 +336,11 @@ git push origin dev
 ---
 
 ## 7. CHANGELOG
+
+### [0.6.4] — 2026-03-24 — NOTES + ops (docs sync)
+
+**Changed (docs / ops — không đổi yêu cầu code)**
+- `NOTES.md`: xóa backlog sai (dispute/admin đã có BE); cập nhật nợ kỹ thuật (social đã nối BE, SMTP qua profile `smtp`); bổ sung **Postgres / pgAdmin** (compose gốc vs `educycle-java` 5433), **Vite proxy 8081**, Flyway **V9** tiếp theo; thêm route public `/users/:id` trong sơ đồ nav
 
 ### [0.6.3] — 2026-03-21 — Sprint 2 (missing features)
 
@@ -612,7 +649,7 @@ xs: 0–374px  |  sm: 375px+  |  md: 768px+  |  lg: 1024px+  |  xl: 1280px+
 ### 9.5 Screens & Navigation Flow
 
 ```
-PUBLIC:  /  /auth  /products  /products/:id  /transactions/guide  /about  /contact
+PUBLIC:  /  /auth  /products  /products/:id  /users/:id  /transactions/guide  /about  /contact
 USER:    /products/new  /cart  /wishlist  /profile  /transactions  /transactions/:id
 ADMIN:   /dashboard  /admin
 ```
