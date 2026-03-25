@@ -1,0 +1,21 @@
+# Profile production — bật qua SPRING_PROFILES_ACTIVE=production (Docker Compose gốc).
+# Tắt OpenAPI/Swagger công khai (Principal Engineer audit §10.5).
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+educycle:
+  rate-limit:
+    prefer-x-real-ip: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never

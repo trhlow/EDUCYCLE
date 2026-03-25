@@ -1,0 +1,15 @@
+# GitHub Actions / jar CI — Postgres service trên localhost:5432 (map cổng)
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/educycledb}
+    username: ${SPRING_DATASOURCE_USERNAME:educycle}
+    password: ${SPRING_DATASOURCE_PASSWORD:educycle_test}
+
+educycle:
+  rate-limit:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.educycle: INFO

@@ -3,14 +3,25 @@
 #
 # Sau khi lên: http://localhost  (nginx → SPA + proxy /api, /ws)
 # Đặt JWT_SECRET mạnh trong .env hoặc shell trước khi chạy.
+# Production/hosted: đặt POSTGRES_PASSWORD (và JWT_SECRET) trong .env — không dùng mặc định.
 
 services:
+  redis:
+    image: redis:7-alpine
+    expose:
+      - '6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: educycledb
       POSTGRES_USER: educycle
-      POSTGRES_PASSWORD: educycle123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-educycle123}
     volumes:
       - educycle_pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,17 +41,22 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
       SPRING_DATASOURCE_USERNAME: educycle
-      SPRING_DATASOURCE_PASSWORD: educycle123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-educycle123}
       JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
       APP_UPLOAD_DIR: /app/data/uploads
       # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
       # AI chatbot (tuỳ chọn) — xem SETUP_CHATBOT.md
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      EDUCYCLE_REDIS_ENABLED: ${EDUCYCLE_REDIS_ENABLED:-true}
+      EDUCYCLE_REDIS_HOST: redis
+      EDUCYCLE_REDIS_PORT: 6379
     volumes:
       - educycle_uploads:/app/data/uploads
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     expose:
       - '8080'
@@ -61,6 +77,7 @@ services:
       api:
         condition: service_healthy
 
+# Multi-replica / production: thay volume upload bằng S3/R2/MinIO (presigned URL) — xem docs backend.
 volumes:
   educycle_pg_data:
   educycle_uploads:
