@@ -7,9 +7,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -25,7 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@ConditionalOnProperty(name = "educycle.rate-limit.enabled", havingValue = "true", matchIfMissing = true)
 public class RateLimitFilter extends OncePerRequestFilter {
+
+    @Value("${educycle.rate-limit.prefer-x-real-ip:false}")
+    private boolean preferXRealIp;
 
     private final Map<String, Bucket> authBuckets = new ConcurrentHashMap<>();
     private final Map<String, Bucket> apiBuckets = new ConcurrentHashMap<>();
@@ -83,10 +90,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Chỉ tin {@code X-Real-IP} khi reverse proxy (nginx) gán từ {@code $remote_addr}.
+     * Không đọc X-Forwarded-For thô — client có thể giả mạo.
+     */
     private String getClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return (forwarded != null && !forwarded.isBlank())
-                ? forwarded.split(",")[0].trim()
-                : request.getRemoteAddr();
+        if (preferXRealIp) {
+            String xri = request.getHeader("X-Real-IP");
+            if (StringUtils.hasText(xri)) {
+                return xri.trim();
+            }
+        }
+        return request.getRemoteAddr();
     }
 }

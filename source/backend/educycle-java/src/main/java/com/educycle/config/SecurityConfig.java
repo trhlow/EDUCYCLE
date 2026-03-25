@@ -32,6 +32,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            // Stateless JWT — không dùng session cookie → CSRF không áp dụng.
+            // Nếu sau này thêm cookie-based auth / refresh, phải bật lại CSRF.
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -55,8 +57,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/categories/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                // ── Wishlist (authenticated)
+                .requestMatchers(HttpMethod.GET, "/api/wishlist").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/wishlist/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/wishlist/**").authenticated()
                 // ── AI Chatbot — require login (prevent abuse)
                 .requestMatchers(HttpMethod.POST, "/api/ai/chat").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/ai/chat/stream").authenticated()
                 // ── WebSocket
                 .requestMatchers("/ws/**").permitAll()
                 // ── Swagger / Actuator

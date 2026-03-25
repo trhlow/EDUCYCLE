@@ -25,7 +25,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Lưu ảnh cục bộ (dev / nhỏ) — thay base64 trong DB. Production có thể chuyển sang S3/Cloudinary.
+ * Lưu ảnh cục bộ (dev / Docker volume). Nhiều replica: dùng object storage (S3/R2/MinIO) + URL công khai,
+ * không dùng ổ đĩa pod — xem comment trong docker-compose.yml (volumes).
  */
 @Slf4j
 @RestController

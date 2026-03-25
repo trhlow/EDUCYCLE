@@ -5,6 +5,7 @@ import com.educycle.dto.product.*;
 
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +15,12 @@ public interface ProductService {
 
     ProductResponse getById(UUID id);
 
-    PageResponse<ProductResponse> getAll(Pageable pageable);
+    PageResponse<ProductResponse> getAll(
+            Pageable pageable,
+            String q,
+            String category,
+            BigDecimal priceMin,
+            BigDecimal priceMax);
 
     List<ProductResponse> getAllForAdmin();
 

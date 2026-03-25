@@ -96,6 +96,10 @@ public class User {
     @Column(name = "refresh_token_expiry")
     private Instant refreshTokenExpiry;
 
+    /** Nhóm phiên refresh — đổi khi đăng nhập mới; giữ khi rotate token */
+    @Column(name = "refresh_token_family")
+    private UUID refreshTokenFamily;
+
     // ===== Notification preferences (Sprint 3) =====
     @Column(name = "notify_product_moderation", nullable = false)
     @Builder.Default

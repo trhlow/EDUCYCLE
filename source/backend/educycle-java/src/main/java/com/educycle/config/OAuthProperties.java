@@ -18,6 +18,8 @@ public class OAuthProperties {
     @Getter @Setter
     public static class Google {
         private String clientId;
+        /** Bắt buộc cho auth-code server-side (Google OAuth token endpoint). */
+        private String clientSecret;
         private String jwksUri = "https://www.googleapis.com/oauth2/v3/certs";
     }
 

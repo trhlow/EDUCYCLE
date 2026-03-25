@@ -1,5 +1,6 @@
 package com.educycle.service.impl;
 
+import com.educycle.dto.admin.AdminUserSummaryResponse;
 import com.educycle.dto.admin.DashboardStatsResponse;
 import com.educycle.enums.ProductStatus;
 import com.educycle.repository.ProductRepository;
@@ -12,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Implements admin dashboard logic previously in AdminController.
@@ -42,15 +42,15 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<Map<String, Object>> getAllUsers() {
+    public List<AdminUserSummaryResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(u -> Map.<String, Object>of(
-                        "id", u.getId(),
-                        "username", u.getUsername(),
-                        "email", u.getEmail(),
-                        "role", u.getRole().name(),
-                        "createdAt", u.getCreatedAt()
+                .map(u -> new AdminUserSummaryResponse(
+                        u.getId(),
+                        u.getUsername(),
+                        u.getEmail(),
+                        u.getRole().name(),
+                        u.getCreatedAt()
                 ))
                 .toList();
     }

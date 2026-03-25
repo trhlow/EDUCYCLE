@@ -9,6 +9,7 @@ import com.educycle.model.User;
 import com.educycle.repository.UserRepository;
 import com.educycle.security.JwtTokenProvider;
 import com.educycle.service.AuthService;
+import com.educycle.service.GoogleOAuthCodeExchangeService;
 import com.educycle.service.MailService;
 import com.educycle.service.OAuthTokenVerifier;
 import com.educycle.util.MessageConstants;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider     jwtTokenProvider;
     private final PasswordEncoder      passwordEncoder;
     private final OAuthTokenVerifier   oAuthTokenVerifier; // NEW
+    private final GoogleOAuthCodeExchangeService googleOAuthCodeExchangeService;
     private final MailService          mailService;
 
     @Value("${app.frontend-base-url:http://localhost:5173}")
@@ -68,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
         if (savedUser != null) user = savedUser;
-        populateRefreshToken(user);
+        startNewRefreshChain(user);
         userRepository.save(user);
 
         log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
@@ -88,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException(MessageConstants.INVALID_CREDENTIALS);
         }
 
-        populateRefreshToken(user);
+        startNewRefreshChain(user);
         userRepository.save(user);
 
         return toAuthResponse(user, null);
@@ -107,15 +109,24 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse socialLogin(SocialLoginRequest request) {
-        if (request.token() == null || request.token().isBlank()) {
+        boolean googleCode = "google".equalsIgnoreCase(request.provider())
+                && request.authorizationCode() != null
+                && !request.authorizationCode().isBlank();
+        boolean hasToken = request.token() != null && !request.token().isBlank();
+        if (!googleCode && !hasToken) {
             throw new BadRequestException(MessageConstants.OAUTH_TOKEN_REQUIRED);
         }
 
-        // Verify token and extract email (throws BadRequestException on failure)
-        String verifiedEmail = oAuthTokenVerifier.verifyAndExtractEmail(
-                request.provider().toLowerCase().trim(),
-                request.token()
-        );
+        String verifiedEmail;
+        if (googleCode) {
+            verifiedEmail = googleOAuthCodeExchangeService.exchangeCodeForEmail(
+                    request.authorizationCode(),
+                    request.redirectUri());
+        } else {
+            verifiedEmail = oAuthTokenVerifier.verifyAndExtractEmail(
+                    request.provider().toLowerCase().trim(),
+                    request.token());
+        }
 
         String username = verifiedEmail.split("@")[0];
 
@@ -128,15 +139,15 @@ public class AuthServiceImpl implements AuthService {
                     .emailVerified(true)   // email is verified by the OAuth provider
                     .phoneVerified(false)
                     .build();
-            populateRefreshToken(newUser);
+            startNewRefreshChain(newUser);
             userRepository.save(newUser);
             log.info("Đăng nhập mạng xã hội: đã tạo người dùng mới — nhà cung cấp={}, email={}", request.provider(), verifiedEmail);
             return newUser;
         });
 
-        // Refresh token on every login
+        // Mỗi lần đăng nhập social: chuỗi refresh mới (family mới)
         if (user.getId() != null) {
-            populateRefreshToken(user);
+            startNewRefreshChain(user);
             userRepository.save(user);
         }
 
@@ -218,13 +229,12 @@ public class AuthServiceImpl implements AuthService {
 
         if (user.getRefreshTokenExpiry() == null
                 || user.getRefreshTokenExpiry().isBefore(Instant.now())) {
-            user.setRefreshToken(null);
-            user.setRefreshTokenExpiry(null);
+            clearRefreshSession(user);
             userRepository.save(user);
             throw new UnauthorizedException(MessageConstants.REFRESH_TOKEN_EXPIRED);
         }
 
-        populateRefreshToken(user);
+        rotateRefreshToken(user);
         userRepository.save(user);
 
         return toAuthResponse(user, null);
@@ -234,8 +244,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) return;
         userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
-            user.setRefreshToken(null);
-            user.setRefreshTokenExpiry(null);
+            clearRefreshSession(user);
             userRepository.save(user);
         });
     }
@@ -250,6 +259,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        clearRefreshSession(user);
         userRepository.save(user);
     }
 
@@ -287,15 +297,32 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiry(null);
+        clearRefreshSession(user);
         userRepository.save(user);
         return Map.of("message", MessageConstants.RESET_PASSWORD_SUCCESS);
     }
 
     // ── Private helpers ────────────────────────────────────────────────────
 
-    private void populateRefreshToken(User user) {
+    private void startNewRefreshChain(User user) {
+        user.setRefreshTokenFamily(UUID.randomUUID());
         user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
         user.setRefreshTokenExpiry(Instant.now().plus(7, ChronoUnit.DAYS));
+    }
+
+    /** Giữ nguyên family — chỉ đổi token (rotation). */
+    private void rotateRefreshToken(User user) {
+        if (user.getRefreshTokenFamily() == null) {
+            user.setRefreshTokenFamily(UUID.randomUUID());
+        }
+        user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
+        user.setRefreshTokenExpiry(Instant.now().plus(7, ChronoUnit.DAYS));
+    }
+
+    private void clearRefreshSession(User user) {
+        user.setRefreshToken(null);
+        user.setRefreshTokenExpiry(null);
+        user.setRefreshTokenFamily(null);
     }
 
     private AuthResponse toAuthResponse(User user, String message) {

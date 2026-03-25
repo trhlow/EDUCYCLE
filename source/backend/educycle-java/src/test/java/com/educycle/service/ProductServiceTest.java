@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -169,11 +170,11 @@ class ProductServiceTest {
                     buildProduct(UUID.randomUUID(), testUser, "P2", "20.00")
             );
             Pageable pageable = PageRequest.of(0, 20);
-            given(productRepository.findByStatus(eq(ProductStatus.APPROVED), any(Pageable.class)))
+            given(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .willReturn(new PageImpl<>(products, pageable, products.size()));
 
             // Act
-            PageResponse<ProductResponse> result = productService.getAll(pageable);
+            PageResponse<ProductResponse> result = productService.getAll(pageable, null, null, null, null);
 
             // Assert
             assertThat(result.content()).hasSize(2);
@@ -184,11 +185,11 @@ class ProductServiceTest {
         void shouldReturnEmpty_whenNoProducts() {
             // Arrange — maps C# GetAllAsync_ShouldReturnEmpty_WhenNoProducts
             Pageable pageable = PageRequest.of(0, 20);
-            given(productRepository.findByStatus(eq(ProductStatus.APPROVED), any(Pageable.class)))
+            given(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .willReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
 
             // Act
-            PageResponse<ProductResponse> result = productService.getAll(pageable);
+            PageResponse<ProductResponse> result = productService.getAll(pageable, null, null, null, null);
 
             // Assert
             assertThat(result.content()).isEmpty();

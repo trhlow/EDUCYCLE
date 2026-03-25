@@ -8,6 +8,7 @@ import com.educycle.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,8 +47,11 @@ public class TransactionsController {
         return ResponseEntity.ok(transactionService.getById(id));
     }
 
-    // GET /api/transactions
+    /**
+     * Danh sách toàn bộ giao dịch — chỉ ADMIN (trước đây mọi user đăng nhập đều gọi được → lộ dữ liệu).
+     */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TransactionResponse>> getAll() {
         return ResponseEntity.ok(transactionService.getAll());
     }

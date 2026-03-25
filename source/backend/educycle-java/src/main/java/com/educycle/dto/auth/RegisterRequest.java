@@ -2,6 +2,7 @@ package com.educycle.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
@@ -11,9 +12,10 @@ public record RegisterRequest(
 
         @NotBlank(message = "Email là bắt buộc")
         @Email(message = "Email không đúng định dạng")
+        @Pattern(regexp = "(?i)^\\s*.+\\.edu\\.vn\\s*$", message = "Chỉ chấp nhận email .edu.vn")
         String email,
 
         @NotBlank(message = "Mật khẩu là bắt buộc")
-        @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+        @Size(min = 8, max = 128, message = "Mật khẩu phải có ít nhất 8 ký tự")
         String password
 ) {}

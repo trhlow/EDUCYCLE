@@ -1,21 +1,26 @@
 package com.educycle.service;
 
 import com.educycle.controller.AiChatController.MessageDto;
-import com.educycle.exception.AppException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Calls Anthropic Claude API on behalf of the user.
@@ -153,6 +158,96 @@ public class AiChatService {
         } catch (Exception e) {
             log.error("AI chat error", e);
             return "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.";
+        }
+    }
+
+    /**
+     * Streams assistant text deltas from Anthropic (SSE). Invokes {@code onTextDelta} for each chunk.
+     */
+    public void streamChat(List<MessageDto> messages, Consumer<String> onTextDelta) {
+        if (apiKey == null || apiKey.isBlank()) {
+            onTextDelta.accept(
+                    "Xin lỗi, tính năng chatbot chưa được cấu hình. Vui lòng liên hệ admin@educycle.com để được hỗ trợ.");
+            return;
+        }
+
+        try {
+            var anthropicMessages = messages.stream()
+                    .map(m -> Map.of("role", m.role(), "content", m.content()))
+                    .toList();
+
+            var requestBody = Map.of(
+                    "model", model,
+                    "max_tokens", 1024,
+                    "system", SYSTEM_PROMPT,
+                    "messages", anthropicMessages,
+                    "stream", true
+            );
+
+            String bodyJson = MAPPER.writeValueAsString(requestBody);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(ANTHROPIC_API_URL))
+                    .header("Content-Type", "application/json")
+                    .header("x-api-key", apiKey)
+                    .header("anthropic-version", ANTHROPIC_VERSION)
+                    .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
+                    .timeout(Duration.ofSeconds(120))
+                    .build();
+
+            HttpResponse<java.io.InputStream> response = HTTP_CLIENT.send(
+                    httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() != 200) {
+                String errBody = readStreamAsString(response.body());
+                log.error("Anthropic stream error: status={}, body={}", response.statusCode(), errBody);
+                onTextDelta.accept("Xin lỗi, có lỗi xảy ra khi kết nối AI. Vui lòng thử lại sau.");
+                return;
+            }
+
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(response.body(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("data: ")) {
+                        continue;
+                    }
+                    String data = line.substring(6).trim();
+                    if (data.isEmpty() || "[DONE]".equalsIgnoreCase(data)) {
+                        continue;
+                    }
+                    JsonNode node = MAPPER.readTree(data);
+                    String type = node.path("type").asText("");
+                    if ("content_block_delta".equals(type)) {
+                        JsonNode delta = node.get("delta");
+                        if (delta != null && "text_delta".equals(delta.path("type").asText())) {
+                            String t = delta.path("text").asText("");
+                            if (!t.isEmpty()) {
+                                onTextDelta.accept(t);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("AI stream interrupted", e);
+            onTextDelta.accept("Xin lỗi, yêu cầu bị gián đoạn. Vui lòng thử lại.");
+        } catch (IOException e) {
+            log.error("AI stream IO error", e);
+            onTextDelta.accept("Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.");
+        } catch (Exception e) {
+            log.error("AI stream error", e);
+            onTextDelta.accept("Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau.");
+        }
+    }
+
+    private static String readStreamAsString(java.io.InputStream in) throws IOException {
+        if (in == null) {
+            return "";
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            return reader.lines().reduce("", (a, b) -> a + b + "\n");
         }
     }
 }

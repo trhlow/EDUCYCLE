@@ -73,9 +73,9 @@ class AuthServiceTest {
         @DisplayName("should return AuthResponse with token when email is new")
         void shouldReturnToken_whenEmailIsNew() {
             // Arrange — maps C# RegisterAsync_ShouldReturnToken_WhenEmailIsNew
-            RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "Password123");
+            RegisterRequest request = new RegisterRequest("testuser", "test@student.edu.vn", "Password123");
 
-            given(userRepository.existsByEmail("test@example.com")).willReturn(false);
+            given(userRepository.existsByEmail("test@student.edu.vn")).willReturn(false);
             given(passwordEncoder.encode("Password123")).willReturn("hashed_password");
             given(jwtTokenProvider.generateToken(any(User.class))).willReturn("fake-jwt-token");
             given(jwtTokenProvider.generateRefreshToken()).willReturn("fake-refresh-token");
@@ -85,7 +85,7 @@ class AuthServiceTest {
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.email()).isEqualTo("test@example.com");
+            assertThat(result.email()).isEqualTo("test@student.edu.vn");
             assertThat(result.token()).isEqualTo("fake-jwt-token");
             assertThat(result.role()).isEqualTo("USER");
             assertThat(result.refreshToken()).isEqualTo("fake-refresh-token");
@@ -98,8 +98,8 @@ class AuthServiceTest {
         @DisplayName("should throw BadRequestException when email already exists")
         void shouldThrow_whenEmailAlreadyExists() {
             // Arrange — maps C# RegisterAsync_ShouldThrow_WhenEmailAlreadyExists
-            RegisterRequest request = new RegisterRequest("testuser", "existing@example.com", "Password123");
-            given(userRepository.existsByEmail("existing@example.com")).willReturn(true);
+            RegisterRequest request = new RegisterRequest("testuser", "existing@student.edu.vn", "Password123");
+            given(userRepository.existsByEmail("existing@student.edu.vn")).willReturn(true);
 
             // Act + Assert
             assertThatThrownBy(() -> authService.register(request))

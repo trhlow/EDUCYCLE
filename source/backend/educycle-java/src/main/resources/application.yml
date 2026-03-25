@@ -33,6 +33,9 @@ spring:
 # Ví dụ local: mvn spring-boot:run "-Dspring-boot.run.profiles=docker,smtp"
 # Docker: SPRING_PROFILES_ACTIVE=production,smtp trong .env (cùng MAIL_HOST, …).
 
+server:
+  forward-headers-strategy: framework
+
 app:
   frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
   mail-from: ${APP_MAIL_FROM:EduCycle <noreply@educycle.local>}
@@ -57,6 +60,7 @@ jwt:
 oauth:
   google:
     client-id: 655696942996-23v3ded01q45mth3lufocjntei1mnfp9.apps.googleusercontent.com
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
     jwks-uri: https://www.googleapis.com/oauth2/v3/certs
   microsoft:
     client-id: 26196491-b38e-48fb-b900-72c05aaec7c0
@@ -67,8 +71,28 @@ oauth:
 # Lấy API key tại: https://console.anthropic.com/
 # Dùng biến môi trường ANTHROPIC_API_KEY để không commit key lên git
 anthropic:
-  api-key: k-ant-api03-ISbCso6bYPa98uTuL8XqRl6-C3lXC3yU4pE2vWt_giDb8s0AXtLE2sn1pYb2RNph4fTM56erJW74-ZNgHd3JdA-JOumHgAA
+  api-key: ${ANTHROPIC_API_KEY:}
   model: claude-sonnet-4-20250514
+
+# ── EduCycle ── rate limit API (Bucket4j filter), Redis (AI rate limit đa instance)
+educycle:
+  rate-limit:
+    enabled: true
+    prefer-x-real-ip: false
+  redis:
+    enabled: ${EDUCYCLE_REDIS_ENABLED:false}
+    host: ${EDUCYCLE_REDIS_HOST:localhost}
+    port: ${EDUCYCLE_REDIS_PORT:6379}
+
+# ── Sentry (tuỳ chọn) — chỉ gửi khi SENTRY_DSN có giá trị ──
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:development}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.0}
+
+otel:
+  sdk:
+    disabled: ${OTEL_SDK_DISABLED:true}
 
 springdoc:
   api-docs:
@@ -81,6 +105,9 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:

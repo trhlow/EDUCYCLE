@@ -1,9 +1,9 @@
 package com.educycle.service;
 
+import com.educycle.dto.admin.AdminUserSummaryResponse;
 import com.educycle.dto.admin.DashboardStatsResponse;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Service interface for admin dashboard operations.
@@ -11,5 +11,5 @@ import java.util.Map;
  */
 public interface AdminService {
     DashboardStatsResponse getStats();
-    List<Map<String, Object>> getAllUsers();
+    List<AdminUserSummaryResponse> getAllUsers();
 }

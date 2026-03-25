@@ -1,6 +1,7 @@
 package com.educycle.controller;
 
 import com.educycle.dto.admin.AdminResolveTransactionRequest;
+import com.educycle.dto.admin.AdminUserSummaryResponse;
 import com.educycle.dto.admin.DashboardStatsResponse;
 import com.educycle.dto.transaction.TransactionResponse;
 import com.educycle.service.AdminService;
@@ -12,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -34,7 +34,7 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+    public ResponseEntity<List<AdminUserSummaryResponse>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 

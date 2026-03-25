@@ -14,6 +14,7 @@ import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
 import com.educycle.repository.ReviewRepository;
 import com.educycle.repository.UserRepository;
+import com.educycle.repository.spec.ProductSpecifications;
 import com.educycle.service.NotificationService;
 import com.educycle.service.ProductService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,9 +24,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -103,8 +106,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> getAll(Pageable pageable) {
-        Page<Product> page = productRepository.findByStatus(ProductStatus.APPROVED, pageable);
+    public PageResponse<ProductResponse> getAll(
+            Pageable pageable,
+            String q,
+            String category,
+            BigDecimal priceMin,
+            BigDecimal priceMax) {
+
+        Specification<Product> spec = ProductSpecifications.publicCatalog(q, category, priceMin, priceMax);
+        Page<Product> page = productRepository.findAll(spec, pageable);
         List<ProductResponse> content = mapAllWithReviews(page.getContent());
         return new PageResponse<>(
                 content,

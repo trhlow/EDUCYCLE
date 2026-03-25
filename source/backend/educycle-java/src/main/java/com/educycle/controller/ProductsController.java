@@ -16,7 +16,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -44,19 +46,35 @@ public class ProductsController {
         return ResponseEntity.ok(productService.create(request, UUID.fromString(userId)));
     }
 
-    // GET /api/products  [AllowAnonymous] — phân trang: ?page=0&size=24&direction=desc
+    // GET /api/products  [AllowAnonymous] — phân trang + lọc server: q, category, priceMin, priceMax, sort
     @GetMapping
     public ResponseEntity<PageResponse<ProductResponse>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "24") int size,
-            @RequestParam(defaultValue = "desc") String direction) {
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal priceMin,
+            @RequestParam(required = false) BigDecimal priceMax,
+            @RequestParam(defaultValue = "newest") String sort) {
 
-        Sort sort = "asc".equalsIgnoreCase(direction)
-                ? Sort.by("createdAt").ascending()
-                : Sort.by("createdAt").descending();
+        Sort sortObj = resolvePublicCatalogSort(sort, direction);
         int safeSize = Math.min(Math.max(size, 1), 100);
-        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sort);
-        return ResponseEntity.ok(productService.getAll(p));
+        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sortObj);
+        return ResponseEntity.ok(productService.getAll(p, q, category, priceMin, priceMax));
+    }
+
+    /** sort: newest | price-low | price-high — khớp HomePage / ProductListingPage */
+    private static Sort resolvePublicCatalogSort(String sort, String direction) {
+        String s = sort == null ? "newest" : sort.trim().toLowerCase(Locale.ROOT);
+        return switch (s) {
+            case "price-low" -> Sort.by("price").ascending().and(Sort.by("createdAt").descending());
+            case "price-high" -> Sort.by("price").descending().and(Sort.by("createdAt").descending());
+            case "rating" -> Sort.by("createdAt").descending();
+            default -> "asc".equalsIgnoreCase(direction)
+                    ? Sort.by("createdAt").ascending()
+                    : Sort.by("createdAt").descending();
+        };
     }
 
     // GET /api/products/mine  [Authorize]
