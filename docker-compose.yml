@@ -3,7 +3,7 @@
 #
 # Sau khi lên: http://localhost  (nginx → SPA + proxy /api, /ws)
 # Đặt JWT_SECRET mạnh trong .env hoặc shell trước khi chạy.
-# Production/hosted: đặt POSTGRES_PASSWORD (và JWT_SECRET) trong .env — không dùng mặc định.
+# Bắt buộc: copy .env.example → .env và đặt POSTGRES_PASSWORD (và JWT_SECRET). Không dùng mật khẩu mặc định trên môi trường thật.
 
 services:
   redis:
@@ -18,10 +18,15 @@ services:
 
   db:
     image: postgres:16-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
     environment:
       POSTGRES_DB: educycledb
       POSTGRES_USER: educycle
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-educycle123}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env — xem .env.example}
     volumes:
       - educycle_pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -41,7 +46,9 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
       SPRING_DATASOURCE_USERNAME: educycle
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-educycle123}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
       JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
       APP_UPLOAD_DIR: /app/data/uploads
@@ -58,6 +65,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
     expose:
       - '8080'
     healthcheck:
