@@ -298,7 +298,8 @@ Workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 | Job | Command |
 |-----|---------|
 | Backend | `mvn -f source/backend/educycle-java/pom.xml clean verify` |
-| Frontend | `npm ci` → `npm test` → `npm run build` in `source/frontend` |
+| Frontend | `npm ci` → `npm run typecheck` → `npm test` → `npm run build` in `source/frontend` |
+| E2E | `npx playwright install --with-deps chromium` → `npm run test:e2e` in `source/frontend` (job riêng trên CI) |
 
 Triggers: **push** and **pull_request** to `main` and `dev`.
 
@@ -306,7 +307,7 @@ Local sanity check before push:
 
 ```bash
 cd source/backend/educycle-java && mvn -q clean verify
-cd source/frontend && npm run build
+cd source/frontend && npm run typecheck && npm run build
 ```
 
 ---
