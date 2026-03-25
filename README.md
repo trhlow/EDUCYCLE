@@ -113,17 +113,20 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 
 From the **repository root** (where `docker-compose.yml` lives):
 
+**1) Tạo `.env` (bắt buộc cho Postgres):** sao chép [.env.example](.env.example) → `.env` và giữ hoặc đổi `POSTGRES_PASSWORD`, `JWT_SECRET`, (tuỳ chọn) `GOOGLE_CLIENT_ID` / `MICROSOFT_CLIENT_ID`. Compose **không** còn mật khẩu DB mặc định trong file YAML.
+
 **Bash / Git Bash / macOS / Linux**
 
 ```bash
-export JWT_SECRET="$(openssl rand -base64 48)"
+cp .env.example .env
+# chỉnh POSTGRES_PASSWORD / JWT_SECRET trong .env nếu cần
 docker compose up --build
 ```
 
 **PowerShell (Windows)**
 
 ```powershell
-$env:JWT_SECRET = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 48 | ForEach-Object { [char]$_ })
+Copy-Item .env.example .env
 docker compose up --build
 ```
 
@@ -133,7 +136,7 @@ docker compose up --build
 - **PostgreSQL** runs on the internal Docker network only (no DB port published to the host by default).
 - **Uploads** persist in volume `educycle_uploads` → `/app/data/uploads` in the API container.
 
-Optional: copy [.env.example](.env.example) → `.env` in the same directory for `JWT_SECRET`, `ANTHROPIC_API_KEY`, or SMTP-related variables.
+Trong `.env` còn có chỗ cho `ANTHROPIC_API_KEY`, SMTP (`MAIL_*`), `GOOGLE_CLIENT_SECRET`, v.v.
 
 ### Option 2: Local development (recommended for coding)
 
