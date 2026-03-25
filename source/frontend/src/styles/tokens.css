@@ -146,6 +146,12 @@
   --transition: all var(--duration-base) var(--ease-in-out);
 }
 
+/* Keyboard focus — audit accessibility (production readiness) */
+:focus-visible {
+  outline: var(--space-1) solid var(--border-focus);
+  outline-offset: var(--space-1);
+}
+
 /* Keyframe Animations */
 @keyframes fadeIn {
   from { opacity: 0; }

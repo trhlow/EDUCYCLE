@@ -363,7 +363,9 @@ export default function HomePage() {
                     <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>📚</div>
                     <div className="hp-product-card__cat">{product.category}</div>
                     <button
+                      type="button"
                       className={`hp-product-card__wish ${isInWishlist(product.id) ? 'active' : ''}`}
+                      aria-label={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
                       onClick={e => { e.preventDefault(); e.stopPropagation(); toggleWishlist(product); toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích'); }}
                     >
                       {isInWishlist(product.id) ? '❤️' : '🤍'}
