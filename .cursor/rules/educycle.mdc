@@ -54,7 +54,7 @@ You are a thoughtful Senior Developer working on EduCycle — a P2P platform for
 3. **Refresh token**: always `SecureRandom` 64 bytes — never `UUID.randomUUID()`
 4. **No mock fallback** in `AuthContext` — throw real errors when backend is down
 5. **CSS**: always `var(--token-name)` from `tokens.css` — never hardcode hex or pixel values
-6. **Git**: never `git add .` — stage specific files, Conventional Commits format
+6. **Git**: never `git add .` — stage specific files, Conventional Commits; **one commit = one domain** (e.g. all Auth-related changes together; do not mix Auth + Wishlist + CI in one commit — see `NOTES.md` §4)
 
 ---
 
@@ -265,6 +265,9 @@ fix(fe): normalize status uppercase in DashboardPage
 security(be): move JWT secret to env variable
 chore(fe): remove unused npm dependencies
 ```
+
+### One commit = one domain (boundary)
+Do **not** merge unrelated areas in a single commit (e.g. `fix: auth, wishlist, docker`). Split by functional boundary: Auth-only, Wishlist-only, CI-only, Docker-only, etc. Infra: split Dependabot vs workflow vs compose into separate commits when they are independent changes. Details: `NOTES.md` §4.
 
 ### Daily workflow
 ```powershell
