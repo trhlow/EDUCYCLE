@@ -113,6 +113,11 @@ jobs:
         run: npm audit --audit-level=critical
         working-directory: source/frontend
 
+      - name: npm audit (high — advisory)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+        working-directory: source/frontend
+
       - name: TypeScript
         run: npm run typecheck
         working-directory: source/frontend
