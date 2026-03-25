@@ -49,9 +49,11 @@ Full-stack cá nhân: **Trần Hoàng Long**.
 | Document | Purpose |
 |----------|---------|
 | **README.md** | *(this file)* — clone, configure, run, API summary |
+| [docs/README.md](docs/README.md) | **Hub tài liệu** — mục lục `getting-started`, `architecture`, `guides` (cấu trúc gợi ý theo [deer-flow](https://github.com/bytedance/deer-flow) `docs/`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime topology, auth/WebSocket, onboarding checklist, **audit reconciliation (§10)** |
 | [NOTES.md](NOTES.md) | Sprint status, changelog, FE↔BE field mapping, internal rules |
-| [SETUP_CHATBOT.md](SETUP_CHATBOT.md) | `ANTHROPIC_API_KEY`, Docker, AI rate limits |
+| [SETUP_CHATBOT.md](SETUP_CHATBOT.md) | AI chat — entry ngắn; chi tiết: [docs/guides/ai-chatbot.md](docs/guides/ai-chatbot.md) |
+| [scripts/README.md](scripts/README.md) | Script `verify.ps1` / `verify.sh` (kiểm tra local trước push) |
 | [.env.example](.env.example) | Template for root `docker-compose` (`JWT_SECRET`, optional SMTP, …) |
 
 ---
@@ -306,9 +308,16 @@ Triggers: **push** and **pull_request** to `main` and `dev`.
 Local sanity check before push:
 
 ```bash
-cd source/backend/educycle-java && mvn -q clean verify
-cd source/frontend && npm run typecheck && npm run build
+# Bash / Git Bash / Linux / macOS
+bash scripts/verify.sh
 ```
+
+```powershell
+# Windows PowerShell (repo root)
+.\scripts\verify.ps1
+```
+
+Hoặc thủ công: `mvn -f source/backend/educycle-java/pom.xml clean verify` rồi `npm run typecheck` + `npm run build` trong `source/frontend`.
 
 ---
 
@@ -318,8 +327,10 @@ cd source/frontend && npm run typecheck && npm run build
 EDUCYCLE/
 ├── source/
 │   ├── backend/educycle-java/    # Spring Boot API, Flyway
-│   └── frontend/                   # Vite + React
-├── docker-compose.yml              # db + api + nginx (production-style)
+│   └── frontend/                 # Vite + React (+ TS entry)
+├── docs/                         # Hub tài liệu theo mục (getting-started, architecture, guides, …)
+├── scripts/                      # verify.ps1 / verify.sh — kiểm tra BE+FE local
+├── docker-compose.yml            # db + api + nginx (production-style)
 ├── .github/workflows/ci.yml
 ├── .env.example
 ├── ARCHITECTURE.md
@@ -349,7 +360,7 @@ EDUCYCLE/
 ## Contributing
 
 - Primary branch: **`dev`**; releases merge to **`main`**.  
-- Use [Conventional Commits](https://www.conventionalcommits.org/) — see [NOTES.md](NOTES.md) §4.  
+- Use [Conventional Commits](https://www.conventionalcommits.org/) — see [NOTES.md](NOTES.md) §4 (format + **một commit = một lĩnh vực**, không gộp nhiều domain không liên quan).  
 - Prefer **`git add <file>`** over `git add .`.
 
 ---

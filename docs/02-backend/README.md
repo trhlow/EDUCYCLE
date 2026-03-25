@@ -1,4 +1,6 @@
-📍 Vị trí trong monorepo: `source/backend/`
+📍 Vị trí trong monorepo: `source/backend/educycle-java/`
+
+> **Bản chính (cập nhật):** [source/backend/educycle-java/README.md](../../source/backend/educycle-java/README.md). File này giữ phần so sánh migration / lịch sử.
 
 # EduCycle API — Java Spring Boot 3.x
 
@@ -29,7 +31,7 @@
 
 ```bash
 git clone https://github.com/trhlow/EDUCYCLE.git
-cd source/backend/EduCycle.Api
+cd EDUCYCLE/source/backend/educycle-java
 ```
 
 ### Prerequisites

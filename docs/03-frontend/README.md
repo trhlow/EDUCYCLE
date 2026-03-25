@@ -1,5 +1,7 @@
 📍 Vị trí trong monorepo: `source/frontend/`
 
+> **Bản chính (cập nhật):** [source/frontend/README.md](../../source/frontend/README.md).
+
 # 🎓 EduCycle Frontend
 
 > **Nền tảng trao đổi sách & tài liệu học tập P2P dành cho sinh viên**

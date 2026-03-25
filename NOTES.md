@@ -1,6 +1,6 @@
 # EduCycle — NOTES
 > **Nội bộ + AI:** trạng thái sprint, roadmap, bugs đã fix, git, FE↔BE mapping, UI rules.  
-> **Công khai / onboarding / clone:** nguồn sự thật là [`README.md`](README.md) (cấu trúc DeerFlow-style, Table of Contents, Option 1·2 Docker/dev).  
+> **Công khai / onboarding / clone:** [`README.md`](README.md) + mục lục tài liệu theo mục [`docs/README.md`](docs/README.md) (getting-started / architecture / guides).  
 > Rules IDE: `.cursor/rules/educycle.mdc` · **Kiến trúc + pitfall + đối chiếu audit:** [`ARCHITECTURE.md`](ARCHITECTURE.md) (§10).
 
 ---
@@ -212,14 +212,15 @@ Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · T
 <type>(<scope>): <mô tả>
 ```
 
-| Type | Khi dùng | Scope |
-|------|----------|-------|
-| `feat` | Tính năng mới | `be` · `fe` · `db` · `ws` · `auth` · `notif` |
-| `fix` | Sửa bug | `docs` · `ci` |
-| `refactor` | Refactor | |
-| `security` | Bảo mật | |
-| `chore` | Config/deps | |
-| `docs` | Chỉ markdown | |
+| Type | Khi dùng | Scope (gợi ý) |
+|------|----------|---------------|
+| `feat` | Tính năng mới | `be` · `fe` · `db` · `ws` · `auth` · `notif` · `ci` |
+| `fix` | Sửa bug | `be` · `fe` · `docs` · `ci` |
+| `refactor` | Refactor | `be` · `fe` |
+| `security` | Bảo mật | `be` · `fe` |
+| `chore` | Config/deps/tooling | `repo` · `fe` · `be` · `docker` |
+| `docs` | Chỉ markdown | — |
+| `test` | Chỉ test | `be` · `fe` |
 
 ```bash
 feat(be/auth): add refresh token with SecureRandom
@@ -228,12 +229,24 @@ security(be): move JWT secret to env variable
 chore(fe): remove unused npm dependencies
 ```
 
+### Nguyên tắc: một commit = một lĩnh vực (boundary), không gộp nhiều domain
+
+- **Mỗi commit chỉ chứa thay đổi thuộc cùng một ranh giới chức năng** (theo “slice” dọc): ví dụ mọi thứ liên quan **Auth** trong một phiên làm việc (BE `AuthController`/`AuthServiceImpl` + FE `AuthContext`/`AuthPage` + test auth) có thể **một commit** nếu cùng một mục tiêu — nhưng **không** gộp Auth + Wishlist + CI trong một commit rồi đặt tên kiểu `fix: auth, wishlist, ci` hoặc message dài liệt kê nhiều lĩnh vực không liên quan.
+- **Tách commit theo lĩnh vực độc lập**: `auth`, `transactions`, `wishlist`, `admin`, `ai-chat`, `ci`, `docker`, `docs`, … — mỗi nhóm thay đổi **không phụ thuộc cùng một câu chuyện release** thì **commit riêng**.
+- **Infra / chore cũng tách theo thành phần**, không dồn “một `chore(ci)` cho tất cả”. Ví dụ thay vì một commit:
+  - ~~`chore(ci): add dependabot, expand CI workflow, and compose env profiles`~~ (gộp 3 thứ khác nhau),
+  - nên **ba commit** (mỗi cái chỉ đụng phần của nó):
+    1. `chore(ci): add Dependabot for npm and Maven`
+    2. `ci: expand GitHub Actions workflow (BE + FE)`
+    3. `chore(docker): update compose stacks and env profile templates`
+- **Scope trong message** phản ánh **đúng phần đang đổi** (`feat(be/auth): …`, `chore(docker): …`), không dùng một scope chung chung để biện minh cho nhiều folder không liên quan.
+
 ### Workflow hàng ngày
 ```powershell
 cd D:\EDUCYCLE
 git checkout dev && git pull origin dev
 git add <specific files>          # KHÔNG git add .
-git commit -m "<type>(<scope>): <mô tả>" # không dồn tất cả vào 1 commit mà chia ra nhiều commit
+git commit -m "<type>(<scope>): <mô tả>" # một lĩnh vực / một câu chuyện — tách commit khi đụng nhiều domain
 git push origin dev
 git log -1 --oneline
 ```
@@ -290,7 +303,7 @@ git push origin dev
 3. **Token** — dùng `SecureRandom` 64 bytes, không `UUID.randomUUID()`
 4. **CSS** — dùng `var(--token)` từ `tokens.css`, không hardcode hex
 5. **AuthContext** — không có mock fallback, throw lỗi thật
-6. **Git** — không `git add .`, stage từng file, dùng Conventional Commits
+6. **Git** — không `git add .`, stage từng file; Conventional Commits; **một commit = một lĩnh vực** (không gộp Auth + Wishlist + CI trong cùng commit — xem §4)
 7. **FE↔BE field mapping** — luôn kiểm tra tên field trong BE DTO record trước khi gọi API
 8. **OTP Transaction** — chỉ `buyer` gọi `generateOtp`, chỉ `seller` gọi `verifyOtp` (guard userId)
 9. **Dispute flow** — DISPUTED chỉ được set khi status = MEETING và người gọi là buyer
