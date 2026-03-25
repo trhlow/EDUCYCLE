@@ -142,9 +142,16 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
-  const socialLogin = async (provider, idToken) => {
-    if (!provider || !idToken) throw new Error('Nhà cung cấp và token là bắt buộc');
-    const res = await authApi.socialLogin({ provider, token: idToken });
+  const socialLogin = async (provider, tokenOrPayload) => {
+    if (!provider) throw new Error('Nhà cung cấp là bắt buộc');
+    const body =
+      typeof tokenOrPayload === 'string'
+        ? { provider, token: tokenOrPayload }
+        : { provider, ...tokenOrPayload };
+    if (!body.token && !body.authorizationCode) {
+      throw new Error('Cần token hoặc authorizationCode');
+    }
+    const res = await authApi.socialLogin(body);
     const data = res.data;
     const userData = {
       id: data.userId,

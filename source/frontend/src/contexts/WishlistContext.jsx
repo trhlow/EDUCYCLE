@@ -1,79 +1,117 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { readStoredArray } from '../utils/safeStorage';
+import { wishlistApi } from '../api/endpoints';
 
 const WishlistContext = createContext(null);
 
-function getStorageKey(userId) {
-  return userId ? `wishlist_${userId}` : null;
+/** Chuẩn hoá card từ BE (UUID → id string) */
+function mapServerCard(c) {
+  return {
+    id: String(c.id),
+    name: c.name ?? '',
+    price: c.price != null ? Number(c.price) : 0,
+    imageUrl: c.imageUrl ?? '',
+    category: c.category ?? '',
+    seller: c.seller ?? '',
+    rating: typeof c.rating === 'number' ? c.rating : 0,
+    reviews: typeof c.reviews === 'number' ? c.reviews : 0,
+  };
 }
 
 export function WishlistProvider({ children }) {
   const { user, isAuthenticated } = useAuth();
-  const [items, setItems] = useState(() => readStoredArray('wishlist'));
+  const [items, setItems] = useState([]);
 
-  // Load wishlist when user changes (login/logout)
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      const key = getStorageKey(user.id);
-      if (key) {
-        try {
-          const saved = localStorage.getItem(key);
-          // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from per-user storage
-          setItems(saved ? JSON.parse(saved) : []);
-        } catch {
-          setItems([]);
-        }
-      }
-    } else {
-      // Not logged in → clear in-memory wishlist
+  const refreshFromServer = useCallback(async () => {
+    if (!isAuthenticated || !user?.id) return;
+    try {
+      const res = await wishlistApi.getAll();
+      const list = Array.isArray(res.data) ? res.data : [];
+      setItems(list.map(mapServerCard));
+    } catch {
       setItems([]);
     }
-  }, [user?.id, isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
-  // Persist wishlist to per-user key
   useEffect(() => {
     if (isAuthenticated && user?.id) {
-      const key = getStorageKey(user.id);
-      if (key) {
-        localStorage.setItem(key, JSON.stringify(items));
-      }
+      refreshFromServer();
+    } else {
+      setItems([]);
     }
-  }, [items, user?.id, isAuthenticated]);
+  }, [user?.id, isAuthenticated, refreshFromServer]);
 
-  const toggleWishlist = useCallback((product) => {
-    if (!isAuthenticated) return; // Must be logged in
-    setItems((prev) => {
-      const exists = prev.find((item) => item.id === product.id);
+  const toggleWishlist = useCallback(
+    async (product) => {
+      if (!isAuthenticated || !user?.id) return;
+      const pid = String(product.id);
+      const exists = items.some((item) => String(item.id) === pid);
       if (exists) {
-        return prev.filter((item) => item.id !== product.id);
+        try {
+          await wishlistApi.remove(pid);
+          setItems((prev) => prev.filter((item) => String(item.id) !== pid));
+        } catch {
+          await refreshFromServer();
+        }
+        return;
       }
-      return [...prev, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        category: product.category,
-        seller: product.seller,
-        rating: product.rating,
-        reviews: product.reviews,
-      }];
-    });
-  }, [isAuthenticated]);
-
-  const isInWishlist = useCallback(
-    (productId) => items.some((item) => item.id === productId),
-    [items]
+      try {
+        await wishlistApi.add(pid);
+        setItems((prev) => [
+          ...prev,
+          {
+            id: pid,
+            name: product.name ?? '',
+            price: product.price != null ? Number(product.price) : 0,
+            imageUrl: product.imageUrl ?? '',
+            category: product.category ?? '',
+            seller: product.seller ?? '',
+            rating: typeof product.rating === 'number' ? product.rating : 0,
+            reviews: typeof product.reviews === 'number' ? product.reviews : 0,
+          },
+        ]);
+      } catch {
+        await refreshFromServer();
+      }
+    },
+    [isAuthenticated, user?.id, items, refreshFromServer],
   );
 
-  const removeFromWishlist = useCallback((productId) => {
-    setItems((prev) => prev.filter((item) => item.id !== productId));
-  }, []);
+  const isInWishlist = useCallback(
+    (productId) => items.some((item) => String(item.id) === String(productId)),
+    [items],
+  );
 
-  const clearWishlist = useCallback(() => setItems([]), []);
+  const removeFromWishlist = useCallback(
+    async (productId) => {
+      const pid = String(productId);
+      try {
+        await wishlistApi.remove(pid);
+        setItems((prev) => prev.filter((item) => String(item.id) !== pid));
+      } catch (e) {
+        await refreshFromServer();
+        throw e;
+      }
+    },
+    [refreshFromServer],
+  );
+
+  const clearWishlist = useCallback(async () => {
+    if (items.length === 0) return;
+    const copy = [...items];
+    try {
+      await Promise.all(copy.map((i) => wishlistApi.remove(String(i.id))));
+      setItems([]);
+    } catch (e) {
+      await refreshFromServer();
+      throw e;
+    }
+  }, [items, refreshFromServer]);
 
   return (
-    <WishlistContext.Provider value={{ items, toggleWishlist, isInWishlist, removeFromWishlist, clearWishlist }}>
+    <WishlistContext.Provider
+      value={{ items, toggleWishlist, isInWishlist, removeFromWishlist, clearWishlist, refreshWishlist: refreshFromServer }}
+    >
       {children}
     </WishlistContext.Provider>
   );

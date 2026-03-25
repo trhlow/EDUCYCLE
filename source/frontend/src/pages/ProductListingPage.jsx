@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
@@ -17,9 +18,9 @@ const FALLBACK_CATEGORIES = [
   'Ngoại Ngữ',
 ];
 
+const PAGE_SIZE = 24;
+
 export default function ProductListingPage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -31,11 +32,6 @@ export default function ProductListingPage() {
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
-  const PAGE_SIZE = 24;
-  const [page, setPage] = useState(0);
-  const [last, setLast] = useState(true);
-  const [totalElements, setTotalElements] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -66,81 +62,55 @@ export default function ProductListingPage() {
     status: p.status || '',
   });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setPage(0);
-      try {
-        const res = await productsApi.getAll({ page: 0, size: PAGE_SIZE, direction: 'desc' });
-        const pg = extractPage(res);
-        setLast(pg.last);
-        setTotalElements(pg.totalElements);
-        setProducts(
-          pg.content
-            .map(mapP)
-            .filter((p) => {
-              const s = p.status?.toLowerCase();
-              return s !== 'sold' && s !== 'completed';
-            }),
-        );
-      } catch {
-        setProducts([]);
-        setLast(true);
-        setTotalElements(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
+  const catalogQueryParams = useMemo(() => {
+    const params = { size: PAGE_SIZE, direction: 'desc', sort: sortBy };
+    const t = debouncedSearchQuery.trim();
+    if (t) params.q = t;
+    if (selectedCategory !== 'all') params.category = selectedCategory;
+    if (priceRange === 'under50k') params.priceMax = 49999.99;
+    else if (priceRange === '50kto100k') {
+      params.priceMin = 50000;
+      params.priceMax = 99999.99;
+    } else if (priceRange === 'over100k') params.priceMin = 100000;
+    return params;
+  }, [debouncedSearchQuery, selectedCategory, priceRange, sortBy]);
 
-  const loadMore = async () => {
-    if (last || loadingMore) return;
-    const next = page + 1;
-    setLoadingMore(true);
-    try {
-      const res = await productsApi.getAll({ page: next, size: PAGE_SIZE, direction: 'desc' });
-      const pg = extractPage(res);
-      setPage(next);
-      setLast(pg.last);
-      setTotalElements(pg.totalElements);
-      setProducts((prev) => [
-        ...prev,
-        ...pg.content
-          .map(mapP)
-          .filter((p) => {
-            const s = p.status?.toLowerCase();
-            return s !== 'sold' && s !== 'completed';
-          }),
-      ]);
-    } catch {
-      toast.error('Không tải thêm được.');
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'all' || product.category === selectedCategory;
-
-    let matchesPrice = true;
-    if (priceRange === 'under50k') matchesPrice = product.price < 50000;
-    else if (priceRange === '50kto100k') matchesPrice = product.price >= 50000 && product.price < 100000;
-    else if (priceRange === 'over100k') matchesPrice = product.price >= 100000;
-
-    const matchesRating = minRating === 0 || product.rating >= minRating;
-
-    return matchesSearch && matchesCategory && matchesPrice && matchesRating;
-  }).sort((a, b) => {
-    if (sortBy === 'price-low') return a.price - b.price;
-    if (sortBy === 'price-high') return b.price - a.price;
-    if (sortBy === 'rating') return b.rating - a.rating;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  const {
+    data: productPages,
+    fetchNextPage,
+    hasNextPage,
+    isPending,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['products', 'listing', PAGE_SIZE, catalogQueryParams],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const res = await productsApi.getAll({ ...catalogQueryParams, page: pageParam });
+      return extractPage(res);
+    },
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
   });
+
+  const products = useMemo(() => {
+    if (!productPages?.pages?.length) return [];
+    return productPages.pages.flatMap((pg) => pg.content.map(mapP));
+  }, [productPages]);
+
+  /** Đánh giá tối thiểu: lọc trên tập đã tải (BE chưa có truy vấn aggregate theo review). */
+  const filteredProducts = useMemo(() => {
+    if (minRating === 0) return products;
+    return products.filter((p) => p.rating >= minRating);
+  }, [products, minRating]);
+
+  const loading = isPending;
+  const loadingMore = isFetchingNextPage;
+  const last = !hasNextPage;
+  const totalElements = productPages?.pages?.[0]?.totalElements ?? 0;
+
+  const loadMore = () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage().catch(() => toast.error('Không tải thêm được.'));
+  };
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -161,7 +131,6 @@ export default function ProductListingPage() {
 
       <div className="plp-container">
         <div className="plp-content-grid">
-          {/* Sidebar Filters */}
           <aside className={`plp-sidebar ${sidebarOpen ? 'open' : ''}`}>
             <div className="plp-filter-section">
               <h3 className="plp-filter-title">Bộ Lọc</h3>
@@ -205,11 +174,12 @@ export default function ProductListingPage() {
               </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Đánh Giá Tối Thiểu</label>
+                <label className="plp-filter-label">Đánh Giá Tối Thiểu (trên trang đã tải)</label>
                 <div className="plp-rating-options">
                   {[4.5, 4.0, 3.5, 3.0].map((rating) => (
                     <button
                       key={rating}
+                      type="button"
                       className={`plp-rating-btn ${minRating === rating ? 'active' : ''}`}
                       onClick={() => setMinRating(minRating === rating ? 0 : rating)}
                     >
@@ -219,12 +189,13 @@ export default function ProductListingPage() {
                 </div>
               </div>
 
-              <button className="plp-clear-filters" onClick={clearFilters}>
+              <button type="button" className="plp-clear-filters" onClick={clearFilters}>
                 Xóa Tất Cả Bộ Lọc
               </button>
 
               {sidebarOpen && (
                 <button
+                  type="button"
                   className="plp-clear-filters"
                   onClick={() => setSidebarOpen(false)}
                   style={{ marginTop: '0.5rem' }}
@@ -235,13 +206,9 @@ export default function ProductListingPage() {
             </div>
           </aside>
 
-          {/* Product Listing */}
           <main className="plp-main">
             <div className="plp-toolbar">
-              <button
-                className="plp-mobile-filter-btn"
-                onClick={() => setSidebarOpen(true)}
-              >
+              <button type="button" className="plp-mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
                 🔧 Bộ Lọc
               </button>
               <div className="plp-search-container">
@@ -255,11 +222,7 @@ export default function ProductListingPage() {
                 />
               </div>
               <div className="plp-toolbar-actions">
-                <select
-                  className="plp-sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
+                <select className="plp-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                   <option value="newest">Mới Nhất</option>
                   <option value="rating">Đánh Giá Cao Nhất</option>
                   <option value="price-low">Giá: Thấp đến Cao</option>
@@ -267,6 +230,7 @@ export default function ProductListingPage() {
                 </select>
                 <div className="plp-view-toggle">
                   <button
+                    type="button"
                     className={`plp-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                     onClick={() => setViewMode('grid')}
                     aria-label="Grid view"
@@ -274,6 +238,7 @@ export default function ProductListingPage() {
                     ◫
                   </button>
                   <button
+                    type="button"
                     className={`plp-view-btn ${viewMode === 'list' ? 'active' : ''}`}
                     onClick={() => setViewMode('list')}
                     aria-label="List view"
@@ -285,8 +250,9 @@ export default function ProductListingPage() {
             </div>
 
             <div className="plp-results-count">
-              Hiển thị {filteredProducts.length} sau lọc · đã tải {products.length}
-              {totalElements ? ` / ${totalElements} trên sàn` : ''}
+              Hiển thị {filteredProducts.length}
+              {minRating > 0 ? ' sau lọc đánh giá' : ''} · đã tải {products.length}
+              {totalElements ? ` · ${totalElements} khớp bộ lọc server` : ''}
             </div>
 
             {loading ? (
@@ -316,6 +282,7 @@ export default function ProductListingPage() {
                         <img src={product.imageUrl} alt={product.name} />
                         <div className="plp-card-badge">{product.category}</div>
                         <button
+                          type="button"
                           className={`plp-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
                           onClick={(e) => {
                             e.preventDefault();
@@ -357,12 +324,10 @@ export default function ProductListingPage() {
             ) : (
               <div className="plp-empty">
                 <div className="plp-empty-icon">📚</div>
-                <h3 className="plp-empty-title">Không tìm thấy sản phẩm</h3>
-                <p className="plp-empty-text">
-                  Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm
-                </p>
-                <button className="plp-reset-btn" onClick={clearFilters}>
-                  Đặt Lại Bộ Lọc
+                <h3 className="plp-empty-title">Không có mục đạt đánh giá tối thiểu</h3>
+                <p className="plp-empty-text">Thử hạ mức sao hoặc tải thêm sản phẩm.</p>
+                <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>
+                  Bỏ lọc đánh giá
                 </button>
               </div>
             )}

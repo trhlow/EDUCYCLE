@@ -8,14 +8,22 @@ export default function WishlistPage() {
   const { items: wishlistedProducts, removeFromWishlist, clearWishlist } = useWishlist();
   const toast = useToast();
 
-  const handleRemove = (id, name) => {
-    removeFromWishlist(id);
-    toast.info(`Đã xóa "${name}" khỏi danh sách yêu thích`);
+  const handleRemove = async (id, name) => {
+    try {
+      await removeFromWishlist(id);
+      toast.info(`Đã xóa "${name}" khỏi danh sách yêu thích`);
+    } catch {
+      toast.error('Không xóa được. Thử lại.');
+    }
   };
 
-  const handleClear = () => {
-    clearWishlist();
-    toast.info('Đã xóa tất cả khỏi danh sách yêu thích');
+  const handleClear = async () => {
+    try {
+      await clearWishlist();
+      toast.info('Đã xóa tất cả khỏi danh sách yêu thích');
+    } catch {
+      toast.error('Không xóa hết được. Thử lại.');
+    }
   };
 
   if (wishlistedProducts.length === 0) {

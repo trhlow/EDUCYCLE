@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { aiApi } from '../api/endpoints';
+import { streamAiChat } from '../api/aiStream';
 import { getApiErrorMessage } from '../utils/apiError';
 import './ChatbotWidget.css';
 
@@ -100,17 +101,34 @@ export default function ChatbotWidget() {
     setLoading(true);
 
     try {
-      // Build history for API (exclude welcome message which has no role context)
       const history = [...messages.filter(m => m.id !== 'welcome'), userMsg]
         .map(m => ({ role: m.role, content: m.content }));
 
-      const res = await aiApi.chat({ messages: history });
-      const reply = res.data?.reply || 'Xin lỗi, không nhận được phản hồi.';
+      const botId = nextId();
+      setMessages(prev => [...prev, { id: botId, role: 'assistant', content: '' }]);
 
-      const botMsg = { id: nextId(), role: 'assistant', content: reply };
-      setMessages(prev => [...prev, botMsg]);
+      try {
+        await streamAiChat({
+          messages: history,
+          onDelta: (d) => {
+            setMessages(prev =>
+              prev.map(m => (m.id === botId ? { ...m, content: m.content + d } : m)),
+            );
+          },
+        });
+        setMessages(prev => {
+          const m = prev.find(x => x.id === botId);
+          if (m && !String(m.content).trim()) {
+            return prev.map(x => (x.id === botId ? { ...x, content: '(Không có nội dung)' } : x));
+          }
+          return prev;
+        });
+      } catch {
+        const res = await aiApi.chat({ messages: history });
+        const reply = res.data?.reply || 'Xin lỗi, không nhận được phản hồi.';
+        setMessages(prev => prev.map(m => (m.id === botId ? { ...m, content: reply } : m)));
+      }
 
-      // If widget is closed, show badge
       if (!open) setHasNewMsg(true);
     } catch (err) {
       const errMsg = getApiErrorMessage(err, 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.');

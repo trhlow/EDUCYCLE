@@ -2,7 +2,7 @@
  * src/api/oauth.js
  *
  * Microsoft MSAL browser configuration.
- * Google OAuth is handled by @react-oauth/google (GoogleOAuthProvider in main.jsx).
+ * Google OAuth is handled by @react-oauth/google (GoogleOAuthProvider in main.tsx).
  *
  * Usage:
  *   import { getMsalInstance, loginWithMicrosoft } from './oauth';

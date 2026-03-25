@@ -101,6 +101,13 @@ export const publicProfileApi = {
   getUser: (userId) => api.get(`/public/users/${userId}`),
 };
 
+/** Yêu thích — JWT; đồng bộ server (Flyway V9) */
+export const wishlistApi = {
+  getAll: () => api.get('/wishlist'),
+  add: (productId) => api.post(`/wishlist/${productId}`),
+  remove: (productId) => api.delete(`/wishlist/${productId}`),
+};
+
 /** AI chatbot — JWT bắt buộc; key Anthropic chỉ trên BE */
 export const aiApi = {
   chat: (data) => api.post('/ai/chat', data),

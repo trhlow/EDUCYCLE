@@ -94,7 +94,9 @@ src/
 ├── styles/
 │   └── tokens.css            # CSS Design Tokens
 ├── App.jsx                   # Routes + Suspense wrapper
-├── main.jsx                  # Entry point + Context Providers
+├── main.tsx                  # Entry + QueryProvider + Context Providers
+├── providers/
+│   └── QueryProvider.tsx     # TanStack Query (Sprint 5+)
 └── index.css                 # Global styles
 ```
 
@@ -230,7 +232,8 @@ educycle-frontend/
 ├── package.json                # Dependencies & scripts
 │
 ├── src/
-│   ├── main.jsx                # Root: ErrorBoundary → BrowserRouter → Providers → App
+│   ├── main.tsx                # Root: QueryProvider → ErrorBoundary → BrowserRouter → Providers → App
+│   ├── providers/QueryProvider.tsx
 │   ├── App.jsx                 # 16 lazy-loaded routes with Suspense + RouteTransition
 │   │
 │   ├── api/

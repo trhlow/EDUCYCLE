@@ -85,13 +85,10 @@ export default function AuthPage() {
     navigate(from, { replace: true });
   }, [location, navigate]);
 
-  /* ─────────────────────────────────────────────────────
-     GOOGLE LOGIN (real SDK)
-     useGoogleLogin returns an access-code flow OR implicit.
-     We use the implicit flow (response_type=token) to get
-     an ID token directly in the browser.
-  ───────────────────────────────────────────────────── */
-  const handleGoogleSuccess = useCallback(async (tokenResponse) => {
+  /* Google: mặc định auth-code + PKCE (BE đổi code → id_token). Đặt VITE_GOOGLE_OAUTH_USE_AUTH_CODE=false để implicit (dev không có GOOGLE_CLIENT_SECRET). */
+  const useGoogleAuthCode = import.meta.env.VITE_GOOGLE_OAUTH_USE_AUTH_CODE !== 'false';
+
+  const handleGoogleImplicit = useCallback(async (tokenResponse) => {
     try {
       setSocialLoading('google');
       const token = tokenResponse.access_token;
@@ -109,15 +106,35 @@ export default function AuthPage() {
     }
   }, [socialLogin, toast, goHome]);
 
-  // useGoogleLogin — popup mode (better UX, no redirect)
+  const handleGoogleAuthCode = useCallback(async (codeResponse) => {
+    try {
+      setSocialLoading('google');
+      const code = codeResponse?.code;
+      if (!code) {
+        toast.error('Không lấy được mã từ Google. Thử lại.');
+        return;
+      }
+      const userData = await socialLogin('google', {
+        authorizationCode: code,
+        redirectUri: 'postmessage',
+      });
+      toast.success(`Đăng nhập Google thành công! Chào ${userData.username} 🎉`);
+      goHome(userData);
+    } catch (err) {
+      toast.error(err.message || 'Đăng nhập Google thất bại. Cần GOOGLE_CLIENT_SECRET trên server cho auth-code.');
+    } finally {
+      setSocialLoading('');
+    }
+  }, [socialLogin, toast, goHome]);
+
   const googleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
+    onSuccess: useGoogleAuthCode ? handleGoogleAuthCode : handleGoogleImplicit,
     onError: () => {
       setSocialLoading('');
       toast.error('Đăng nhập Google bị hủy hoặc thất bại.');
     },
-    flow: 'implicit',           // gets id_token directly
-    ux_mode: 'popup',           // popup, không redirect
+    flow: useGoogleAuthCode ? 'auth-code' : 'implicit',
+    ux_mode: 'popup',
     scope: 'openid email profile',
   });
 
@@ -190,7 +207,7 @@ export default function AuthPage() {
     if (!registerForm.username || registerForm.username.length < 3) errs.username = 'Tên phải có ít nhất 3 ký tự';
     if (!registerForm.email.includes('@'))  errs.email = 'Email không hợp lệ';
     if (!isStudentEmail(registerForm.email)) errs.email = 'Chỉ chấp nhận email .edu.vn';
-    if (!registerForm.password || registerForm.password.length < 6) errs.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    if (!registerForm.password || registerForm.password.length < 8) errs.password = 'Mật khẩu phải có ít nhất 8 ký tự';
     if (registerForm.password !== registerForm.confirmPassword) errs.confirmPassword = 'Mật khẩu xác nhận không khớp';
     if (!registerForm.agreeTerms) errs.agreeTerms = 'Bạn phải đồng ý với điều khoản';
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -424,7 +441,7 @@ export default function AuthPage() {
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reg-password">Mật khẩu</label>
                 <input type="password" id="reg-password" className={`auth-input ${errors.password ? 'error' : ''}`}
-                  placeholder="Ít nhất 6 ký tự"
+                  placeholder="Ít nhất 8 ký tự"
                   value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
                 <div className={`auth-error ${errors.password ? 'show' : ''}`}>{errors.password}</div>
               </div>

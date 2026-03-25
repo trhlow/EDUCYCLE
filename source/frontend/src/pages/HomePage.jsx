@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
@@ -111,86 +112,74 @@ export default function HomePage() {
     return () => clearInterval(t);
   }, [slide, animating]);
 
-  /* Products (+ pagination từ BE) */
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(0);
-  const [last, setLast] = useState(true);
-  const [totalElements, setTotalElements] = useState(0);
   const PAGE_SIZE = 24;
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [selectedCat, setSelectedCat] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [categories, setCategories] = useState(CAT_LIST);
 
-  useEffect(() => {
-    categoriesApi.getAll()
-      .then(res => {
-        const data = Array.isArray(res.data) ? res.data : [];
-        if (data.length > 0) {
-          const apiCats = data.map(c => {
-            const name = c.name || c.Name || '';
-            return CAT_LIST.find(x => x.val === name) || { name, icon: '📦', color: '#607d8b', val: name };
-          });
-          setCategories([CAT_LIST[0], ...apiCats]);
-        }
-      }).catch(() => {});
+  const { data: catData } = useQuery({
+    queryKey: ['categories', 'all'],
+    queryFn: async () => {
+      const res = await categoriesApi.getAll();
+      return Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
-    setLoading(true);
-    setPage(0);
-    productsApi.getAll({ page: 0, size: PAGE_SIZE, direction: 'desc' })
-      .then(res => {
-        const pg = extractPage(res);
-        setPage(pg.page);
-        setLast(pg.last);
-        setTotalElements(pg.totalElements);
-        setProducts(
-          pg.content
-            .map(mapApiProductToCard)
-            .filter(p => !['sold', 'completed'].includes(p.status?.toLowerCase())),
-        );
-      })
-      .catch(() => { setProducts([]); setLast(true); setTotalElements(0); })
-      .finally(() => setLoading(false));
-  }, []);
+  const categories = useMemo(() => {
+    const data = catData ?? [];
+    if (data.length === 0) return CAT_LIST;
+    const apiCats = data.map((c) => {
+      const name = c.name || c.Name || '';
+      return CAT_LIST.find((x) => x.val === name) || { name, icon: '📦', color: '#607d8b', val: name };
+    });
+    return [CAT_LIST[0], ...apiCats];
+  }, [catData]);
+
+  const catalogQueryParams = useMemo(() => {
+    const params = { size: PAGE_SIZE, direction: 'desc', sort: sortBy };
+    const t = debouncedSearch.trim();
+    if (t) params.q = t;
+    if (selectedCat !== 'all') params.category = selectedCat;
+    if (priceRange === 'under50k') params.priceMax = 49999.99;
+    else if (priceRange === '50kto100k') {
+      params.priceMin = 50000;
+      params.priceMax = 99999.99;
+    } else if (priceRange === 'over100k') params.priceMin = 100000;
+    return params;
+  }, [debouncedSearch, selectedCat, priceRange, sortBy]);
+
+  const {
+    data: productPages,
+    fetchNextPage,
+    hasNextPage,
+    isPending,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['products', 'home', PAGE_SIZE, catalogQueryParams],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const res = await productsApi.getAll({ ...catalogQueryParams, page: pageParam });
+      return extractPage(res);
+    },
+    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
+  });
+
+  const products = useMemo(() => {
+    if (!productPages?.pages?.length) return [];
+    return productPages.pages.flatMap((pg) => pg.content.map(mapApiProductToCard));
+  }, [productPages]);
+
+  const loading = isPending;
+  const loadingMore = isFetchingNextPage;
+  const last = !hasNextPage;
+  const totalElements = productPages?.pages?.[0]?.totalElements ?? 0;
 
   const loadMoreProducts = () => {
-    if (last || loadingMore) return;
-    const next = page + 1;
-    setLoadingMore(true);
-    productsApi.getAll({ page: next, size: PAGE_SIZE, direction: 'desc' })
-      .then(res => {
-        const pg = extractPage(res);
-        setPage(next);
-        setLast(pg.last);
-        setTotalElements(pg.totalElements);
-        setProducts(prev => [
-          ...prev,
-          ...pg.content
-            .map(mapApiProductToCard)
-            .filter(p => !['sold', 'completed'].includes(p.status?.toLowerCase())),
-        ]);
-      })
-      .catch(() => toast.error('Không tải thêm được.'))
-      .finally(() => setLoadingMore(false));
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage().catch(() => toast.error('Không tải thêm được.'));
   };
-
-  const filtered = products.filter(p => {
-    const q = debouncedSearch.toLowerCase();
-    if (q && !p.name.toLowerCase().includes(q) && !p.description.toLowerCase().includes(q)) return false;
-    if (selectedCat !== 'all' && p.category !== selectedCat) return false;
-    if (priceRange === 'under50k' && p.price >= 50000) return false;
-    if (priceRange === '50kto100k' && (p.price < 50000 || p.price >= 100000)) return false;
-    if (priceRange === 'over100k' && p.price < 100000) return false;
-    return true;
-  }).sort((a, b) => {
-    if (sortBy === 'price-low') return a.price - b.price;
-    if (sortBy === 'price-high') return b.price - a.price;
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
 
   const scrollToProducts = () => {
     productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -294,7 +283,7 @@ export default function HomePage() {
             <p className="hp-products-count">
               {loading
                 ? 'Đang tải...'
-                : `${filtered.length} sản phẩm sau lọc · đã tải ${products.length}${totalElements ? ` / ${totalElements} trên sàn` : ''}`}
+                : `${products.length} đã tải${totalElements ? ` · ${totalElements} khớp bộ lọc` : ''}`}
             </p>
           </Reveal>
 
@@ -349,11 +338,11 @@ export default function HomePage() {
         {/* Grid */}
         {loading ? (
           <ProductGridSkeleton count={8} />
-        ) : filtered.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="hp-products-empty">
             <div style={{ fontSize: '2.5rem' }}>📚</div>
-            <p>{products.length === 0 ? 'Chưa có sản phẩm nào.' : 'Không tìm thấy kết quả phù hợp.'}</p>
-            {products.length === 0 ? (
+            <p>{totalElements === 0 ? 'Chưa có sản phẩm nào.' : 'Không tìm thấy kết quả phù hợp.'}</p>
+            {totalElements === 0 ? (
               <Link to="/products/new" className="hp-btn hp-btn--solid" style={{ marginTop: 16 }}>➕ Đăng bán ngay</Link>
             ) : (
               <button onClick={() => { setSearchQuery(''); setSelectedCat('all'); setPriceRange('all'); }} className="hp-btn hp-btn--solid" style={{ marginTop: 16 }}>
@@ -363,7 +352,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="hp-product-grid">
-            {filtered.map((product, i) => (
+            {products.map((product, i) => (
               <Reveal key={product.id} delay={Math.min(i % 6 * 40, 180)}>
                 <Link to={`/products/${product.id}`} className="hp-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="hp-product-card__img">
@@ -394,7 +383,7 @@ export default function HomePage() {
             ))}
           </div>
         )}
-        {!loading && !last && filtered.length > 0 && (
+        {!loading && !last && products.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-8)' }}>
             <button
               type="button"
