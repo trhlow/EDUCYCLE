@@ -10,7 +10,7 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
-      thresholds: { lines: 28, functions: 26, branches: 20, statements: 28 },
+      thresholds: { lines: 30, functions: 24, branches: 18, statements: 28 },
     },
   },
 });

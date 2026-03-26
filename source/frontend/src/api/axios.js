@@ -2,6 +2,7 @@ import axios from 'axios';
 import { clearAuthStorage } from '../utils/safeSession';
 import { resolveApiBaseUrl } from '../utils/apiBase';
 import { getApiErrorMessage } from '../utils/apiError';
+import { parseAuthResponse } from './schemas';
 
 const API_BASE_URL = resolveApiBaseUrl();
 
@@ -33,8 +34,24 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const validateAuthJsonIfNeeded = (response) => {
+  const url = response.config?.url ?? '';
+  if (!url.includes('/auth/') || !response.data || typeof response.data !== 'object') return;
+  if (
+    url.includes('/auth/register') ||
+    url.includes('/auth/login') ||
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/social-login')
+  ) {
+    parseAuthResponse(response.data, url);
+  }
+};
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    validateAuthJsonIfNeeded(response);
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -69,6 +86,7 @@ api.interceptors.response.use(
           { refreshToken },
           { headers: { 'Content-Type': 'application/json' } }
         );
+        parseAuthResponse(res.data, '/auth/refresh');
         const { token: newToken, refreshToken: newRefreshToken } = res.data;
 
         localStorage.setItem('token', newToken);
