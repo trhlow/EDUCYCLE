@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Dev / CI / default: Spring Boot console (dễ đọc local). -->
+    <springProfile name="!production">
+        <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    </springProfile>
+
+    <!-- Production (Docker stack): log JSON một dòng — thuận log aggregator (Loki, ELK, CloudWatch). -->
+    <springProfile name="production">
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+        <logger name="com.educycle" level="INFO"/>
+        <logger name="org.springframework.security" level="WARN"/>
+    </springProfile>
+</configuration>

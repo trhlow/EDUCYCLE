@@ -1,6 +1,6 @@
 # EduCycle API — Java Spring Boot 3.x
 
-> Migrated from **ASP.NET Core 10 + EF Core** → **Spring Boot 3.2 + JPA/Hibernate + Flyway**
+> Migrated from **ASP.NET Core 10 + EF Core** → **Spring Boot 3.4.x + JPA/Hibernate + Flyway**
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Layer | C# (Original) | Java (Migration) |
 |---|---|---|
-| Framework | ASP.NET Core 10 | Spring Boot 3.2.5 |
+| Framework | ASP.NET Core 10 | Spring Boot 3.4.x |
 | ORM | Entity Framework Core | Spring Data JPA + Hibernate |
 | DB Migration | EF Core Migrations | Flyway |
 | Auth | JWT Bearer | JJWT 0.12.x + Spring Security |
@@ -86,9 +86,15 @@ jwt:
 mvn spring-boot:run
 ```
 
-Flyway will automatically run `V1__initial_schema.sql` on first startup, creating all tables and seeding:
-- Admin user: `admin@educycle.com` / `admin@1`
-- 6 default categories
+Flyway chạy các file trong `src/main/resources/db/migration/` theo thứ tự phiên bản. Trong repo hiện có **`V2`–`V11`** (schema + seed đã được tách qua nhiều migration; DB mới sẽ apply lần lượt). Seed thường gặp:
+- Admin: `admin@educycle.com` / `admin@1`
+- Danh mục mặc định (nếu có trong migration tương ứng)
+
+**SBOM (CycloneDX):** sau `mvn package` → `target/classes/META-INF/sbom/application.cdx.json`
+
+**Log JSON:** profile **`production`** dùng `logback-spring.xml` + `LogstashEncoder` (một dòng / event).
+
+**CORS:** biến môi trường **`CORS_ALLOWED_ORIGINS`** (danh sách origin cách nhau bởi dấu phẩy) — xem `application.yml` / `.env.example` gốc repo.
 
 ### 4. Swagger UI
 ```
@@ -145,7 +151,7 @@ src/main/java/com/educycle/
 src/main/resources/
 ├── application.yml                 # Config (maps appsettings.json)
 └── db/migration/
-    └── V1__initial_schema.sql      # Flyway migration (replaces all EF Core migrations)
+    └── V2__…sql … V11__…sql        # Flyway (không sửa file đã apply)
 
 src/test/java/com/educycle/service/
 ├── AuthServiceTest.java            # Maps C# AuthServiceTests.cs
