@@ -8,7 +8,7 @@
 ## 1. TRẠNG THÁI DỰ ÁN
 
 **Stack hiện tại:** Java **17** + Spring Boot **3.4.x** + PostgreSQL **16** + Flyway **V1–V11** (tiếp theo **V12**) · React **19** + Vite **7** + **JavaScript** + TypeScript entry (`.tsx` + `tsc -b`) + TanStack Query + Axios + STOMP  
-**Hướng portfolio 2026:** xem **§2.5** (ưu tiên TS / TanStack Query / nâng JDK & Spring — *chưa làm*, chỉ định hướng).
+**Hướng portfolio 2026:** xem **§2.5** (TS + migrate `.jsx` dần, Zod/RHF, JDK 21, v.v. — **TanStack Query + entry TS** đã bật; còn nợ theo sprint).
 
 **Paths:** `source/backend/educycle-java/` · `source/frontend/`
 
@@ -44,7 +44,7 @@
 | Sprint 3 — upload ảnh + phân trang + sửa tin + notif prefs + reject lý do | ✅ | ✅ | `V8` migration, `FileUploadController`, `PageResponse`, `/products/:id/edit` |
 | Sprint 4 — production polish + Docker full stack | ✅ | ✅ | `docker-compose.yml`, FE `Dockerfile`+nginx, `apiError.js`, Vitest OAuth |
 | SMTP email thật (tuỳ chọn) | ✅ | — | Profile **`smtp`** + `application-smtp.yml`, biến `MAIL_*`, README + `.env.example`; không bật = `MailService` log console |
-| AI chat rate limit | ✅ | — | `AiChatRateLimiter` 30/user/giờ (in-memory) |
+| AI chat rate limit | ✅ | — | 30/user/giờ — **`RedisAiChatRateLimiter`** khi `EDUCYCLE_REDIS_ENABLED=true` (compose có `redis`); không thì **in-memory** |
 | README + CI (công khai) | — | — | [`README.md`](README.md): Quick Start, Configuration, **Testing & CI** — đồng bộ với mục chạy dưới đây |
 | Audit 2026 — hardening nhanh | ✅ | ✅ | `GET /api/transactions` chỉ ADMIN; register `.edu.vn` + MK ≥8; `POSTGRES_PASSWORD` compose; nginx CSP/XFO/…; profile `production` tắt Swagger; Flyway **V10** index `status`/`user_id`; Dependabot + `npm audit` (critical) |
 | Audit 2026 — batch 2 | ✅ | ✅ | Lọc/tìm `GET /api/products` server-side; refresh **family** (V11); rate limit **X-Real-IP** (không spoof X-Forwarded-For); Google **auth-code** + `GOOGLE_CLIENT_SECRET` / fallback implicit; CI **e2e-api** (jar+Postgres+Playwright); Testcontainers IT khi `CI=true`; Prometheus + OTel dependency; coverage Vitest; docker-compose gợi ý object storage |
@@ -61,9 +61,9 @@ Hiện **không** có mục đỏ đang mở. *(Trước đây NOTES còn ghi th
 
 | Ưu tiên | Issue | Ghi chú |
 |---------|--------|---------|
-| **P0** | **E2E + CI** | Playwright smoke có; golden path + BE+DB trong job E2E — chưa |
-| **P1** | Scale rate limit / cache | `AiChatRateLimiter` + Bucket4j in-memory → **Redis** khi multi-instance |
-| **P1** | AI chat không stream | UX chờ full response — roadmap SSE/chunk (BE + FE) |
+| **P0** | **E2E + CI** | Job **`e2e`** + **`e2e-api`**; **golden path API** đăng ký → đăng tin → `/products/mine` *(Playwright `golden-path.spec.js`)*. Flow **giao dịch + OTP** end-to-end qua UI/API dài — vẫn có thể bổ sung sau |
+| **P1** | Rate limit HTTP khi scale ngang | **Bucket4j** (`RateLimitFilter`) vẫn **in-memory per process** — nhiều replica cần store chung (Redis/proxy). **AI chat** đã có **Redis** tuỳ chọn (xem §1 + Sprint 7) |
+| **P2** | AI chat SSE — polish | Stream **đã có** (BE SSE + FE); có thể cải **cancel, retry UI, timeout** |
 | **P2** | Xóa TK / GDPR | Chưa API BE |
 | **P2** | Email production | Profile `smtp` + `MAIL_*` — README |
 | **P2** | MSAL / COOP (dev) | Cảnh báo console — không phải lỗi API |
@@ -109,15 +109,15 @@ npm run build
 | Chủ đề | Ghi chú thực tế |
 |--------|------------------|
 | **TypeScript + strict** | Tín hiệu mạnh cho portfolio FE/full-stack; toàn `.jsx` không “chết” nhưng dễ bị đánh giá thấp hơn. Migrate có chi phí → **làm dần**: file mới `.tsx`, shared types, **Zod infer** song song schema. |
-| **TanStack Query v5** | `useEffect` + `useState` fetch nhiều chỗ **thua** cache/refetch/dedup → ưu tiên cao **sau TS** hoặc **song song từng màn** (không cần big-bang). |
+| **TanStack Query v5** | **Đã có** `QueryClientProvider` + **Home** (`useInfiniteQuery` / `useQuery`). Các trang khác có thể còn fetch tay — **migrate dần**, không cần big-bang. |
 | **RHF + Zod** | Hợp lý cho form dài: đăng ký, đăng tin, profile. |
 | **Zustand / Jotai** | Context vẫn ổn cho app vừa; chỉ xem xét khi re-render / scope phình — **không bắt buộc ngày 1**. |
 | **Java 21 LTS + virtual threads** | Hướng tốt dài hạn (`pom`, CI JDK, image Docker). **Java 17** vẫn rất phổ biến; nếu nhắc EOL thì **đối chiếu bảng hỗ trợ Oracle/Adoptium (hoặc distro bạn dùng)** — tránh khẳng định cứng “hết hạn ngày X” nếu không cite nguồn. |
-| **Spring Boot 3.4.x+** | Nâng cấp có lý (bảo mật, `RestClient`, v.v.) → **có kế hoạch + test regression**. |
-| **AI streaming (SSE)** | Đúng hướng UX; BE hiện có thể chờ full response — cải tiến rõ ràng. |
-| **Redis** | Đúng cho rate limit / cache **multi-instance**; in-memory hiện tại **chấp nhận được** cho demo một máy. |
+| **Spring Boot 3.4.x+** | **`pom` đã 3.4.2** — giữ theo dõi bản vá / regression khi bump tiếp. |
+| **AI streaming (SSE)** | **Đã có** `POST /api/ai/chat/stream` + FE stream + fallback non-stream; có thể polish UX (hủy, lỗi mạng). |
+| **Redis** | **Compose + tuỳ chọn** cho **AI rate limit** đa instance. **Bucket4j HTTP** vẫn local — xem §2 P1. |
 | **Observability** (Sentry, OTel, metrics) | Đúng cho “production story”; **không blocker** portfolio nhưng cộng điểm phỏng vấn. |
-| **Wishlist chỉ `localStorage`** | Đúng nếu vẫn `WishlistContext` + local — **sync server** là feature marketplace “thật” khi cần. |
+| **Wishlist** | **Đã sync BE** (V9 + `wishlistApi`) — dòng cũ “chỉ localStorage” **lỗi thời**. |
 | **Tailwind v4 / đổi design system** | **Tuỳ chọn**; rule dự án đã cam kết **`tokens.css`** — migrate Tailwind = đổi stack UI, **không nhẹ** → xếp **sau TS + data layer**. |
 | **Admin `Map<String,Object>`** | Anti-pattern cho API nội bộ → **đã thay** `GET /api/admin/users` bằng record **`AdminUserSummaryResponse`** (cùng shape JSON: `id`, `username`, `email`, `role`, `createdAt`). `Map` parse JSON provider bên thứ ba (vd. OAuth userinfo) là use-case khác — không gộp. |
 
@@ -129,7 +129,7 @@ npm run build
 
 - [x] `tsconfig` (`tsconfig.json` + `tsconfig.app.json` + `tsconfig.node.json`, **strict**), `src/vite-env.d.ts`, entry **`main.tsx`** + **`providers/QueryProvider.tsx`**; script **`npm run typecheck`** (`tsc -b`); CI + README Testing cập nhật.
 - [x] **TanStack Query** — `QueryClientProvider` + **Home**: `useInfiniteQuery` (sản phẩm) + `useQuery` (danh mục).
-- [ ] **Zod + schema dùng chung** (infer type) — *chưa làm; ưu tiên Auth/PostProduct sau*.
+- [x] **Zod — Auth `AuthResponse`** (`src/api/schemas.js` + validate trong `axios.js`); infer type / schema toàn API — *mở rộng dần*.
 - [x] **E2E + CI** — Playwright `e2e/app.spec.js`, job **`e2e`** trong [`.github/workflows/ci.yml`](.github/workflows/ci.yml); Vitest **loại trừ** thư mục `e2e/`.
 
 #### Sprint 6 — Form + dữ liệu người dùng + UX AI
@@ -160,11 +160,33 @@ npm run build
 | Không public seller / không link PDP | **Có** `/users/:id` + `Link` seller |
 | Không skeleton | **Có** `ProductGridSkeleton` (một số trang vẫn có thể chỉ text loading) |
 
-**Production thật:** SMTP (hoặc provider khác), GDPR/xóa TK nếu cần, backup, secret rotation, Redis khi multi-instance — xem README + ARCHITECTURE.
+### Đối chiếu: bản review “Production‑Ready 2026” (Qodo-style) vs code
+
+> Dùng khi nhận review dạng checklist “enterprise 2026”: **giữ backlog đúng**, bỏ dòng **sai / lỗi thời**. Đối chiếu nhánh **`dev`** + `docker-compose.yml` gốc repo.
+
+**Verdict tổng quan:** Kết luận kiểu *“chưa production-ready”* về **TLS end-to-end**, **WebSocket `permitAll`**, **log có cấu trúc**, **OTEL mặc định tắt**, **JaCoCo/Vitest chưa gate cao**, **upload disk/volume**, **CORS list cố định**, **Zod/E2E golden/SBOM** — **vẫn hợp lý** như nợ prod. Một số **ID trong bản gốc** cần chỉnh như bảng dưới.
+
+| ID (bản gốc) | Khẳng định trong review gốc | Thực tế trong repo |
+|--------------|------------------------------|---------------------|
+| **S‑1 / S‑10** | Hai mục trùng (TLS) | Gộp một: stack Docker gốc chỉ **HTTP :80** qua `web` — chưa TLS termination / HSTS. |
+| **S‑3** | Refresh không có family / dễ replay | Đã có **`refreshTokenFamily`** (Flyway **V11**), `rotateRefreshToken`, `clearRefreshSession`. Token **đã rotate** không còn khớp DB → request tiếp theo bằng token cũ bị từ chối. **Harden thêm (khác snippet sai trong review):** race hai request **song song** cùng một refresh token trước khi commit — cần chiến lược versioning/transaction nếu yêu cầu. |
+| **S‑12** | “TS strict nhưng jsx bypass” | `tsconfig.app.json`: **`strict: true`**, **`allowJs: true`**, **`checkJs: false`** → file **`.jsx` không bị TypeScript kiểm tra**; đúng là nợ migrate dần sang `.tsx`. |
+| **S‑19** | Rate limit tin `X-Forwarded-For` → spoof | `RateLimitFilter` **không** đọc XFF thô; comment trong code nói rõ. Profile **`production`**: `educycle.rate-limit.prefer-x-real-ip: true` → ưu tiên **`X-Real-IP`** (nginx gán từ `$remote_addr`), không thì **`getRemoteAddr()`**. Rủi ro còn lại: **API lộ thẳng** mà không có reverse proxy tin cậy set header đúng. |
+| **S‑26** | Compose không giới hạn CPU/RAM | **Sai:** `docker-compose.yml` có **`deploy.resources.limits`** trên `db` và `api`. |
+| **S‑27** | Không healthcheck backend | **Sai:** service **`api`** có **`healthcheck`** (`wget` → `/actuator/health`); `db` / `redis` cũng có. |
+
+**Backlog vẫn khớp hướng review (làm khi target prod thật):** TLS + HSTS; thu hẹp **`/ws/**`** (handshake JWT / STOMP interceptor); `logback-spring.xml` JSON; bật OTEL + OTLP; JaCoCo **`check`** + nâng ngưỡng Vitest; S3/MinIO thay volume upload; CORS qua biến môi trường; SBOM; E2E golden path; Zod (hoặc tương đương) cho response API; v.v.
+
+**Production thật:** SMTP (hoặc provider khác), GDPR/xóa TK nếu cần, backup, secret rotation; **Redis** cho AI khi multi-instance; **HTTP rate limit** scale ngang cần thiết kế thêm — xem README + ARCHITECTURE.
 
 ### Page scorecard (UX ước lượng — 2026-03)
 
-Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · TransactionDetail ~7 · **Guide ~8** · Dashboard ~6–7 · Profile ~7 · **Wishlist ~5** *(local only)* · Cart ~7 · Admin ~6–7 · OAuthCallback ~7 · Chatbot ~6–7 *(chưa stream)*.
+Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · TransactionDetail ~7 · **Guide ~8** · Dashboard ~6–7 · Profile ~7 · **Wishlist ~7** *(sync BE)* · Cart ~7 · Admin ~6–7 · OAuthCallback ~7 · Chatbot ~7 *(SSE — `POST /api/ai/chat/stream`)*.
+
+### 2.6 Hoàn thành dự án — tổng hợp & phạm vi
+
+- **Bảng chi tiết:** [`docs/PROJECT-COMPLETION.md`](docs/PROJECT-COMPLETION.md) (đã làm vs nợ prod: TLS, S3, GDPR, OTEL bật thật, …).
+- **Mới đóng trong repo:** JaCoCo **gate** (~24% line tối thiểu), **CycloneDX SBOM**, **log JSON** (profile `production`), **CORS** qua `CORS_ALLOWED_ORIGINS`, **STOMP CONNECT** bắt buộc JWT, **E2E API golden path** (`e2e/api/golden-path.spec.js`), **Zod** cho `AuthResponse` + Axios, Vitest threshold nâng nhẹ, README BE Flyway/SBOM/CORS.
 
 ---
 
@@ -362,6 +384,37 @@ git push origin dev
 ---
 
 ## 7. CHANGELOG
+
+### [0.7.2] — 2026-03-26 — Hoàn thiện backlog “có thể merge” + tổng hợp completion
+
+**Added**
+- `docs/PROJECT-COMPLETION.md` — matrix **đã làm / còn nợ prod**; mục lục trong `docs/README.md`
+- `source/frontend/e2e/api/golden-path.spec.js` — golden path API (register → product → mine)
+- `source/frontend/src/api/schemas.js` + dependency **zod** — validate `AuthResponse`
+- `source/backend/educycle-java/src/main/resources/logback-spring.xml` — log **JSON** khi profile `production`
+- **CycloneDX** SBOM (`cyclonedx-maven-plugin`) → `target/classes/META-INF/sbom/application.cdx.json`
+
+**Changed (BE)**
+- JaCoCo **`check`** tối thiểu **24%** line (chống tụt coverage)
+- **CORS** — `cors.allowed-origins-csv` + env **`CORS_ALLOWED_ORIGINS`** (`CorsProperties`)
+- **WebSocket** — `WebSocketAuthInterceptor` từ chối STOMP **CONNECT** nếu thiếu / sai JWT
+- `application-production.yml` — ghi chú bật **OTEL**
+- `application.yml`, `source/backend/educycle-java/README.md` — Flyway **V2–V11**, SBOM, CORS, log
+
+**Changed (FE)**
+- `axios.js` — parse Zod sau login/register/social/refresh (+ luồng refresh thủ công)
+- `vitest.config.js` — ngưỡng coverage nâng nhẹ (lines **30%**)
+
+**Changed (repo)**
+- `.env.example` — `CORS_ALLOWED_ORIGINS`
+- `NOTES.md` §**2.6** + cập nhật §**2** P0, Sprint 5 Zod
+
+### [0.7.1] — 2026-03-24 — NOTES: đối chiếu review Production-Ready 2026
+
+**Changed (docs)**
+- `NOTES.md` §**2.5**: thêm mục **Đối chiếu: bản review “Production‑Ready 2026” (Qodo-style) vs code** (làm rõ S‑1/3/12/19/26/27 + backlog prod); sửa **page scorecard** Wishlist/Chatbot; bảng góc nhìn 2026 — dòng Wishlist khớp sync BE.
+- `NOTES.md` §**1–2** + bảng “góc nhìn 2026”: đồng bộ **P0–P2** (E2E golden vẫn nợ; Bucket4j vs Redis AI; SSE đã có → hạ xuống polish); §1 **AI rate limit** + dòng **hướng portfolio**; **Production thật** (Redis vs HTTP limit).
+- `.cursor/rules/educycle.mdc`: stack **Spring Boot 3.4.x**, Flyway **→ V12**, FE **TanStack Query + TS entry**, AI rate limit **Redis tuỳ chọn**.
 
 ### [0.7.0] — 2026-03-25 — Sprint 5–7 (phần FE + hoàn thiện sau timeout)
 

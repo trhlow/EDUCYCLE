@@ -19,6 +19,7 @@
 | [README.md](../README.md) | Chạy app, cấu hình, API tóm tắt |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | Kiến trúc runtime, audit |
 | [NOTES.md](../NOTES.md) | Sprint, changelog, quy tắc nội bộ, FE↔BE |
+| [PROJECT-COMPLETION.md](PROJECT-COMPLETION.md) | Tổng hợp đã làm vs nợ prod (TLS, S3, GDPR, …) |
 | [SETUP_CHATBOT.md](../SETUP_CHATBOT.md) | AI chat — entry ngắn, chi tiết trong `guides/` |
 
 ## Đường dẫn code (không đổi)
