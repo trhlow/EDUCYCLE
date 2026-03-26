@@ -13,6 +13,7 @@ import com.educycle.service.GoogleOAuthCodeExchangeService;
 import com.educycle.service.MailService;
 import com.educycle.service.OAuthTokenVerifier;
 import com.educycle.util.MessageConstants;
+import com.educycle.util.OtpHasher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository       userRepository;
     private final JwtTokenProvider     jwtTokenProvider;
     private final PasswordEncoder      passwordEncoder;
-    private final OAuthTokenVerifier   oAuthTokenVerifier; // NEW
+    private final OAuthTokenVerifier   oAuthTokenVerifier;
     private final GoogleOAuthCodeExchangeService googleOAuthCodeExchangeService;
     private final MailService          mailService;
 
@@ -64,18 +66,19 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.USER)
                 .emailVerified(false)
                 .phoneVerified(false)
-                .emailVerificationToken(otpToken)
+                // Store the SHA-256 hash of the OTP — never persist plaintext tokens.
+                .emailVerificationToken(OtpHasher.hash(otpToken))
                 .emailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES))
                 .build();
 
         User savedUser = userRepository.save(user);
         if (savedUser != null) user = savedUser;
-        startNewRefreshChain(user);
+        String rawRefreshToken = startNewRefreshChain(user);
         userRepository.save(user);
 
-        log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
+        log.info("Đăng ký thành công: {}", email);
         sendVerificationOtpEmail(user, otpToken);
-        return toAuthResponse(user, MessageConstants.REGISTER_OTP_SENT);
+        return toAuthResponse(user, rawRefreshToken, MessageConstants.REGISTER_OTP_SENT);
     }
 
     // ── Login ──────────────────────────────────────────────────────────────
@@ -90,22 +93,13 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException(MessageConstants.INVALID_CREDENTIALS);
         }
 
-        startNewRefreshChain(user);
+        String rawRefreshToken = startNewRefreshChain(user);
         userRepository.save(user);
 
-        return toAuthResponse(user, null);
+        return toAuthResponse(user, rawRefreshToken, null);
     }
 
     // ── Social Login (Google / Microsoft) ─────────────────────────────────
-    //
-    // Flow:
-    //  1. FE calls Google/Microsoft SDK → receives ID token
-    //  2. FE sends { provider, token } to POST /api/auth/social-login
-    //  3. OAuthTokenVerifier validates the token against Google/Microsoft JWKS
-    //  4. Extract email → find or create user → issue our own JWT
-    //
-    // Security: the token is cryptographically verified — we never trust
-    // the email from the request body directly.
 
     @Override
     public AuthResponse socialLogin(SocialLoginRequest request) {
@@ -136,22 +130,19 @@ public class AuthServiceImpl implements AuthService {
                     .email(verifiedEmail)
                     .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(Role.USER)
-                    .emailVerified(true)   // email is verified by the OAuth provider
+                    .emailVerified(true)
                     .phoneVerified(false)
                     .build();
-            startNewRefreshChain(newUser);
             userRepository.save(newUser);
-            log.info("Đăng nhập mạng xã hội: đã tạo người dùng mới — nhà cung cấp={}, email={}", request.provider(), verifiedEmail);
+            log.info("Đăng nhập mạng xã hội: đã tạo người dùng mới — nhà cung cấp={}", request.provider());
             return newUser;
         });
 
-        // Mỗi lần đăng nhập social: chuỗi refresh mới (family mới)
-        if (user.getId() != null) {
-            startNewRefreshChain(user);
-            userRepository.save(user);
-        }
+        // Start a new refresh chain on every social login (new family).
+        String rawRefreshToken = startNewRefreshChain(user);
+        userRepository.save(user);
 
-        return toAuthResponse(user, null);
+        return toAuthResponse(user, rawRefreshToken, null);
     }
 
     // ── Phone verification ─────────────────────────────────────────────────
@@ -174,16 +165,17 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.EMAIL_NOT_FOUND));
 
-        String storedToken = user.getEmailVerificationToken();
-        Instant expiry     = user.getEmailVerificationTokenExpiry();
+        String storedHash = user.getEmailVerificationToken();
+        Instant expiry    = user.getEmailVerificationTokenExpiry();
 
-        boolean valid = storedToken != null
-                && storedToken.equals(request.otp())
+        // Compare using the hash — plaintext OTP is never read back from the DB.
+        boolean valid = storedHash != null
+                && OtpHasher.verify(request.otp(), storedHash)
                 && expiry != null
                 && expiry.isAfter(Instant.now());
 
         if (!valid) {
-            log.warn("OTP không hợp lệ cho {}: expected={}, got={}", email, storedToken, request.otp());
+            log.warn("OTP không hợp lệ cho email: {}", email);
             throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
         }
 
@@ -207,11 +199,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String otp = generateOtp();
-        user.setEmailVerificationToken(otp);
+        user.setEmailVerificationToken(OtpHasher.hash(otp));
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
 
-        log.info("Đã gửi lại OTP cho {} | OTP (log khi chưa cấu hình SMTP): {}", email, otp);
+        log.info("Đã gửi lại OTP cho {}", email);
         sendVerificationOtpEmail(user, otp);
         return true;
     }
@@ -224,7 +216,21 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(MessageConstants.REFRESH_TOKEN_REQUIRED);
         }
 
-        User user = userRepository.findByRefreshToken(refreshToken)
+        String tokenHash = hashToken(refreshToken);
+
+        // Replay-attack detection: if the presented token matches a *previous* (already-
+        // rotated) token, an attacker is replaying a stolen token.  Invalidate the whole
+        // family immediately to protect the legitimate session owner.
+        Optional<User> replayCandidate = userRepository.findByPreviousRefreshToken(tokenHash);
+        if (replayCandidate.isPresent()) {
+            User staleUser = replayCandidate.get();
+            log.warn("Refresh token replay detected — invalidating family={}", staleUser.getRefreshTokenFamily());
+            clearRefreshSession(staleUser);
+            userRepository.save(staleUser);
+            throw new UnauthorizedException(MessageConstants.INVALID_REFRESH_TOKEN);
+        }
+
+        User user = userRepository.findByRefreshToken(tokenHash)
                 .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_REFRESH_TOKEN));
 
         if (user.getRefreshTokenExpiry() == null
@@ -234,16 +240,17 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException(MessageConstants.REFRESH_TOKEN_EXPIRED);
         }
 
-        rotateRefreshToken(user);
+        String rawNewToken = rotateRefreshToken(user);
         userRepository.save(user);
 
-        return toAuthResponse(user, null);
+        return toAuthResponse(user, rawNewToken, null);
     }
 
     @Override
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) return;
-        userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
+        String tokenHash = hashToken(refreshToken);
+        userRepository.findByRefreshToken(tokenHash).ifPresent(user -> {
             clearRefreshSession(user);
             userRepository.save(user);
         });
@@ -269,7 +276,10 @@ public class AuthServiceImpl implements AuthService {
         Optional<User> found = userRepository.findByEmail(email);
         if (found.isPresent()) {
             User user = found.get();
-            String token = UUID.randomUUID().toString().replace("-", "");
+            // Use SecureRandom (256-bit URL-safe token) instead of UUID.
+            byte[] tokenBytes = new byte[32];
+            SECURE_RANDOM.nextBytes(tokenBytes);
+            String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
             user.setPasswordResetToken(token);
             user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
             userRepository.save(user);
@@ -304,28 +314,44 @@ public class AuthServiceImpl implements AuthService {
 
     // ── Private helpers ────────────────────────────────────────────────────
 
-    private void startNewRefreshChain(User user) {
+    /**
+     * Start a new refresh-token chain (new family).  Returns the <em>raw</em>
+     * (plaintext) token that must be sent to the client; only the SHA-256 hash
+     * is written to the database.
+     */
+    private String startNewRefreshChain(User user) {
+        String rawToken = jwtTokenProvider.generateRefreshToken();
         user.setRefreshTokenFamily(UUID.randomUUID());
-        user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
+        user.setRefreshToken(hashToken(rawToken));
         user.setRefreshTokenExpiry(Instant.now().plus(7, ChronoUnit.DAYS));
+        user.setPreviousRefreshToken(null);
+        return rawToken;
     }
 
-    /** Giữ nguyên family — chỉ đổi token (rotation). */
-    private void rotateRefreshToken(User user) {
+    /**
+     * Rotate within the same family.  Promotes the current hash to
+     * {@code previousRefreshToken} so replay attacks can be detected, then
+     * stores the hash of the new token.  Returns the raw token for the client.
+     */
+    private String rotateRefreshToken(User user) {
         if (user.getRefreshTokenFamily() == null) {
             user.setRefreshTokenFamily(UUID.randomUUID());
         }
-        user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
+        user.setPreviousRefreshToken(user.getRefreshToken());
+        String rawToken = jwtTokenProvider.generateRefreshToken();
+        user.setRefreshToken(hashToken(rawToken));
         user.setRefreshTokenExpiry(Instant.now().plus(7, ChronoUnit.DAYS));
+        return rawToken;
     }
 
     private void clearRefreshSession(User user) {
         user.setRefreshToken(null);
         user.setRefreshTokenExpiry(null);
         user.setRefreshTokenFamily(null);
+        user.setPreviousRefreshToken(null);
     }
 
-    private AuthResponse toAuthResponse(User user, String message) {
+    private AuthResponse toAuthResponse(User user, String rawRefreshToken, String message) {
         return new AuthResponse(
                 user.getId(),
                 user.getUsername(),
@@ -334,7 +360,7 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().name(),
                 user.isEmailVerified(),
                 message,
-                user.getRefreshToken(),
+                rawRefreshToken,
                 user.getRefreshTokenExpiry()
         );
     }
@@ -346,6 +372,14 @@ public class AuthServiceImpl implements AuthService {
     private static String normalizeEmail(String email) {
         if (email == null) return null;
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * SHA-256 hex hash used for safe DB storage of opaque tokens (refresh tokens).
+     * Delegates to {@link OtpHasher#hash} to keep a single hashing implementation.
+     */
+    static String hashToken(String token) {
+        return OtpHasher.hash(token);
     }
 
     private void sendVerificationOtpEmail(User user, String otp) {

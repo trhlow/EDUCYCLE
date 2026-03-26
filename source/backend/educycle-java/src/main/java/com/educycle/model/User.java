@@ -90,6 +90,7 @@ public class User {
     @Builder.Default
     private boolean phoneVerified = false;
 
+    /** SHA-256 hex hash of the current opaque refresh token (never store plaintext). */
     @Column(name = "refresh_token", length = 200)
     private String refreshToken;
 
@@ -99,6 +100,14 @@ public class User {
     /** Nhóm phiên refresh — đổi khi đăng nhập mới; giữ khi rotate token */
     @Column(name = "refresh_token_family")
     private UUID refreshTokenFamily;
+
+    /**
+     * SHA-256 hex hash of the immediately-previous refresh token.
+     * Used to detect refresh-token replay attacks: if a request arrives with a
+     * token matching this hash, the family is invalidated immediately.
+     */
+    @Column(name = "previous_refresh_token")
+    private String previousRefreshToken;
 
     // ===== Notification preferences (Sprint 3) =====
     @Column(name = "notify_product_moderation", nullable = false)

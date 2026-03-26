@@ -56,6 +56,9 @@ class AuthServiceTest {
     private OAuthTokenVerifier oAuthTokenVerifier;
 
     @Mock
+    private com.educycle.service.GoogleOAuthCodeExchangeService googleOAuthCodeExchangeService;
+
+    @Mock
     private MailService mailService;
 
     @InjectMocks

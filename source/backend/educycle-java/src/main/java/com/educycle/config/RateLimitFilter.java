@@ -75,7 +75,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         boolean isAuthPath = path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/register")
-                || path.startsWith("/api/auth/resend-otp");
+                || path.startsWith("/api/auth/resend-otp")
+                || path.startsWith("/api/auth/forgot-password")
+                || path.startsWith("/api/auth/reset-password");
 
         Bucket bucket = isAuthPath ? getAuthBucket(ip) : getApiBucket(ip);
 
