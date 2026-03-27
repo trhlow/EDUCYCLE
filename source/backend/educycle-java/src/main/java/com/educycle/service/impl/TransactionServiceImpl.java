@@ -1,6 +1,7 @@
 package com.educycle.service.impl;
 
 import com.educycle.dto.admin.AdminResolveTransactionRequest;
+import com.educycle.dto.transaction.CancelTransactionRequest;
 import com.educycle.dto.transaction.CreateTransactionRequest;
 import com.educycle.dto.transaction.DisputeTransactionRequest;
 import com.educycle.dto.transaction.TransactionResponse;
@@ -113,29 +114,123 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse updateStatus(UUID id, UpdateTransactionStatusRequest request) {
+    public TransactionResponse updateStatus(UUID id, UUID actorUserId, UpdateTransactionStatusRequest request) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        assertParticipant(t, actorUserId);
 
         String rawStatus = request.status();
         if (rawStatus != null && "DISPUTED".equalsIgnoreCase(rawStatus.trim())) {
             throw new BadRequestException(MessageConstants.USE_DISPUTE_ENDPOINT_FOR_DISPUTED);
         }
 
+        final TransactionStatus newStatus;
         try {
-            t.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
+            newStatus = TransactionStatus.valueOf(request.status().trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(
                     MessageConstants.INVALID_TRANSACTION_STATUS_PREFIX + request.status());
         }
 
+        if (newStatus == TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.TRANSACTION_MEETING_DEPRECATED);
+        }
+
+        TransactionStatus current = t.getStatus();
+
+        if (newStatus == TransactionStatus.CANCELLED) {
+            if (current == TransactionStatus.ACCEPTED || current == TransactionStatus.MEETING) {
+                throw new BadRequestException(MessageConstants.TRANSACTION_USE_CANCEL_ENDPOINT);
+            }
+            if (current == TransactionStatus.PENDING) {
+                if (!t.getBuyer().getId().equals(actorUserId)) {
+                    throw new ForbiddenException(MessageConstants.TRANSACTION_CANCEL_PENDING_BUYER_ONLY);
+                }
+            } else {
+                throw new BadRequestException(MessageConstants.TRANSACTION_STATUS_TRANSITION_INVALID);
+            }
+        } else if (newStatus == TransactionStatus.ACCEPTED) {
+            if (current != TransactionStatus.PENDING || !t.getSeller().getId().equals(actorUserId)) {
+                throw new BadRequestException(MessageConstants.TRANSACTION_STATUS_TRANSITION_INVALID);
+            }
+        } else if (newStatus == TransactionStatus.REJECTED) {
+            if (current != TransactionStatus.PENDING || !t.getSeller().getId().equals(actorUserId)) {
+                throw new BadRequestException(MessageConstants.TRANSACTION_STATUS_TRANSITION_INVALID);
+            }
+        } else {
+            throw new BadRequestException(MessageConstants.TRANSACTION_STATUS_TRANSITION_INVALID);
+        }
+
+        t.setStatus(newStatus);
         transactionRepository.save(t);
 
         notificationService.create(
                 t.getBuyer().getId(),
                 "TRANSACTION_STATUS_CHANGED",
                 "Giao dịch được cập nhật",
-                "Giao dịch của bạn đã được cập nhật sang trạng thái: " + request.status(),
+                "Giao dịch của bạn đã được cập nhật sang trạng thái: " + newStatus.name(),
+                t.getId());
+        if (!t.getSeller().getId().equals(t.getBuyer().getId())) {
+            notificationService.create(
+                    t.getSeller().getId(),
+                    "TRANSACTION_STATUS_CHANGED",
+                    "Giao dịch được cập nhật",
+                    "Giao dịch của bạn đã được cập nhật sang trạng thái: " + newStatus.name(),
+                    t.getId());
+        }
+
+        return mapToResponse(t);
+    }
+
+    @Override
+    public TransactionResponse cancelTransaction(UUID id, UUID actorUserId, CancelTransactionRequest request) {
+        Transaction t = transactionRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+
+        assertParticipant(t, actorUserId);
+
+        TransactionStatus current = t.getStatus();
+        if (current == TransactionStatus.COMPLETED
+                || current == TransactionStatus.AUTO_COMPLETED
+                || current == TransactionStatus.REJECTED
+                || current == TransactionStatus.CANCELLED
+                || current == TransactionStatus.DISPUTED) {
+            throw new BadRequestException(MessageConstants.TRANSACTION_CANNOT_CANCEL);
+        }
+
+        if (current == TransactionStatus.PENDING) {
+            if (!t.getBuyer().getId().equals(actorUserId)) {
+                throw new ForbiddenException(MessageConstants.TRANSACTION_CANCEL_PENDING_BUYER_ONLY);
+            }
+        } else if (current == TransactionStatus.ACCEPTED || current == TransactionStatus.MEETING) {
+            // buyer hoặc seller
+        } else {
+            throw new BadRequestException(MessageConstants.TRANSACTION_CANNOT_CANCEL);
+        }
+
+        String reason = null;
+        if (request != null && request.reason() != null) {
+            String r = request.reason().trim();
+            reason = r.isEmpty() ? null : r;
+        }
+
+        t.setStatus(TransactionStatus.CANCELLED);
+        t.setCancelReason(reason);
+        t.setCancelledAt(Instant.now());
+        t.setOtpCode(null);
+        t.setOtpExpiresAt(null);
+        transactionRepository.save(t);
+
+        UUID otherPartyId = t.getBuyer().getId().equals(actorUserId)
+                ? t.getSeller().getId()
+                : t.getBuyer().getId();
+        String preview = reason != null && reason.length() > 200 ? reason.substring(0, 200) + "..." : (reason != null ? reason : "(Không ghi lý do)");
+        notificationService.create(
+                otherPartyId,
+                "TRANSACTION_CANCELLED",
+                "Giao dịch đã hủy",
+                "Đối tác đã hủy giao dịch. Lý do: " + preview,
                 t.getId());
 
         return mapToResponse(t);
@@ -150,9 +245,14 @@ public class TransactionServiceImpl implements TransactionService {
             throw new ForbiddenException(MessageConstants.OTP_GENERATE_BUYER_ONLY);
         }
 
+        TransactionStatus st = t.getStatus();
+        if (st != TransactionStatus.ACCEPTED && st != TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.OTP_REQUIRES_ACCEPTED);
+        }
+
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         t.setOtpCode(OtpHasher.hash(otp));
-        t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
+        t.setOtpExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
         transactionRepository.save(t);
 
         log.info("OTP generated for transaction {}", id);
@@ -166,6 +266,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (t.getSeller() == null || !t.getSeller().getId().equals(actorUserId)) {
             throw new ForbiddenException(MessageConstants.OTP_VERIFY_SELLER_ONLY);
+        }
+
+        TransactionStatus st = t.getStatus();
+        if (st != TransactionStatus.ACCEPTED && st != TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.OTP_REQUIRES_ACCEPTED);
         }
 
         if (t.getOtpCode() == null
@@ -203,8 +308,9 @@ public class TransactionServiceImpl implements TransactionService {
         if (t.getBuyer() == null || !t.getBuyer().getId().equals(buyerId)) {
             throw new ForbiddenException(MessageConstants.DISPUTE_ONLY_BUYER);
         }
-        if (t.getStatus() != TransactionStatus.MEETING) {
-            throw new BadRequestException(MessageConstants.DISPUTE_REQUIRES_MEETING);
+        TransactionStatus st = t.getStatus();
+        if (st != TransactionStatus.ACCEPTED && st != TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.DISPUTE_REQUIRES_ACCEPTED);
         }
 
         String reason = null;
@@ -337,7 +443,17 @@ public class TransactionServiceImpl implements TransactionService {
                 t.getCreatedAt(),
                 t.getUpdatedAt(),
                 t.getDisputeReason(),
-                t.getDisputedAt()
+                t.getDisputedAt(),
+                t.getCancelReason(),
+                t.getCancelledAt()
         );
+    }
+
+    private void assertParticipant(Transaction t, UUID actorUserId) {
+        boolean buyerOk = t.getBuyer() != null && t.getBuyer().getId().equals(actorUserId);
+        boolean sellerOk = t.getSeller() != null && t.getSeller().getId().equals(actorUserId);
+        if (!buyerOk && !sellerOk) {
+            throw new ForbiddenException(MessageConstants.TRANSACTION_NOT_PARTICIPANT);
+        }
     }
 }

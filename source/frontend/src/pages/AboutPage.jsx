@@ -31,17 +31,14 @@ export default function AboutPage() {
         <h2 className="abt-heading">Tại sao chọn EduCycle?</h2>
         <div className="abt-cards">
           <article className="abt-card">
-            <div className="abt-card-icon">📚</div>
             <h3>Trao đổi tài liệu</h3>
             <p>Đăng bán hoặc tìm mua sách, giáo trình dễ dàng giữa sinh viên với nhau.</p>
           </article>
           <article className="abt-card">
-            <div className="abt-card-icon">💰</div>
             <h3>Tiết kiệm chi phí</h3>
             <p>Mua lại tài liệu cũ với giá hợp lý, bán lại những gì không còn cần.</p>
           </article>
           <article className="abt-card">
-            <div className="abt-card-icon">♻️</div>
             <h3>Tái sử dụng</h3>
             <p>Kéo dài vòng đời tài liệu thay vì để chúng nằm phủ bụi.</p>
           </article>

@@ -50,7 +50,7 @@ function RejectReasonModal({
         <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-4)' }}>
           <button type="button" className="admin-btn" onClick={onCancel} disabled={submitting}>Hủy</button>
           <button type="button" className="admin-btn admin-btn-danger" onClick={onConfirm} disabled={submitting}>
-            {submitting ? '⏳…' : 'Xác nhận từ chối'}
+            {submitting ? 'Đang gửi…' : 'Xác nhận từ chối'}
           </button>
         </div>
       </div>
@@ -65,13 +65,13 @@ function productThumbUrls(item) {
 }
 
 const ADMIN_MENU = [
-  { icon: '📊', label: 'Bảng Điều Khiển', view: 'overview'    },
-  { icon: '🔍', label: 'Kiểm Duyệt',      view: 'moderation'  },
-  { icon: '👥', label: 'Người Dùng',       view: 'users'       },
-  { icon: '📚', label: 'Sản Phẩm',         view: 'products'    },
-  { icon: '🏷️', label: 'Danh Mục',         view: 'categories'  },
-  { icon: '💳', label: 'Giao Dịch',        view: 'orders'      },
-  { icon: '⭐', label: 'Đánh Giá',         view: 'reviews'     },
+  { label: 'Bảng điều khiển', view: 'overview' },
+  { label: 'Kiểm duyệt', view: 'moderation' },
+  { label: 'Người dùng', view: 'users' },
+  { label: 'Sản phẩm', view: 'products' },
+  { label: 'Danh mục', view: 'categories' },
+  { label: 'Giao dịch', view: 'orders' },
+  { label: 'Đánh giá', view: 'reviews' },
 ];
 
 export default function AdminPage() {
@@ -83,24 +83,24 @@ export default function AdminPage() {
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-brand">🎓 Quản Trị EduCycle</div>
+        <div className="admin-sidebar-brand">Quản trị EduCycle</div>
         <div className="admin-sidebar-section">
           <div className="admin-sidebar-section-title">Quản Lý</div>
           {ADMIN_MENU.map(item => (
             <button key={item.view} className={`admin-sidebar-link ${currentView === item.view ? 'active' : ''}`} onClick={() => handleViewChange(item.view)}>
-              <span className="admin-sidebar-link-icon">{item.icon}</span>{item.label}
+              {item.label}
             </button>
           ))}
         </div>
         {sidebarOpen && (
           <button className="admin-sidebar-link" onClick={() => setSidebarOpen(false)}>
-            <span className="admin-sidebar-link-icon">✕</span>Đóng Menu
+            Đóng menu
           </button>
         )}
       </aside>
 
       <div className="admin-main">
-        <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>☰ Menu Quản Trị</button>
+        <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>Menu quản trị</button>
         {currentView === 'overview'   && <AdminOverview onNavigate={handleViewChange} />}
         {currentView === 'moderation' && <AdminModeration />}
         {currentView === 'users'      && <AdminUsers />}
@@ -146,7 +146,7 @@ function AdminOverview({ onNavigate }) {
   useEffect(() => { fetchAll(); }, []);
 
   const handleApprove = async (id) => {
-    try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetchAll(); }
+    try { await productsApi.approve(id); toast.success('Đã duyệt'); fetchAll(); }
     catch { toast.error('Không thể duyệt'); }
   };
   const openReject = (id, name) => { setRejectReason(''); setRejectModal({ id, name: name || 'Sản phẩm' }); };
@@ -186,7 +186,7 @@ function AdminOverview({ onNavigate }) {
     return <span style={{ background:c.bg, color:c.color, padding:'2px 10px', borderRadius:'var(--radius-full)', fontSize:'var(--text-xs)', fontWeight:500, whiteSpace:'nowrap' }}>{c.label}</span>;
   };
 
-  if (loading) return <div style={{ textAlign:'center', padding:'4rem', color:'var(--text-secondary)' }}>⏳ Đang tải dữ liệu vận hành...</div>;
+  if (loading) return <div style={{ textAlign:'center', padding:'4rem', color:'var(--text-secondary)' }}>Đang tải dữ liệu…</div>;
 
   const hasAlerts = pending.length > 0 || disputedTx.length > 0;
 
@@ -203,29 +203,28 @@ function AdminOverview({ onNavigate }) {
       />
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'var(--space-6)', gap:'var(--space-4)', flexWrap:'wrap' }}>
         <div>
-          <h1 className="admin-page-title" style={{ marginBottom:'var(--space-1)' }}>📊 Bảng Điều Khiển Vận Hành</h1>
+          <h1 className="admin-page-title" style={{ marginBottom:'var(--space-1)' }}>Bảng điều khiển vận hành</h1>
           <p style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)' }}>
             Cập nhật lúc {lastRefresh.toLocaleTimeString('vi-VN')}
-            {hasAlerts && <span style={{ marginLeft:'var(--space-3)', color:'var(--error)', fontWeight:500 }}>⚠️ Có vấn đề cần xử lý</span>}
+            {hasAlerts && <span style={{ marginLeft:'var(--space-3)', color:'var(--error)', fontWeight:500 }}>Có vấn đề cần xử lý</span>}
           </p>
         </div>
         <button onClick={fetchAll} style={{ padding:'var(--space-2) var(--space-4)', background:'var(--primary-50)', color:'var(--primary-700)', border:'1px solid var(--primary-200)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', cursor:'pointer', whiteSpace:'nowrap' }}>
-          🔄 Làm mới
+          Làm mới
         </button>
       </div>
 
       {/* KPI */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'var(--space-4)', marginBottom:'var(--space-6)' }}>
         {[
-          { icon:'👥', label:'Người dùng',  value:fmt(stats?.totalUsers),                              bg:'var(--primary-50)',   color:'var(--primary-700)', alert:false },
-          { icon:'📚', label:'Sản phẩm',    value:fmt(stats?.totalProducts),                           bg:'var(--secondary-50)', color:'#2e7d32',            alert:false },
-          { icon:'⏳', label:'Chờ duyệt',   value:fmt(stats?.pendingProducts ?? pending.length),       bg:'var(--warning-light)',color:'#e65100',            alert:(stats?.pendingProducts ?? pending.length) > 0 },
-          { icon:'🔄', label:'Giao dịch',   value:fmt(stats?.totalTransactions),                       bg:'var(--info-light)',   color:'#1565c0',            alert:false },
-          { icon:'⚠️', label:'Tranh chấp',  value:String(disputedTx.length),                           bg:'var(--error-light)',  color:'#c62828',            alert:disputedTx.length > 0 },
-          { icon:'🤝', label:'Đang xử lý',  value:String(activeTx.length),                             bg:'#e8eaf6',            color:'#3949ab',            alert:false },
+          { label:'Người dùng',  value:fmt(stats?.totalUsers),                              bg:'var(--primary-50)',   color:'var(--primary-700)', alert:false },
+          { label:'Sản phẩm',    value:fmt(stats?.totalProducts),                           bg:'var(--secondary-50)', color:'#2e7d32',            alert:false },
+          { label:'Chờ duyệt',   value:fmt(stats?.pendingProducts ?? pending.length),       bg:'var(--warning-light)',color:'#e65100',            alert:(stats?.pendingProducts ?? pending.length) > 0 },
+          { label:'Giao dịch',   value:fmt(stats?.totalTransactions),                       bg:'var(--info-light)',   color:'#1565c0',            alert:false },
+          { label:'Tranh chấp',  value:String(disputedTx.length),                           bg:'var(--error-light)',  color:'#c62828',            alert:disputedTx.length > 0 },
+          { label:'Đang xử lý',  value:String(activeTx.length),                             bg:'#e8eaf6',            color:'#3949ab',            alert:false },
         ].map((k,i) => (
           <div key={i} style={{ background:'var(--bg-primary)', border:k.alert?'1.5px solid var(--error)':'1px solid var(--border-light)', borderRadius:'var(--radius-lg)', padding:'var(--space-4)', boxShadow:k.alert?'0 0 0 3px rgba(244,67,54,.08)':'none' }}>
-            <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:36, height:36, background:k.bg, borderRadius:'var(--radius-md)', fontSize:'1.1rem', marginBottom:'var(--space-3)' }}>{k.icon}</div>
             <div style={{ fontSize:'var(--text-2xl)', fontWeight:700, color:k.color, lineHeight:1 }}>{k.value}</div>
             <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'var(--space-1)' }}>{k.label}</div>
           </div>
@@ -238,14 +237,14 @@ function AdminOverview({ onNavigate }) {
         <div className="admin-section">
           <div className="admin-section-header">
             <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
-              ⏳ Chờ Duyệt
+              Chờ duyệt
               {pending.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{pending.length}</span>}
             </h2>
-            {pending.length > 3 && <button onClick={() => onNavigate('moderation')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>}
+            {pending.length > 3 && <button onClick={() => onNavigate('moderation')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả</button>}
           </div>
           {pending.length === 0 ? (
             <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-secondary)' }}>
-              <div style={{ fontSize:'2.5rem', marginBottom:'var(--space-2)' }}>✅</div>Không có sản phẩm chờ duyệt
+              Không có sản phẩm chờ duyệt
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)', maxHeight:340, overflowY:'auto' }}>
@@ -253,7 +252,7 @@ function AdminOverview({ onNavigate }) {
                 <div key={item.id} style={{ padding:'var(--space-3)', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-light)' }}>
                   <div style={{ fontWeight:600, fontSize:'var(--text-sm)', color:'var(--text-primary)', marginBottom:4 }}>{item.name}</div>
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:'var(--space-2)' }}>
-                    👤 {item.sellerName || '—'} &nbsp;·&nbsp; 🏷️ {item.category || '—'} &nbsp;·&nbsp; 💰 {formatPrice(item.price)}
+                    {item.sellerName || '—'} · {item.category || '—'} · {formatPrice(item.price)}
                   </div>
                   {productThumbUrls(item).length > 0 && (
                     <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:'var(--space-2)' }}>
@@ -266,8 +265,8 @@ function AdminOverview({ onNavigate }) {
                     <div style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', marginBottom:'var(--space-2)', overflow:'hidden', textOverflow:'ellipsis', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{item.description}</div>
                   )}
                   <div style={{ display:'flex', gap:'var(--space-2)' }}>
-                    <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)} style={{ flex:1, fontSize:'var(--text-xs)' }}>✅ Duyệt</button>
-                    <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}  style={{ flex:1, fontSize:'var(--text-xs)' }}>❌ Từ chối</button>
+                    <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)} style={{ flex:1, fontSize:'var(--text-xs)' }}>Duyệt</button>
+                    <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}  style={{ flex:1, fontSize:'var(--text-xs)' }}>Từ chối</button>
                   </div>
                 </div>
               ))}
@@ -279,14 +278,14 @@ function AdminOverview({ onNavigate }) {
         <div className="admin-section">
           <div className="admin-section-header">
             <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
-              ⚠️ Tranh Chấp
+              Tranh chấp
               {disputedTx.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{disputedTx.length}</span>}
             </h2>
-            {disputedTx.length > 0 && <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>}
+            {disputedTx.length > 0 && <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả</button>}
           </div>
           {disputedTx.length === 0 ? (
             <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-secondary)' }}>
-              <div style={{ fontSize:'2.5rem', marginBottom:'var(--space-2)' }}>🤝</div>Không có tranh chấp nào
+              Không có tranh chấp nào
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
@@ -294,13 +293,13 @@ function AdminOverview({ onNavigate }) {
                 <div key={tx.id} style={{ padding:'var(--space-3)', background:'#fbe9e7', borderRadius:'var(--radius-md)', border:'1px solid #ffccbc' }}>
                   <div style={{ fontWeight:600, fontSize:'var(--text-sm)', color:'var(--text-primary)', marginBottom:4 }}>{tx.product?.name || '—'}</div>
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:4 }}>
-                    🛒 {tx.buyer?.username || '—'} &nbsp;↔&nbsp; 📦 {tx.seller?.username || '—'}
+                    Mua: {tx.buyer?.username || '—'} — Bán: {tx.seller?.username || '—'}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'var(--text-xs)', color:'#bf360c', fontWeight:600 }}>{formatPrice(tx.amount)}</span>
                     <span style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)' }}>{formatDate(tx.createdAt)}</span>
                   </div>
-                  <div style={{ marginTop:'var(--space-2)', fontSize:'var(--text-xs)', color:'#bf360c' }}>⚠️ Cần xem xét chat &amp; bằng chứng</div>
+                  <div style={{ marginTop:'var(--space-2)', fontSize:'var(--text-xs)', color:'#bf360c' }}>Cần xem xét chat và bằng chứng</div>
                 </div>
               ))}
             </div>
@@ -311,8 +310,8 @@ function AdminOverview({ onNavigate }) {
       {/* Giao dịch đang xử lý */}
       <div className="admin-section">
         <div className="admin-section-header">
-          <h2 className="admin-section-title">🔄 Giao Dịch Đang Hoạt Động <span style={{ fontSize:'var(--text-sm)', fontWeight:400, color:'var(--text-secondary)' }}>({activeTx.length})</span></h2>
-          <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả →</button>
+          <h2 className="admin-section-title">Giao dịch đang hoạt động <span style={{ fontSize:'var(--text-sm)', fontWeight:400, color:'var(--text-secondary)' }}>({activeTx.length})</span></h2>
+          <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả</button>
         </div>
         {activeTx.length === 0 ? (
           <div style={{ textAlign:'center', padding:'var(--space-6)', color:'var(--text-secondary)' }}>Không có giao dịch đang xử lý</div>
@@ -337,7 +336,7 @@ function AdminOverview({ onNavigate }) {
 
       {/* Feed gần nhất */}
       <div className="admin-section" style={{ marginTop:'var(--space-5)' }}>
-        <div className="admin-section-header"><h2 className="admin-section-title">🕐 Hoạt Động Gần Nhất</h2></div>
+        <div className="admin-section-header"><h2 className="admin-section-title">Hoạt động gần nhất</h2></div>
         {recentTx.length === 0 ? (
           <div style={{ textAlign:'center', padding:'var(--space-4)', color:'var(--text-secondary)' }}>Chưa có giao dịch</div>
         ) : (
@@ -346,7 +345,7 @@ function AdminOverview({ onNavigate }) {
               <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:'var(--space-3)', padding:'var(--space-3)', background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)' }}>
                 <div style={{ flex:1, minWidth:0 }}>
                   <span style={{ fontWeight:500, color:'var(--text-primary)' }}>{tx.product?.name || '—'}</span>
-                  <span style={{ color:'var(--text-secondary)', marginLeft:'var(--space-2)' }}>· {tx.buyer?.username || '—'} → {tx.seller?.username || '—'}</span>
+                  <span style={{ color:'var(--text-secondary)', marginLeft:'var(--space-2)' }}>· Mua: {tx.buyer?.username || '—'} · Bán: {tx.seller?.username || '—'}</span>
                 </div>
                 <span style={{ fontWeight:600, color:'var(--primary-700)', whiteSpace:'nowrap' }}>{formatPrice(tx.amount)}</span>
                 {txBadge(tx.status)}
@@ -390,10 +389,10 @@ function AdminUsers() {
         </div>
         {/* Issue #7: note about email masking */}
         <p style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', padding:'0 0 var(--space-3) 0' }}>
-          🔒 Email được mã hoá để bảo vệ quyền riêng tư. Tìm kiếm chỉ theo tên người dùng.
+          Email được mã hoá để bảo vệ quyền riêng tư. Tìm kiếm chỉ theo tên người dùng.
         </p>
         {loading ? (
-          <div style={{ textAlign:'center', padding:'2rem' }}>⏳ Đang tải...</div>
+          <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có người dùng nào</div>
         ) : (
@@ -462,7 +461,7 @@ function AdminProducts() {
             <input className="admin-search" type="text" placeholder="Tìm sản phẩm..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
-        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
           : filtered.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có sản phẩm nào</div>
           : (
             <table className="admin-table">
@@ -548,8 +547,8 @@ function AdminOrders() {
       {disputed.length > 0 && (
         <div className="admin-section" style={{ marginBottom: 'var(--space-5)', border: '1px solid var(--error-light, #ffcdd2)' }}>
           <div className="admin-section-header">
-            <h2 className="admin-section-title">⚠️ Tranh chấp cần xử lý ({disputed.length})</h2>
-            <button type="button" className="admin-btn" onClick={fetchAll}>🔄 Làm mới</button>
+            <h2 className="admin-section-title">Tranh chấp cần xử lý ({disputed.length})</h2>
+            <button type="button" className="admin-btn" onClick={fetchAll}>Làm mới</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {disputed.map((tx) => {
@@ -593,7 +592,7 @@ function AdminOrders() {
                       disabled={resolveBusy === fid}
                       onClick={() => handleResolve(fid)}
                     >
-                      {resolveBusy === fid ? 'Đang xử lý...' : '✅ Áp dụng'}
+                      {resolveBusy === fid ? 'Đang xử lý...' : 'Áp dụng'}
                     </button>
                   </div>
                 </div>
@@ -606,10 +605,10 @@ function AdminOrders() {
         <div className="admin-section-header">
           <div className="admin-section-actions" style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
             <input className="admin-search" type="text" placeholder="Tìm giao dịch..." value={search} onChange={e => setSearch(e.target.value)} />
-            <button type="button" className="admin-btn" onClick={fetchAll}>🔄 Làm mới</button>
+            <button type="button" className="admin-btn" onClick={fetchAll}>Làm mới</button>
           </div>
         </div>
-        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
           : filtered.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có giao dịch nào</div>
           : (
             <table className="admin-table">
@@ -671,7 +670,7 @@ function AdminCategories() {
         <div className="admin-section-header">
           <h2 className="admin-section-title">Danh Mục ({categories.length})</h2>
           <button className="admin-btn admin-btn-success" onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({name:'',description:''}); }}>
-            {showForm ? '✕ Đóng' : '+ Tạo Mới'}
+            {showForm ? 'Đóng' : 'Tạo mới'}
           </button>
         </div>
         {showForm && (
@@ -687,7 +686,7 @@ function AdminCategories() {
             <button type="submit" className="admin-btn admin-btn-success">{editingId?'Cập Nhật':'Tạo Mới'}</button>
           </form>
         )}
-        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
           : categories.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Chưa có danh mục</div>
           : (
             <table className="admin-table">
@@ -735,7 +734,7 @@ function AdminReviews() {
       <h1 className="admin-page-title">Quản Lý Đánh Giá</h1>
       <div className="admin-section">
         <div className="admin-section-header"><h2 className="admin-section-title">Tất Cả Đánh Giá ({reviews.length})</h2></div>
-        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
           : reviews.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Chưa có đánh giá</div>
           : (
             <table className="admin-table">
@@ -746,7 +745,7 @@ function AdminReviews() {
                     <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
                     <td style={{ fontWeight:500 }}>{r.targetUser?.username || r.targetUsername || r.product?.name || '—'}</td>
                     <td>{r.reviewer?.username || r.reviewerName || '—'}</td>
-                    <td><span style={{ color:'#f59e0b', fontWeight:600 }}>{'⭐'.repeat(r.rating||0)} ({r.rating}/5)</span></td>
+                    <td><span style={{ color:'#f59e0b', fontWeight:600 }}>{r.rating}/5</span></td>
                     <td style={{ maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.content||'—'}</td>
                     <td><button className="admin-btn admin-btn-danger" onClick={()=>handleDelete(r.id)}>Xóa</button></td>
                   </tr>
@@ -773,7 +772,7 @@ function AdminModeration() {
   };
   useEffect(() => { fetch(); }, []);
 
-  const handleApprove = async id => { try { await productsApi.approve(id); toast.success('✅ Đã duyệt'); fetch(); } catch { toast.error('Không thể duyệt'); } };
+  const handleApprove = async id => { try { await productsApi.approve(id); toast.success('Đã duyệt'); fetch(); } catch { toast.error('Không thể duyệt'); } };
   const openReject = (id, name) => { setRejectReason(''); setRejectModal({ id, name: name || 'Sản phẩm' }); };
   const closeReject = () => { if (!rejectBusy) setRejectModal(null); };
   const confirmReject = async () => {
@@ -806,8 +805,8 @@ function AdminModeration() {
       <h1 className="admin-page-title">Kiểm Duyệt Nội Dung</h1>
       <div className="admin-section">
         <div className="admin-section-header"><h2 className="admin-section-title">Đang Chờ Duyệt ({pending.length})</h2></div>
-        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>⏳</div>
-          : pending.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có sản phẩm chờ duyệt 🎉</div>
+        {loading ? <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
+          : pending.length === 0 ? <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có sản phẩm chờ duyệt</div>
           : pending.map(item => (
             <div key={item.id} className="admin-mod-card">
               <div className="admin-mod-title">{item.name}</div>
@@ -831,8 +830,8 @@ function AdminModeration() {
                 </p>
               )}
               <div className="admin-mod-actions">
-                <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)}>✅ Duyệt</button>
-                <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}>❌ Từ Chối</button>
+                <button className="admin-btn admin-btn-success" onClick={() => handleApprove(item.id)}>Duyệt</button>
+                <button className="admin-btn admin-btn-danger"  onClick={() => openReject(item.id, item.name)}>Từ chối</button>
               </div>
             </div>
           ))

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { getApiErrorMessage } from '../utils/apiError';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
+import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -78,7 +80,7 @@ export default function ProductDetailPage() {
 
   if (loading) return (
     <div className="pdp-container" style={{ textAlign:'center', padding:'6rem 2rem' }}>
-      <h2>⏳ Đang tải...</h2>
+      <h2>Đang tải…</h2>
       <p style={{ color:'var(--text-secondary)', margin:'1rem 0' }}>Vui lòng chờ trong giây lát.</p>
     </div>
   );
@@ -106,7 +108,7 @@ export default function ProductDetailPage() {
   // Issue #4: Hiển thị "Giá liên hệ" khi price=0 hoặc priceType='contact'
   const isContactPrice = product.priceType === 'contact' || product.price === 0;
   const priceDisplay = isContactPrice
-    ? <span style={{ color:'var(--accent-500)', fontWeight:600 }}>💬 Giá liên hệ</span>
+    ? <span style={{ color:'var(--accent-500)', fontWeight:600 }}>Giá liên hệ</span>
     : <span>{Number(product.price).toLocaleString('vi-VN')}đ</span>;
 
   // Issue #5: Seller rating summary
@@ -129,7 +131,7 @@ export default function ProductDetailPage() {
             {thumbImages.length > 0 ? (
               <img src={thumbImages[selectedThumb]} alt={product.name} />
             ) : (
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', background:'var(--bg-secondary)', color:'var(--text-muted)', fontSize:'3rem' }}>📷</div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', background:'var(--bg-secondary)', color:'var(--text-muted)', fontSize:'var(--text-sm)' }}>Chưa có ảnh</div>
             )}
           </div>
           {thumbImages.length > 1 && (
@@ -161,7 +163,7 @@ export default function ProductDetailPage() {
           <div className="pdp-rating-row">
             {avgRating ? (
               <>
-                <span className="pdp-stars">★ {avgRating}</span>
+                <span className="pdp-stars">{avgRating}/5</span>
                 <span className="pdp-rating-text">({reviews.length} đánh giá người bán)</span>
               </>
             ) : (
@@ -174,17 +176,17 @@ export default function ProductDetailPage() {
           {/* Issue #3: Status badge */}
           {isReserved && (
             <div style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', background:'var(--warning-light)', color:'#e65100', borderRadius:'var(--radius-md)', padding:'var(--space-2) var(--space-3)', fontSize:'var(--text-sm)', fontWeight:500, marginBottom:'var(--space-3)' }}>
-              ⏳ Đang có người đặt mua
+              Đang có người đặt mua
             </div>
           )}
           {isPending && (
             <div style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', background:'var(--info-light)', color:'#1565c0', borderRadius:'var(--radius-md)', padding:'var(--space-2) var(--space-3)', fontSize:'var(--text-sm)', fontWeight:500, marginBottom:'var(--space-3)' }}>
-              🔍 Đang chờ kiểm duyệt
+              Đang chờ kiểm duyệt
             </div>
           )}
           {isRejected && (
             <div style={{ background:'var(--error-light)', border:'1px solid #fecaca', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#991b1b', marginBottom:'var(--space-3)' }}>
-              <strong>❌ Tin bị từ chối</strong>
+              <strong>Tin bị từ chối</strong>
               {product.rejectReason ? (
                 <p style={{ margin:'var(--space-2) 0 0', whiteSpace:'pre-wrap' }}>Lý do: {product.rejectReason}</p>
               ) : (
@@ -210,20 +212,20 @@ export default function ProductDetailPage() {
                 style={{ marginBottom: 'var(--space-2)' }}
                 onClick={() => navigate(`/products/${product.id}/edit`)}
               >
-                ✏️ Sửa tin đăng
+                Sửa tin đăng
               </button>
             )}
             {isSold ? (
-              <div className="pdp-sold-notice">✅ Sản phẩm đã được bán</div>
+              <div className="pdp-sold-notice">Sản phẩm đã được bán</div>
             ) : isReserved ? (
               // Issue #3: show reserved status clearly, still allow wishlist
               <div style={{ background:'var(--warning-light)', border:'1px solid #fbbf24', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#92400e' }}>
-                ⏳ Sản phẩm này đang trong quá trình giao dịch với người khác.
+                Sản phẩm này đang trong quá trình giao dịch với người khác.
                 Bạn có thể yêu thích để theo dõi nếu giao dịch không thành.
               </div>
             ) : isPending ? (
               <div style={{ background:'var(--info-light)', border:'1px solid #bfdbfe', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#1e40af' }}>
-                🔍 Sản phẩm đang chờ admin kiểm duyệt. Vui lòng quay lại sau.
+                Sản phẩm đang chờ admin kiểm duyệt. Vui lòng quay lại sau.
               </div>
             ) : isRejected && !isOwner ? (
               <div style={{ background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'var(--text-secondary)' }}>
@@ -244,51 +246,56 @@ export default function ProductDetailPage() {
                     toast.success('Đã gửi yêu cầu mua! Chờ người bán xác nhận.');
                     navigate(`/transactions/${res.data.id || res.data.Id}`);
                   } catch (err) {
-                    const msg = err.response?.data?.message || err.response?.data?.title || err.response?.data;
-                    // Issue #3: nếu lỗi conflict (sản phẩm đang được đặt), thông báo rõ
-                    if (typeof msg === 'string' && (msg.toLowerCase().includes('đang') || msg.toLowerCase().includes('reserved') || err.response?.status === 409)) {
+                    const status = err.response?.status;
+                    const detail = getApiErrorMessage(err, 'Không thể gửi yêu cầu. Vui lòng thử lại.');
+                    const conflict =
+                      status === 409
+                      || (typeof detail === 'string'
+                        && /\b(đang|reserved|giao\s*dịch|transaction)\b/i.test(detail));
+                    if (conflict) {
                       toast.error('Sản phẩm này đang trong giao dịch với người khác. Vui lòng thử lại sau.');
                     } else {
-                      toast.error(typeof msg === 'string' ? msg : 'Không thể gửi yêu cầu. Vui lòng thử lại.');
+                      toast.error(detail && String(detail).trim() ? detail : 'Không thể gửi yêu cầu. Vui lòng thử lại.');
                     }
                   } finally {
                     setSendingRequest(false);
                   }
                 }}
               >
-                {sendingRequest ? '⏳ Đang gửi...' : '📩 Gửi Yêu Cầu Mua'}
+                {sendingRequest ? 'Đang gửi…' : 'Gửi yêu cầu mua'}
               </button>
             ) : !isAuthenticated ? (
               <button className="pdp-btn-buy" onClick={() => { toast.warning('Vui lòng đăng nhập để gửi yêu cầu mua'); navigate('/auth'); }}>
                 Đăng nhập để mua
               </button>
             ) : (
-              <div className="pdp-own-product-notice">📌 Đây là sản phẩm của bạn</div>
+              <div className="pdp-own-product-notice">Đây là sản phẩm của bạn</div>
             )}
 
             <button
+              type="button"
               className={`pdp-btn-wishlist ${isInWishlist(product.id) ? 'active' : ''}`}
+              aria-label={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+              title={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
               onClick={() => { toggleWishlist(product); toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích'); }}
             >
-              {isInWishlist(product.id) ? '❤️' : '🤍'}
+              {isInWishlist(product.id) ? <IconHeartFilled size={20} /> : <IconHeart size={20} />}
             </button>
           </div>
 
           <div className="pdp-transaction-hint">
-            <Link to="/transactions/guide">📖 Xem hướng dẫn giao dịch</Link>
+            <Link to="/transactions/guide">Xem hướng dẫn giao dịch</Link>
           </div>
 
           {/* Seller Card — Issue #5: shows seller reputation */}
           <div className="pdp-seller-card">
-            <div className="pdp-seller-avatar">👤</div>
+            <div className="pdp-seller-avatar">{product.seller?.trim()?.charAt(0)?.toUpperCase() || '?'}</div>
             <div className="pdp-seller-info">
               <div className="pdp-seller-info-name">{maskUsername(product.seller)}</div>
               <div className="pdp-seller-info-meta">Người bán trên EduCycle</div>
               {avgRating ? (
                 <div className="pdp-seller-rating">
-                  <span className="pdp-seller-rating-stars">
-                    {'★'.repeat(Math.round(Number(avgRating)))}{'☆'.repeat(5 - Math.round(Number(avgRating)))}
-                  </span>
+                  <span className="pdp-seller-rating-stars">{avgRating}/5</span>
                   <span className="pdp-seller-rating-score">{avgRating}</span>
                   <span className="pdp-seller-rating-count">({reviews.length} đánh giá)</span>
                 </div>
@@ -307,7 +314,7 @@ export default function ProductDetailPage() {
             {/* Issue #5: rename "reviews" tab → "Uy Tín Người Bán" */}
             {[
               { key:'description', label:'Mô Tả' },
-              { key:'reviews',     label:`⭐ Uy Tín Người Bán${reviews.length > 0 ? ` (${reviews.length})` : ''}` },
+              { key:'reviews',     label:`Uy tín người bán${reviews.length > 0 ? ` (${reviews.length})` : ''}` },
               { key:'info',        label:'Thông Tin' },
             ].map(tab => (
               <button key={tab.key} className={`pdp-tab ${activeTab===tab.key?'active':''}`} onClick={() => setActiveTab(tab.key)}>
@@ -345,7 +352,6 @@ export default function ProductDetailPage() {
                 </p>
                 {reviews.length === 0 ? (
                   <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-tertiary)' }}>
-                    <div style={{ fontSize:'2rem', marginBottom:'var(--space-2)' }}>⭐</div>
                     <p>Người bán này chưa có đánh giá nào.</p>
                     <p style={{ fontSize:'var(--text-xs)', marginTop:'var(--space-2)' }}>Hoàn tất giao dịch đầu tiên để có điểm uy tín.</p>
                   </div>
@@ -358,8 +364,8 @@ export default function ProductDetailPage() {
                         <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'var(--space-1)' }}>/ 5 sao</div>
                       </div>
                       <div>
-                        <div style={{ color:'#f59e0b', fontSize:'var(--text-lg)', letterSpacing:2 }}>
-                          {'★'.repeat(Math.round(Number(avgRating)))}{'☆'.repeat(5 - Math.round(Number(avgRating)))}
+                        <div style={{ color:'#f59e0b', fontSize:'var(--text-lg)' }}>
+                          {avgRating}/5 sao
                         </div>
                         <div style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)', marginTop:4 }}>{reviews.length} đánh giá</div>
                       </div>
@@ -371,7 +377,7 @@ export default function ProductDetailPage() {
                           <span className="pdp-review-date">{review.date}</span>
                         </div>
                         <div className="pdp-review-stars">
-                          {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          {review.rating}/5
                         </div>
                         <p className="pdp-review-text">{review.text}</p>
                       </div>

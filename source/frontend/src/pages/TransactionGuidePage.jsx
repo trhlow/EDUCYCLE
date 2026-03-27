@@ -4,32 +4,32 @@ import './TransactionGuidePage.css';
 /* ─── Quy trình 7 bước ─────────────────────────── */
 const STEPS = [
   {
-    number: 1, icon: '🔍', title: 'Tìm sản phẩm',
+    number: 1, title: 'Tìm sản phẩm',
     desc: 'Duyệt danh sách, lọc theo danh mục và giá để tìm tài liệu cần.',
   },
   {
-    number: 2, icon: '📩', title: 'Gửi yêu cầu mua',
+    number: 2, title: 'Gửi yêu cầu mua',
     desc: 'Nhấn "Gửi yêu cầu mua". Người bán sẽ chấp nhận hoặc từ chối.',
   },
   {
-    number: 3, icon: '💬', title: 'Nhắn tin thỏa thuận',
+    number: 3, title: 'Nhắn tin thỏa thuận',
     desc: 'Chat nội bộ mở sau khi người bán chấp nhận. Thống nhất địa điểm & giờ gặp.',
   },
   {
-    number: 4, icon: '🤝', title: 'Gặp mặt & kiểm tra',
+    number: 4, title: 'Gặp mặt & kiểm tra',
     desc: 'Gặp ở nơi đông người. Kiểm tra kỹ sản phẩm trước khi xác nhận.',
   },
   {
-    number: 5, icon: '🔐', title: 'Xác nhận OTP',
-    desc: 'Người MUA tạo mã → đọc cho người BÁN nhập. Chưa đưa mã = chưa chốt.',
+    number: 5, title: 'Xác nhận OTP',
+    desc: 'Người MUA tạo mã và đọc cho người BÁN nhập. Chưa đưa mã = chưa chốt.',
     highlight: true,
   },
   {
-    number: 6, icon: '⚠️', title: 'Báo tranh chấp (nếu có)',
+    number: 6, title: 'Báo tranh chấp (nếu có)',
     desc: 'Sản phẩm không đúng mô tả? Bấm "Báo tranh chấp" TRƯỚC khi đưa mã OTP.',
   },
   {
-    number: 7, icon: '⭐', title: 'Đánh giá',
+    number: 7, title: 'Đánh giá',
     desc: 'Đánh giá 1–5 sao sau khi hoàn tất. Điểm uy tín hiển thị từ giao dịch đầu tiên.',
   },
 ];
@@ -37,24 +37,24 @@ const STEPS = [
 /* ─── Quy định ngắn gọn ────────────────────────── */
 const RULES = [
   {
-    icon: '🔐', color: 'var(--primary-50)', border: 'var(--primary-200)',
+    color: 'var(--primary-50)', border: 'var(--primary-200)',
     title: 'OTP',
-    items: ['Người MUA tạo mã, người BÁN nhập', 'Mã có hiệu lực 10 phút', 'Xác nhận tại chỗ — không về nhà mới nhập'],
+    items: ['Người MUA tạo mã, người BÁN nhập', 'Mã có hiệu lực 30 phút', 'Xác nhận tại chỗ — không về nhà mới nhập'],
   },
   {
-    icon: '⏰', color: '#e8eaf6', border: '#c5cae9',
+    color: '#e8eaf6', border: '#c5cae9',
     title: 'Thời gian',
-    items: ['Người bán phản hồi trong 48 giờ', 'Hoàn thành trong 7 ngày sau khi chấp nhận', 'Không xác nhận trong 24h → tự hoàn thành'],
+    items: ['Người bán phản hồi trong 48 giờ', 'Hoàn thành trong 7 ngày sau khi chấp nhận', 'Không xác nhận trong 24 giờ thì tự hoàn thành'],
   },
   {
-    icon: '🛡️', color: 'var(--secondary-50)', border: '#c8e6c9',
+    color: 'var(--secondary-50)', border: '#c8e6c9',
     title: 'Bảo vệ',
     items: ['Chưa nhập OTP = giao dịch chưa chốt', 'Tranh chấp được Admin xử lý', 'Chat nội bộ được lưu làm bằng chứng'],
   },
   {
-    icon: '🚫', color: 'var(--error-light)', border: '#ffcdd2',
+    color: 'var(--error-light)', border: '#ffcdd2',
     title: 'Vi phạm',
-    items: ['Hủy liên tục → cảnh cáo → khóa tài khoản', 'Đăng sản phẩm giả → khóa vĩnh viễn', 'Báo tranh chấp ác ý → khóa tài khoản'],
+    items: ['Hủy liên tục: cảnh cáo rồi khóa tài khoản', 'Đăng sản phẩm giả: khóa vĩnh viễn', 'Báo tranh chấp ác ý: khóa tài khoản'],
   },
 ];
 
@@ -70,11 +70,15 @@ const FAQS = [
   },
   {
     q: 'Có thể hủy giao dịch không?',
-    a: 'Người mua có thể hủy khi giao dịch đang ở trạng thái PENDING. Sau khi người bán chấp nhận, việc hủy sẽ ảnh hưởng đến điểm uy tín.',
+    a: 'Người mua có thể hủy yêu cầu khi còn PENDING. Sau khi chấp nhận (ACCEPTED), cả hai bên đều có thể hủy có kèm lý do (tuỳ chọn) trước khi hoàn tất.',
+  },
+  {
+    q: 'Giao dịch có tự hết hạn không?',
+    a: 'Hệ thống có job định kỳ: yêu cầu PENDING quá lâu không được phản hồi, hoặc giao dịch đã chấp nhận nhưng chưa hoàn tất OTP trong thời hạn cấu hình, có thể bị hủy tự động với lý do hệ thống. Thời hạn cụ thể do máy chủ cấu hình.',
   },
   {
     q: 'Không bấm xác nhận nhận hàng thì sao?',
-    a: 'Sau 24 giờ ở trạng thái MEETING, hệ thống tự động hoàn thành. Người mua sẽ bị trừ điểm uy tín.',
+    a: 'Hoàn tất chính thức khi người bán nhập đúng mã OTP. Tự động hết hạn giao dịch (nếu có) sẽ được nền tảng thông báo riêng.',
   },
   {
     q: 'Điểm uy tín người mới là bao nhiêu?',
@@ -89,9 +93,9 @@ export default function TransactionGuidePage() {
 
         {/* Hero — gọn hơn */}
         <section className="guide-hero">
-          <h1 className="guide-hero-title">📖 Hướng dẫn Giao dịch</h1>
+          <h1 className="guide-hero-title">Hướng dẫn giao dịch</h1>
           <p className="guide-hero-subtitle">Mua bán an toàn trên EduCycle trong 7 bước đơn giản</p>
-          <Link to="/transactions" className="guide-back-btn">← Quay lại giao dịch</Link>
+          <Link to="/transactions" className="guide-back-btn">Quay lại giao dịch</Link>
         </section>
 
         {/* Issue #8: Steps — timeline dọc, gọn, dễ đọc */}
@@ -119,7 +123,6 @@ export default function TransactionGuidePage() {
                 {/* nội dung */}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
-                    <span style={{ fontSize: '1.2rem' }}>{step.icon}</span>
                     <span style={{
                       fontWeight: 600, fontSize: 'var(--text-base)',
                       color: step.highlight ? 'var(--primary-800)' : 'var(--text-primary)',
@@ -146,20 +149,20 @@ export default function TransactionGuidePage() {
         <section className="guide-flow-section">
           <h2 className="guide-section-title">Sơ đồ trạng thái</h2>
           <div className="guide-flow">
-            <div className="guide-flow-item guide-flow-pending">⏳ Chờ xác nhận</div>
+            <div className="guide-flow-item guide-flow-pending">Chờ xác nhận</div>
             <div className="guide-flow-arrow">↓</div>
             <div className="guide-flow-branch">
               <div className="guide-flow-path">
-                <div className="guide-flow-item guide-flow-accepted">✅ Chấp nhận</div>
+                <div className="guide-flow-item guide-flow-accepted">Chấp nhận</div>
                 <div className="guide-flow-arrow">↓</div>
-                <div className="guide-flow-item guide-flow-meeting">🤝 Gặp mặt</div>
+                <div className="guide-flow-item guide-flow-meeting">OTP tại điểm giao</div>
                 <div className="guide-flow-arrow">↓</div>
-                <div className="guide-flow-item guide-flow-completed">🎉 Hoàn thành</div>
+                <div className="guide-flow-item guide-flow-completed">Hoàn thành</div>
               </div>
               <div className="guide-flow-path guide-flow-alt">
-                <div className="guide-flow-item guide-flow-disputed">🔍 Tranh chấp</div>
-                <div className="guide-flow-item guide-flow-rejected">❌ Từ chối</div>
-                <div className="guide-flow-item guide-flow-cancelled">🚫 Hủy</div>
+                <div className="guide-flow-item guide-flow-disputed">Tranh chấp</div>
+                <div className="guide-flow-item guide-flow-rejected">Từ chối</div>
+                <div className="guide-flow-item guide-flow-cancelled">Hủy</div>
               </div>
             </div>
           </div>
@@ -174,8 +177,7 @@ export default function TransactionGuidePage() {
                 background: rule.color, border: `1px solid ${rule.border}`,
                 borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
-                  <span style={{ fontSize: '1.25rem' }}>{rule.icon}</span>
+                <div style={{ marginBottom: 'var(--space-3)' }}>
                   <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>{rule.title}</span>
                 </div>
                 <ul style={{ paddingLeft: 'var(--space-4)', margin: 0, display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
@@ -206,8 +208,8 @@ export default function TransactionGuidePage() {
           <h2>Sẵn sàng giao dịch?</h2>
           <p>Bắt đầu mua bán tài liệu ngay hôm nay!</p>
           <div className="guide-cta-btns">
-            <Link to="/products" className="guide-cta-primary">🔍 Duyệt sản phẩm</Link>
-            <Link to="/transactions" className="guide-cta-secondary">📋 Giao dịch của tôi</Link>
+            <Link to="/products" className="guide-cta-primary">Duyệt sản phẩm</Link>
+            <Link to="/transactions" className="guide-cta-secondary">Giao dịch của tôi</Link>
           </div>
         </section>
 

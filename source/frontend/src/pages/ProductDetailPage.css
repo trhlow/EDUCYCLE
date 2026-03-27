@@ -198,10 +198,12 @@
   background: var(--bg-secondary);
   border: 2px solid var(--border-light);
   border-radius: var(--radius-md);
-  font-size: 1.3rem;
   cursor: pointer;
   transition: var(--transition);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
 }
 
 .pdp-btn-wishlist:hover {
@@ -212,6 +214,7 @@
 .pdp-btn-wishlist.active {
   border-color: var(--accent-500);
   background: var(--accent-50, #fff7ed);
+  color: var(--error);
 }
 
 /* Transaction Request */
@@ -337,11 +340,14 @@
 }
 
 .pdp-learn-list li::before {
-  content: '✓';
+  content: '';
   position: absolute;
   left: 0;
-  color: var(--success);
-  font-weight: var(--weight-bold);
+  top: 0.55em;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--success);
 }
 
 .pdp-requirements-list li::before {

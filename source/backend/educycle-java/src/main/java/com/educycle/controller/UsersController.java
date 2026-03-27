@@ -39,4 +39,10 @@ public class UsersController {
 
         return ResponseEntity.ok(userProfileService.updateNotificationPrefs(UUID.fromString(userId), request));
     }
+
+    /** Chấp nhận nội quy giao dịch (lưu server — thay localStorage). */
+    @PostMapping("/me/accept-transaction-rules")
+    public ResponseEntity<UserMeResponse> acceptTransactionRules(@AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(userProfileService.acceptTransactionRules(UUID.fromString(userId)));
+    }
 }

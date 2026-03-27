@@ -2,6 +2,7 @@ package com.educycle.config;
 
 import com.educycle.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,7 +28,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final CorsProperties corsProperties;
+    private final CorsProperties        corsProperties;
+
+    @Value("${educycle.security.prometheus-endpoint-public:false}")
+    private boolean prometheusEndpointPublic;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,40 +41,44 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // ── Public auth
-                .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/social-login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/verify-otp").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/resend-otp").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
-                // ── Public read
-                .requestMatchers(HttpMethod.GET, "/api/public/users/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/categories/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
-                // ── Wishlist (authenticated)
-                .requestMatchers(HttpMethod.GET, "/api/wishlist").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/wishlist/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/wishlist/**").authenticated()
-                // ── AI Chatbot — require login (prevent abuse)
-                .requestMatchers(HttpMethod.POST, "/api/ai/chat").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/ai/chat/stream").authenticated()
-                // ── WebSocket
-                .requestMatchers("/ws/**").permitAll()
-                // ── Swagger / Actuator
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
-                // ── Everything else needs JWT
-                .anyRequest().authenticated()
-            )
+            // RequestIdFilter: bean servlet @Order(HIGHEST_PRECEDENCE) — chạy trước FilterChainProxy, không neo vào JWT
+            .authorizeHttpRequests(auth -> {
+                auth
+                    // ── Public auth
+                    .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/social-login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/verify-otp").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/resend-otp").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+                    // ── Public read
+                    .requestMatchers(HttpMethod.GET, "/api/public/users/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/products/{id}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/categories/{id}").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                    // ── Wishlist (authenticated)
+                    .requestMatchers(HttpMethod.GET, "/api/wishlist").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/api/wishlist/**").authenticated()
+                    .requestMatchers(HttpMethod.DELETE, "/api/wishlist/**").authenticated()
+                    // ── AI Chatbot — require login (prevent abuse)
+                    .requestMatchers(HttpMethod.POST, "/api/ai/chat").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/api/ai/chat/stream").authenticated()
+                    // ── WebSocket
+                    .requestMatchers("/ws/**").permitAll()
+                    // ── Swagger / Actuator (health/** cho K8s probes)
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
+                if (prometheusEndpointPublic) {
+                    auth.requestMatchers("/actuator/prometheus").permitAll();
+                }
+                auth.anyRequest().authenticated();
+            })
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

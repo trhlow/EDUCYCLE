@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,4 +39,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
            "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
            "WHERE t.status = :status ORDER BY t.disputedAt DESC NULLS LAST, t.updatedAt DESC")
     List<Transaction> findByStatusWithDetails(@Param("status") TransactionStatus status);
+
+    /** Giao dịch PENDING quá hạn (theo thời điểm tạo yêu cầu). */
+    List<Transaction> findByStatusAndCreatedAtBefore(TransactionStatus status, Instant before);
+
+    /** Giao dịch ACCEPTED/MEETING không hoàn tất — theo updatedAt (đứng yên khi chỉ chat). */
+    @Query("SELECT t FROM Transaction t WHERE t.status IN :statuses AND t.updatedAt < :before")
+    List<Transaction> findByStatusInAndUpdatedAtBefore(
+            @Param("statuses") Collection<TransactionStatus> statuses,
+            @Param("before") Instant before);
 }

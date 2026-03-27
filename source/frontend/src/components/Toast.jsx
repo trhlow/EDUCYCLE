@@ -1,5 +1,13 @@
 import { useState, createContext, useContext, useCallback } from 'react';
+import { IconAlertCircle, IconAlertTriangle, IconCheckCircle, IconInfo, IconX } from './icons/Icons';
 import './Toast.css';
+
+const toastTypeIcon = {
+  success: IconCheckCircle,
+  error: IconAlertCircle,
+  warning: IconAlertTriangle,
+  info: IconInfo,
+};
 
 const ToastContext = createContext(null);
 
@@ -22,10 +30,10 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const success = useCallback((msg) => addToast(msg, 'success'), [addToast]);
-  const error = useCallback((msg) => addToast(msg, 'error'), [addToast]);
-  const info = useCallback((msg) => addToast(msg, 'info'), [addToast]);
-  const warning = useCallback((msg) => addToast(msg, 'warning'), [addToast]);
+  const success = useCallback((msg) => addToast(String(msg ?? ''), 'success'), [addToast]);
+  const error = useCallback((msg) => addToast(String(msg ?? 'Đã có lỗi xảy ra.'), 'error'), [addToast]);
+  const info = useCallback((msg) => addToast(String(msg ?? ''), 'info'), [addToast]);
+  const warning = useCallback((msg) => addToast(String(msg ?? ''), 'warning'), [addToast]);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast, success, error, info, warning }}>
@@ -47,13 +55,17 @@ function ToastItem({ toast, onClose }) {
     setTimeout(onClose, 300);
   };
 
-  const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+  const TypeIcon = toastTypeIcon[toast.type] ?? IconInfo;
 
   return (
     <div className={`toast-item toast-${toast.type} ${exiting ? 'toast-exit' : ''}`}>
-      <span className="toast-icon">{icons[toast.type]}</span>
+      <span className="toast-type-icon" aria-hidden>
+        <TypeIcon size={18} />
+      </span>
       <span className="toast-message">{toast.message}</span>
-      <button className="toast-close" onClick={handleClose}>✕</button>
+      <button type="button" className="toast-close" onClick={handleClose} aria-label="Đóng">
+        <IconX size={18} />
+      </button>
     </div>
   );
 }

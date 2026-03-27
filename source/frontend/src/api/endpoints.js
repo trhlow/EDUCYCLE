@@ -22,6 +22,8 @@ export const usersApi = {
   getMe:    () => api.get('/users/me'),
   patchMe:  (data) => api.patch('/users/me', data),
   patchNotificationPrefs: (data) => api.patch('/users/me/notification-preferences', data),
+  /** Lưu chấp nhận nội quy giao dịch trên server */
+  acceptTransactionRules: () => api.post('/users/me/accept-transaction-rules'),
 };
 
 // ─── Products ────────────────────────────────────────
@@ -56,6 +58,8 @@ export const transactionsApi = {
   getById:          (id)      => api.get(`/transactions/${id}`),
   create:           (data)    => api.post('/transactions', data),
   updateStatus:     (id,data) => api.patch(`/transactions/${id}/status`, data),
+  /** @param {object} [data] — optional `{ reason?: string }` */
+  cancel:           (id, data) => api.post(`/transactions/${id}/cancel`, data ?? {}),
   generateOtp:      (id)      => api.post(`/transactions/${id}/otp`),
   verifyOtp:        (id,data) => api.post(`/transactions/${id}/verify-otp`, data),
   confirmReceipt:   (id)      => api.post(`/transactions/${id}/confirm`),

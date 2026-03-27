@@ -68,9 +68,22 @@ public class TransactionsController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<TransactionResponse> updateStatus(
             @PathVariable UUID id,
+            @AuthenticationPrincipal String userId,
             @Valid @RequestBody UpdateTransactionStatusRequest request) {
 
-        return ResponseEntity.ok(transactionService.updateStatus(id, request));
+        return ResponseEntity.ok(
+                transactionService.updateStatus(id, UUID.fromString(userId), request));
+    }
+
+    /** Hủy giao dịch (PENDING: chỉ buyer; ACCEPTED/MEETING: buyer hoặc seller) — lý do tuỳ chọn. */
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<TransactionResponse> cancelTransaction(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String userId,
+            @RequestBody(required = false) CancelTransactionRequest body) {
+
+        return ResponseEntity.ok(
+                transactionService.cancelTransaction(id, UUID.fromString(userId), body));
     }
 
     // POST /api/transactions/{id}/otp
@@ -99,7 +112,7 @@ public class TransactionsController {
         return ResponseEntity.ok(transactionService.confirmReceipt(id));
     }
 
-    // POST /api/transactions/{id}/dispute — buyer only, status MEETING
+    // POST /api/transactions/{id}/dispute — buyer only, status ACCEPTED (hoặc MEETING legacy)
     @PostMapping("/{id}/dispute")
     public ResponseEntity<TransactionResponse> openDispute(
             @PathVariable UUID id,

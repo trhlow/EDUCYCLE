@@ -12,11 +12,11 @@ const MY_PRODUCTS_PAGE_SIZE = 100;
 // Issue #6 FIX: Dashboard cho TẤT CẢ user (không chỉ admin)
 // Admin xem AdminPage (/admin) cho quản trị hệ thống
 const SIDEBAR_ITEMS = [
-  { icon: '📊', label: 'Tổng Quan', view: 'overview' },
-  { icon: '📚', label: 'Sản Phẩm Của Tôi', view: 'products' },
-  { icon: '🛒', label: 'Đã Mua', view: 'purchases' },
-  { icon: '💰', label: 'Lịch Sử Bán', view: 'sales' },
-  { icon: '⚙️', label: 'Cài Đặt', view: 'settings' },
+  { label: 'Tổng quan', view: 'overview' },
+  { label: 'Sản phẩm của tôi', view: 'products' },
+  { label: 'Đã mua', view: 'purchases' },
+  { label: 'Lịch sử bán', view: 'sales' },
+  { label: 'Cài đặt', view: 'settings' },
 ];
 
 export default function DashboardPage() {
@@ -46,7 +46,7 @@ export default function DashboardPage() {
       <aside className={`dash-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="dash-sidebar-user">
           <div className="dash-sidebar-avatar">
-            {user?.username?.charAt(0)?.toUpperCase() || '👤'}
+            {user?.username?.charAt(0)?.toUpperCase() || '?'}
           </div>
           <div>
             <div className="dash-sidebar-name">{user?.username || 'Người dùng'}</div>
@@ -62,7 +62,6 @@ export default function DashboardPage() {
               className={`dash-sidebar-link ${currentView === item.view ? 'active' : ''}`}
               onClick={() => handleViewChange(item.view)}
             >
-              <span className="dash-sidebar-link-icon">{item.icon}</span>
               {item.label}
             </button>
           ))}
@@ -74,16 +73,14 @@ export default function DashboardPage() {
                 className="dash-sidebar-link"
                 onClick={() => navigate('/admin')}
               >
-                <span className="dash-sidebar-link-icon">⚙️</span>
-                Trang Quản Trị
+                Trang quản trị
               </button>
             </>
           )}
         </div>
 
         <button className="dash-sidebar-link dash-sidebar-logout" onClick={handleLogout}>
-          <span className="dash-sidebar-link-icon">🚪</span>
-          Đăng Xuất
+          Đăng xuất
         </button>
 
         {sidebarOpen && (
@@ -92,8 +89,7 @@ export default function DashboardPage() {
             onClick={() => setSidebarOpen(false)}
             style={{ marginTop: 'var(--space-2)' }}
           >
-            <span className="dash-sidebar-link-icon">✕</span>
-            Đóng Menu
+            Đóng menu
           </button>
         )}
       </aside>
@@ -101,7 +97,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="dash-main">
         <button className="dash-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-          ☰ Menu
+          Menu
         </button>
 
         {currentView === 'overview' && <OverviewView user={user} />}
@@ -144,10 +140,10 @@ function OverviewView({ user }) {
 
   return (
     <>
-      <h1 className="dash-welcome">Chào mừng trở lại, {user?.username || 'bạn'}! 👋</h1>
+      <h1 className="dash-welcome">Chào mừng trở lại, {user?.username || 'bạn'}.</h1>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải…</div>
       ) : (
         <>
           <div className="dash-stats">
@@ -192,7 +188,6 @@ function OverviewView({ user }) {
                     <tr key={p.id}>
                       <td>
                         <div className="dash-table-product">
-                          <span className="dash-table-product-icon">📚</span>
                           <span className="dash-table-product-name">{p.name}</span>
                         </div>
                       </td>
@@ -318,7 +313,7 @@ function ProductsView() {
         borderRadius: 'var(--radius-md)', padding: 'var(--space-3) var(--space-4)',
         marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)', color: '#1e40af',
       }}>
-        ℹ️ Sản phẩm mới đăng sẽ ở trạng thái <strong>Chờ Duyệt</strong> cho đến khi admin kiểm duyệt xong.
+        Sản phẩm mới đăng sẽ ở trạng thái <strong>Chờ duyệt</strong> cho đến khi admin kiểm duyệt xong.
       </div>
 
       <div className="dash-section">
@@ -330,7 +325,7 @@ function ProductsView() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải…</div>
         ) : products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
             Bạn chưa đăng sản phẩm nào. <Link to="/products/new">Đăng ngay!</Link>
@@ -350,7 +345,6 @@ function ProductsView() {
                 <tr key={product.id}>
                   <td>
                     <div className="dash-table-product">
-                      <span className="dash-table-product-icon">📚</span>
                       <Link to={`/products/${product.id}`} className="dash-table-product-name" style={{ textDecoration: 'none', color: 'inherit' }}>
                         {product.name}
                       </Link>
@@ -412,7 +406,7 @@ function PurchasesView() {
 
       <div className="dash-section">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải…</div>
         ) : transactions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
             Bạn chưa mua sản phẩm nào. <Link to="/products">Duyệt sản phẩm</Link>
@@ -503,7 +497,7 @@ function SalesView() {
 
       <div className="dash-section">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>⏳ Đang tải...</div>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải…</div>
         ) : transactions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
             Bạn chưa bán sản phẩm nào

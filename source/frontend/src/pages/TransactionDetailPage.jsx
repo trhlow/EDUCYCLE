@@ -8,21 +8,21 @@ import { createChatClient, sendChatMessage } from '../api/websocket';
 import './TransactionDetailPage.css';
 
 const STATUS_CONFIG = {
-  PENDING:       { label: 'Chờ xác nhận',       color: 'warning', icon: '⏳', step: 1 },
-  ACCEPTED:      { label: 'Đã chấp nhận',        color: 'info',    icon: '✅', step: 2 },
-  MEETING:       { label: 'Đang gặp mặt',        color: 'primary', icon: '🤝', step: 3 },
-  COMPLETED:     { label: 'Hoàn thành',          color: 'success', icon: '🎉', step: 4 },
-  AUTOCOMPLETED: { label: 'Tự động hoàn thành',  color: 'success', icon: '⏰', step: 4 },
-  REJECTED:      { label: 'Từ chối',             color: 'error',   icon: '❌', step: -1 },
-  CANCELLED:     { label: 'Đã hủy',              color: 'neutral', icon: '🚫', step: -1 },
-  DISPUTED:      { label: 'Tranh chấp',          color: 'error',   icon: '⚠️', step: -1 },
+  PENDING:       { label: 'Chờ xác nhận',       color: 'warning', step: 1 },
+  ACCEPTED:      { label: 'Đã chấp nhận',        color: 'info',    step: 3 },
+  MEETING:       { label: 'Đang gặp mặt',        color: 'primary', step: 3 },
+  COMPLETED:     { label: 'Hoàn thành',          color: 'success', step: 4 },
+  AUTOCOMPLETED: { label: 'Tự động hoàn thành',  color: 'success', step: 4 },
+  REJECTED:      { label: 'Từ chối',             color: 'error',   step: -1 },
+  CANCELLED:     { label: 'Đã hủy',              color: 'neutral', step: -1 },
+  DISPUTED:      { label: 'Tranh chấp',          color: 'error',   step: -1 },
 };
 
 const STEPS = [
-  { step: 1, label: 'Gửi yêu cầu',   icon: '📩' },
-  { step: 2, label: 'Chấp nhận',      icon: '✅' },
-  { step: 3, label: 'Gặp mặt & OTP', icon: '🤝' },
-  { step: 4, label: 'Hoàn thành',     icon: '🎉' },
+  { step: 1, label: 'Gửi yêu cầu' },
+  { step: 2, label: 'Chấp nhận' },
+  { step: 3, label: 'OTP & hoàn tất' },
+  { step: 4, label: 'Hoàn thành' },
 ];
 
 export default function TransactionDetailPage() {
@@ -42,6 +42,8 @@ export default function TransactionDetailPage() {
   const [activeSection, setActiveSection] = useState('chat');
   const [disputeReasonInput, setDisputeReasonInput] = useState('');
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [cancelReasonInput, setCancelReasonInput] = useState('');
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
   const chatEndRef       = useRef(null);
   const chatContainerRef = useRef(null);
@@ -126,7 +128,6 @@ export default function TransactionDetailPage() {
     return () => clearInterval(interval);
   }, [activeSection, transaction, fetchMessages]);
 
-  // Issue #2 FIX: auto-switch to OTP tab when status becomes MEETING
   useEffect(() => {
     if (transaction?.status?.toUpperCase() === 'MEETING') {
       setActiveSection('otp');
@@ -149,14 +150,29 @@ export default function TransactionDetailPage() {
       toast.success(
         newStatus === 'ACCEPTED'  ? 'Đã chấp nhận yêu cầu mua!' :
         newStatus === 'REJECTED'  ? 'Đã từ chối yêu cầu.'        :
-        newStatus === 'CANCELLED' ? 'Đã hủy giao dịch.'           :
-        newStatus === 'MEETING'   ? '🤝 Bắt đầu gặp mặt! Hãy tạo mã OTP.' :
         'Cập nhật thành công!'
       );
       await fetchTransaction(true);
     } catch (e) {
       const msg = e?.response?.data?.message || e?.response?.data?.error;
       toast.error(typeof msg === 'string' ? msg : 'Không cập nhật được trạng thái. Kiểm tra kết nối hoặc quyền.');
+    }
+  };
+
+  const handleCancelTransaction = async () => {
+    if (!window.confirm('Hủy giao dịch này? Hai bên sẽ không thể tiếp tục.')) return;
+    setCancelSubmitting(true);
+    try {
+      const body = cancelReasonInput.trim() ? { reason: cancelReasonInput.trim() } : {};
+      await transactionsApi.cancel(id, body);
+      toast.success('Đã hủy giao dịch.');
+      setCancelReasonInput('');
+      await fetchTransaction(true);
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không hủy được giao dịch.');
+    } finally {
+      setCancelSubmitting(false);
     }
   };
 
@@ -187,7 +203,7 @@ export default function TransactionDetailPage() {
       const otp = res.data?.otp || '------';
       setOtpCode(otp);
       setOtpGenerated(true);
-      toast.success('✅ Mã OTP đã được tạo! Đọc mã cho người bán.');
+      toast.success('Mã OTP đã được tạo. Đọc mã cho người bán.');
     } catch (e) {
       const msg = e?.response?.data?.message || e?.response?.data?.error;
       toast.error(typeof msg === 'string' ? msg : 'Không tạo được mã OTP. Chỉ người mua được tạo mã.');
@@ -201,7 +217,7 @@ export default function TransactionDetailPage() {
     }
     try {
       await transactionsApi.verifyOtp(id, { otp: otpInput });
-      toast.success('🎉 Xác nhận OTP thành công! Giao dịch hoàn thành.');
+      toast.success('Xác nhận OTP thành công. Giao dịch hoàn thành.');
       await fetchTransaction(true);
     } catch (e) {
       const msg = e?.response?.data?.message || e?.response?.data?.error;
@@ -265,21 +281,22 @@ export default function TransactionDetailPage() {
   if (!transaction) return (
     <div className="txd-page"><div className="txd-container" style={{ textAlign:'center', padding:'4rem' }}>
       <h2>Không tìm thấy giao dịch</h2>
-      <Link to="/transactions">← Quay lại danh sách</Link>
+      <Link to="/transactions">Quay lại danh sách</Link>
     </div></div>
   );
 
   const isTerminal = ['COMPLETED','AUTOCOMPLETED','REJECTED','CANCELLED','DISPUTED'].includes(statusKey);
   const canChat   = ['ACCEPTED','MEETING'].includes(statusKey);
-  const canOtp    = statusKey === 'MEETING';
+  const canOtp    = ['ACCEPTED','MEETING'].includes(statusKey);
   const canReview = ['COMPLETED','AUTOCOMPLETED'].includes(statusKey) && !hasReviewed;
-  const canDispute = role === 'buyer' && statusKey === 'MEETING';
+  const canDispute = role === 'buyer' && ['ACCEPTED','MEETING'].includes(statusKey);
+  const canCancelAccepted = ['ACCEPTED','MEETING'].includes(statusKey) && !isTerminal;
 
   return (
     <div className="txd-page">
       <div className="txd-container">
         <div className="txd-breadcrumb">
-          <Link to="/transactions">← Giao dịch của tôi</Link>
+          <Link to="/transactions">Giao dịch của tôi</Link>
           <span>/</span>
           <span>#{transaction.id}</span>
         </div>
@@ -293,7 +310,7 @@ export default function TransactionDetailPage() {
             const isFailed = cur < 0;
             return (
               <div key={s.step} className={`txd-step ${isActive?'txd-step-active':''} ${isDone?'txd-step-done':''} ${isFailed?'txd-step-failed':''}`}>
-                <div className="txd-step-circle">{isDone ? '✓' : isFailed ? '✕' : s.icon}</div>
+                <div className="txd-step-circle">{s.step}</div>
                 <span className="txd-step-label">{s.label}</span>
               </div>
             );
@@ -320,11 +337,17 @@ export default function TransactionDetailPage() {
               <div className="txd-info-grid">
                 {[
                   ['Mã giao dịch', `#${transaction.id}`],
-                  ['Trạng thái', <span className={`tx-status-badge tx-status-${config.color}`}>{config.icon} {config.label}</span>],
-                  ['Vai trò của bạn', <span className={`tx-role-badge tx-role-${role}`}>{role==='buyer'?'🛒 Người mua':'📦 Người bán'}</span>],
+                  ['Trạng thái', <span className={`tx-status-badge tx-status-${config.color}`}>{config.label}</span>],
+                  ['Vai trò của bạn', <span className={`tx-role-badge tx-role-${role}`}>{role==='buyer'?'Người mua':'Người bán'}</span>],
                   ['Đối tác', `@${maskUsername(otherUser?.username)}`],
                   ['Tạo lúc', formatDate(transaction.createdAt)],
                   ['Cập nhật', formatDate(transaction.updatedAt)],
+                  ...(statusKey === 'CANCELLED' && transaction.cancelReason
+                    ? [['Lý do hủy', transaction.cancelReason]]
+                    : []),
+                  ...(statusKey === 'CANCELLED' && transaction.cancelledAt
+                    ? [['Hủy lúc', formatDate(transaction.cancelledAt)]]
+                    : []),
                 ].map(([label, value], i) => (
                   <div key={i} className="txd-info-row">
                     <span className="txd-info-label">{label}</span>
@@ -339,26 +362,37 @@ export default function TransactionDetailPage() {
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Bạn có yêu cầu mua mới từ @{maskUsername(transaction.buyer?.username)}</p>
                   <div className="txd-actions-btns">
-                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('ACCEPTED')}>✅ Chấp nhận</button>
-                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('REJECTED')}>❌ Từ chối</button>
+                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('ACCEPTED')}>Chấp nhận</button>
+                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('REJECTED')}>Từ chối</button>
                   </div>
                 </div>
               )}
               {role === 'buyer' && statusKey === 'PENDING' && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Đang chờ người bán xác nhận...</p>
-                  <button className="txd-btn txd-btn-cancel" onClick={() => handleStatusUpdate('CANCELLED')}>🚫 Hủy yêu cầu</button>
+                  <button type="button" className="txd-btn txd-btn-cancel" disabled={cancelSubmitting} onClick={handleCancelTransaction}>Hủy yêu cầu</button>
                 </div>
               )}
-              {statusKey === 'ACCEPTED' && (
+              {canCancelAccepted && (
                 <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Nhắn tin để hẹn địa điểm, sau đó nhấn "Bắt đầu gặp mặt"</p>
-                  <button className="txd-btn txd-btn-meeting" onClick={() => handleStatusUpdate('MEETING')}>🤝 Bắt đầu gặp mặt</button>
+                  <p className="txd-actions-hint">Nhắn tin để hẹn địa điểm; khi gặp trực tiếp, người mua tạo mã OTP ở tab OTP. Hai bên đều có thể hủy giao dịch (kèm lý do tuỳ chọn).</p>
+                  <textarea
+                    className="auth-input"
+                    style={{ width: '100%', minHeight: 72, marginBottom: 'var(--space-2)', resize: 'vertical' }}
+                    placeholder="Lý do hủy (tuỳ chọn)..."
+                    value={cancelReasonInput}
+                    onChange={(e) => setCancelReasonInput(e.target.value)}
+                    maxLength={2000}
+                    aria-label="Lý do hủy giao dịch"
+                  />
+                  <button type="button" className="txd-btn txd-btn-cancel" disabled={cancelSubmitting} onClick={handleCancelTransaction}>
+                    {cancelSubmitting ? 'Đang xử lý...' : 'Hủy giao dịch'}
+                  </button>
                 </div>
               )}
               {canDispute && (
                 <div className="txd-actions-group" style={{ border: '1px solid var(--error-light, #ffcdd2)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-                  <p className="txd-actions-hint">Có vấn đề khi gặp mặt? Chỉ <strong>người mua</strong> có thể báo tranh chấp để admin hỗ trợ.</p>
+                  <p className="txd-actions-hint">Có vấn đề sau khi đã chấp nhận? Chỉ <strong>người mua</strong> có thể báo tranh chấp để admin hỗ trợ.</p>
                   <textarea
                     className="auth-input"
                     style={{ width: '100%', minHeight: 72, marginBottom: 'var(--space-2)', resize: 'vertical' }}
@@ -368,13 +402,13 @@ export default function TransactionDetailPage() {
                     maxLength={2000}
                   />
                   <button type="button" className="txd-btn txd-btn-cancel" disabled={disputeSubmitting} onClick={handleOpenDispute}>
-                    {disputeSubmitting ? 'Đang gửi...' : '⚠️ Báo tranh chấp'}
+                    {disputeSubmitting ? 'Đang gửi...' : 'Báo tranh chấp'}
                   </button>
                 </div>
               )}
               {statusKey === 'DISPUTED' && (
                 <div className="txd-actions-group" style={{ background: 'var(--error-light, #ffebee)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-                  <p className="txd-actions-hint" style={{ fontWeight: 600 }}>⚠️ Giao dịch đang tranh chấp — chờ admin xử lý</p>
+                  <p className="txd-actions-hint" style={{ fontWeight: 600 }}>Giao dịch đang tranh chấp — chờ admin xử lý</p>
                   {transaction.disputeReason && (
                     <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-2)' }}><strong>Lý do:</strong> {transaction.disputeReason}</p>
                   )}
@@ -386,12 +420,12 @@ export default function TransactionDetailPage() {
               {canReview && (
                 <div className="txd-actions-group">
                   <p className="txd-actions-hint">Giao dịch hoàn thành! Hãy đánh giá đối tác.</p>
-                  <button className="txd-btn txd-btn-review" onClick={() => setActiveSection('review')}>⭐ Viết đánh giá</button>
+                  <button className="txd-btn txd-btn-review" onClick={() => setActiveSection('review')}>Viết đánh giá</button>
                 </div>
               )}
               {hasReviewed && (
                 <div className="txd-actions-group">
-                  <p className="txd-actions-hint txd-hint-success">✅ Bạn đã gửi đánh giá. Cảm ơn bạn!</p>
+                  <p className="txd-actions-hint txd-hint-success">Bạn đã gửi đánh giá. Cảm ơn bạn.</p>
                 </div>
               )}
               {isTerminal && !canReview && !hasReviewed && statusKey !== 'DISPUTED' && (
@@ -406,13 +440,13 @@ export default function TransactionDetailPage() {
           <div className="txd-right">
             <div className="txd-section-tabs">
               <button className={`txd-section-tab ${activeSection==='chat'?'active':''}`} onClick={() => setActiveSection('chat')}>
-                💬 Chat {canChat && <span className="txd-tab-live">●</span>}
+                Chat {canChat && <span className="txd-tab-live">trực tuyến</span>}
               </button>
-              <button className={`txd-section-tab ${activeSection==='otp'?'active':''}`} onClick={() => setActiveSection('otp')} disabled={!canOtp && statusKey !== 'COMPLETED'}>
-                🔐 OTP
+              <button type="button" className={`txd-section-tab ${activeSection==='otp'?'active':''}`} onClick={() => setActiveSection('otp')} disabled={!canOtp && !['COMPLETED','AUTOCOMPLETED'].includes(statusKey)}>
+                OTP
               </button>
               <button className={`txd-section-tab ${activeSection==='review'?'active':''}`} onClick={() => setActiveSection('review')} disabled={!canReview && !hasReviewed}>
-                ⭐ Đánh giá
+                Đánh giá
               </button>
             </div>
 
@@ -423,13 +457,13 @@ export default function TransactionDetailPage() {
                   <div className="txd-chat-avatar">{otherUser?.username?.charAt(0)?.toUpperCase() || '?'}</div>
                   <div>
                     <div className="txd-chat-name">@{otherUser?.username}</div>
-                    <div className="txd-chat-status-text">{canChat ? '● Đang trực tuyến' : 'Trò chuyện đã kết thúc'}</div>
+                    <div className="txd-chat-status-text">{canChat ? 'Đang trực tuyến' : 'Trò chuyện đã kết thúc'}</div>
                   </div>
                 </div>
                 <div className="txd-chat-messages" ref={chatContainerRef}>
                   {messages.length === 0 ? (
                     <div className="txd-chat-empty">
-                      <p>💬 Chưa có tin nhắn nào.</p>
+                      <p>Chưa có tin nhắn nào.</p>
                       {canChat && <p>Hãy bắt đầu cuộc trò chuyện!</p>}
                     </div>
                   ) : messages.map(msg => {
@@ -449,7 +483,7 @@ export default function TransactionDetailPage() {
                 {canChat ? (
                   <form className="txd-chat-input-area" onSubmit={handleSendMessage}>
                     <input type="text" className="txd-chat-input" placeholder="Nhập tin nhắn..." value={newMessage} onChange={e => setNewMessage(e.target.value)} autoFocus />
-                    <button type="submit" className="txd-chat-send" disabled={!newMessage.trim()}>Gửi ➤</button>
+                    <button type="submit" className="txd-chat-send" disabled={!newMessage.trim()}>Gửi</button>
                   </form>
                 ) : (
                   <div className="txd-chat-disabled">
@@ -463,27 +497,27 @@ export default function TransactionDetailPage() {
             {activeSection === 'otp' && (
               <div className="txd-otp-section">
                 <div className="txd-otp-header">
-                  <h3>🔐 Xác nhận giao dịch bằng OTP</h3>
-                  <p>Thực hiện tại địa điểm gặp mặt</p>
+                  <h3>Xác nhận giao dịch bằng OTP</h3>
+                  <p>Khi hai bên đã gặp và giao sách tại điểm hẹn</p>
                 </div>
 
                 <div className="txd-otp-guide">
-                  <div className="txd-otp-guide-title">📖 Quy trình:</div>
+                  <div className="txd-otp-guide-title">Quy trình</div>
                   <ol className="txd-otp-steps">
                     <li>Người <strong>mua</strong> nhấn "Tạo mã OTP"</li>
                     <li>Mã 6 số hiện trên màn hình người <strong>mua</strong></li>
                     <li>Người <strong>mua</strong> đọc mã cho người <strong>bán</strong></li>
-                    <li>Người <strong>bán</strong> nhập mã → Giao dịch hoàn thành</li>
+                    <li>Người <strong>bán</strong> nhập mã: giao dịch hoàn thành</li>
                   </ol>
                 </div>
 
                 <div className="txd-otp-status">
                   <div className={`txd-confirm-item ${transaction.buyerConfirmed ? 'confirmed' : ''}`}>
-                    <span className="txd-confirm-icon">{transaction.buyerConfirmed ? '✅' : '⬜'}</span>
+                    <span className="txd-confirm-icon">{transaction.buyerConfirmed ? 'Rồi' : 'Chưa'}</span>
                     <span>Người mua xác nhận</span>
                   </div>
                   <div className={`txd-confirm-item ${transaction.sellerConfirmed ? 'confirmed' : ''}`}>
-                    <span className="txd-confirm-icon">{transaction.sellerConfirmed ? '✅' : '⬜'}</span>
+                    <span className="txd-confirm-icon">{transaction.sellerConfirmed ? 'Rồi' : 'Chưa'}</span>
                     <span>Người bán xác nhận</span>
                   </div>
                 </div>
@@ -493,14 +527,14 @@ export default function TransactionDetailPage() {
                     {/* BUYER: generates OTP */}
                     {role === 'buyer' && !otpGenerated && (
                       <button className="txd-btn txd-btn-otp" onClick={handleGenerateOtp}>
-                        🔑 Tạo mã OTP
+                        Tạo mã OTP
                       </button>
                     )}
                     {role === 'buyer' && otpGenerated && (
                       <div className="txd-otp-display">
                         <div className="txd-otp-label">Mã OTP của bạn — đọc cho người bán:</div>
                         <div className="txd-otp-code" style={{ letterSpacing: '0.3em', fontSize: '2.5rem' }}>{otpCode}</div>
-                        <p className="txd-otp-hint">Mã có hiệu lực 10 phút · Không chia sẻ qua chat</p>
+                        <p className="txd-otp-hint">Mã có hiệu lực 30 phút · Không chia sẻ qua chat</p>
                       </div>
                     )}
 
@@ -528,7 +562,7 @@ export default function TransactionDetailPage() {
                     {/* Buyer confirm receipt */}
                     {role === 'buyer' && !transaction.buyerConfirmed && (
                       <button className="txd-btn txd-btn-confirm" onClick={handleConfirmReceipt}>
-                        📦 Xác nhận đã nhận hàng
+                        Xác nhận đã nhận hàng
                       </button>
                     )}
                   </div>
@@ -536,7 +570,6 @@ export default function TransactionDetailPage() {
 
                 {['COMPLETED','AUTOCOMPLETED'].includes(statusKey) && (
                   <div className="txd-otp-complete">
-                    <div className="txd-otp-complete-icon">🎉</div>
                     <h4>Giao dịch đã hoàn thành!</h4>
                     <p>Cả hai bên đã xác nhận thành công.</p>
                   </div>
@@ -549,7 +582,6 @@ export default function TransactionDetailPage() {
               <div className="txd-review-section">
                 {hasReviewed ? (
                   <div className="txd-review-done">
-                    <div className="txd-review-done-icon">✅</div>
                     <h3>Cảm ơn bạn đã đánh giá!</h3>
                     <p>Đánh giá của bạn giúp cộng đồng EduCycle tốt hơn.</p>
                   </div>
@@ -562,7 +594,7 @@ export default function TransactionDetailPage() {
                       <div className="txd-stars-row">
                         {[1,2,3,4,5].map(star => (
                           <button key={star} type="button" className={`txd-star-btn ${reviewForm.rating>=star?'active':''}`} onClick={() => setReviewForm({...reviewForm, rating:star})}>
-                            {reviewForm.rating>=star ? '★' : '☆'}
+                            {star}
                           </button>
                         ))}
                         <span className="txd-stars-text">
@@ -574,11 +606,10 @@ export default function TransactionDetailPage() {
                       <label>Nhận xét:</label>
                       <textarea className="txd-review-textarea" rows={4} placeholder="Chia sẻ trải nghiệm giao dịch..." value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment:e.target.value})} />
                     </div>
-                    <button type="submit" className="txd-btn txd-btn-submit-review">⭐ Gửi đánh giá</button>
+                    <button type="submit" className="txd-btn txd-btn-submit-review">Gửi đánh giá</button>
                   </form>
                 ) : (
                   <div className="txd-review-locked">
-                    <div className="txd-review-locked-icon">🔒</div>
                     <p>Đánh giá chỉ khả dụng sau khi giao dịch hoàn thành.</p>
                   </div>
                 )}

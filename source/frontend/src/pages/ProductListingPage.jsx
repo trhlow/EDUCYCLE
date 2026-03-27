@@ -7,6 +7,7 @@ import { productsApi, categoriesApi } from '../api/endpoints';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
+import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
 import './ProductListingPage.css';
 
 const FALLBACK_CATEGORIES = [
@@ -183,7 +184,7 @@ export default function ProductListingPage() {
                       className={`plp-rating-btn ${minRating === rating ? 'active' : ''}`}
                       onClick={() => setMinRating(minRating === rating ? 0 : rating)}
                     >
-                      {'★'.repeat(Math.floor(rating))} {rating}+
+                      {rating}+ sao
                     </button>
                   ))}
                 </div>
@@ -209,10 +210,9 @@ export default function ProductListingPage() {
           <main className="plp-main">
             <div className="plp-toolbar">
               <button type="button" className="plp-mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
-                🔧 Bộ Lọc
+                Bộ lọc
               </button>
               <div className="plp-search-container">
-                <span className="plp-search-icon">🔍</span>
                 <input
                   type="text"
                   className="plp-search-input"
@@ -235,7 +235,7 @@ export default function ProductListingPage() {
                     onClick={() => setViewMode('grid')}
                     aria-label="Grid view"
                   >
-                    ◫
+                    Lưới
                   </button>
                   <button
                     type="button"
@@ -243,7 +243,7 @@ export default function ProductListingPage() {
                     onClick={() => setViewMode('list')}
                     aria-label="List view"
                   >
-                    ☰
+                    Danh sách
                   </button>
                 </div>
               </div>
@@ -259,13 +259,12 @@ export default function ProductListingPage() {
               <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
               <div className="plp-empty">
-                <div className="plp-empty-icon">📚</div>
                 <h3 className="plp-empty-title">Chưa có sản phẩm nào</h3>
                 <p className="plp-empty-text">
                   Hãy là người đầu tiên đăng bán tài liệu trên EduCycle!
                 </p>
                 <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
-                  ➕ Đăng Bán Ngay
+                  Đăng bán ngay
                 </Link>
               </div>
             ) : filteredProducts.length > 0 ? (
@@ -291,8 +290,9 @@ export default function ProductListingPage() {
                             toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
                           }}
                           title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                          aria-label={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
                         >
-                          {isInWishlist(product.id) ? '❤️' : '🤍'}
+                          {isInWishlist(product.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
                         </button>
                       </div>
                       <div className="plp-card-content">
@@ -300,14 +300,14 @@ export default function ProductListingPage() {
                         <p className="plp-card-description">{product.description}</p>
                         <div className="plp-card-meta">
                           <div className="plp-card-rating">
-                            <span className="plp-rating-stars">★ {product.rating}</span>
+                            <span className="plp-rating-stars">{product.rating} sao</span>
                             <span className="plp-rating-count">({product.reviews})</span>
                           </div>
                           <div className="plp-card-seller">bởi {product.seller}</div>
                         </div>
                         <div className="plp-card-footer">
                           <div className="plp-card-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
-                          <span className="plp-view-detail-btn">Xem chi tiết →</span>
+                          <span className="plp-view-detail-btn">Xem chi tiết</span>
                         </div>
                       </div>
                     </Link>
@@ -316,14 +316,13 @@ export default function ProductListingPage() {
                 {!last && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
                     <button type="button" className="plp-reset-btn" disabled={loadingMore} onClick={loadMore}>
-                      {loadingMore ? '⏳ Đang tải...' : '⬇️ Tải thêm'}
+                      {loadingMore ? 'Đang tải…' : 'Tải thêm'}
                     </button>
                   </div>
                 )}
               </>
             ) : (
               <div className="plp-empty">
-                <div className="plp-empty-icon">📚</div>
                 <h3 className="plp-empty-title">Không có mục đạt đánh giá tối thiểu</h3>
                 <p className="plp-empty-text">Thử hạ mức sao hoặc tải thêm sản phẩm.</p>
                 <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>

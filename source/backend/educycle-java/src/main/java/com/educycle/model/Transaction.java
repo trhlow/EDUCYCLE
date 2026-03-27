@@ -75,4 +75,10 @@ public class Transaction {
 
     @Column(name = "disputed_at")
     private Instant disputedAt;
+
+    @Column(name = "cancel_reason", columnDefinition = "TEXT")
+    private String cancelReason;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
 }

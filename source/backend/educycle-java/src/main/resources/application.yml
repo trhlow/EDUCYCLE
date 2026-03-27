@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: educycle-api
   servlet:
     multipart:
       max-file-size: 5MB
@@ -79,6 +81,16 @@ educycle:
     enabled: ${EDUCYCLE_REDIS_ENABLED:false}
     host: ${EDUCYCLE_REDIS_HOST:localhost}
     port: ${EDUCYCLE_REDIS_PORT:6379}
+  # Hết hạn giao dịch tự động (job định kỳ) — Sprint B
+  transactions:
+    expiry:
+      enabled: ${EDUCYCLE_TRANSACTIONS_EXPIRY_ENABLED:true}
+      pending-stale-hours: 48
+      accepted-stale-hours: 168
+      check-interval-ms: 3600000
+  # Actuator / Prometheus — Sprint C (chỉ bật public khi đặt true + bảo vệ bằng network / reverse proxy)
+  security:
+    prometheus-endpoint-public: ${EDUCYCLE_PROMETHEUS_PUBLIC:false}
 
 # ── Sentry (tuỳ chọn) — chỉ gửi khi SENTRY_DSN có giá trị ──
 sentry:
@@ -104,8 +116,17 @@ management:
   endpoint:
     health:
       show-details: never
+    info:
+      enabled: true
+  info:
+    defaults:
+      enabled: true
+    build:
+      enabled: true
 
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %clr(%5p){faint} [%X{requestId:-}] %clr(%-40.40logger{39}){cyan} : %m%n%wEx"
   level:
     root: INFO
     com.educycle: DEBUG

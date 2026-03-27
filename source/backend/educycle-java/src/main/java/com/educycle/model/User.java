@@ -112,4 +112,8 @@ public class User {
     @Column(name = "notify_messages", nullable = false)
     @Builder.Default
     private boolean notifyMessages = true;
+
+    /** Chấp nhận nội quy giao dịch (hiển thị trước khi vào /transactions) */
+    @Column(name = "transaction_rules_accepted_at")
+    private Instant transactionRulesAcceptedAt;
 }

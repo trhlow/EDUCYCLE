@@ -173,13 +173,13 @@
   display: none;
   background: transparent;
   border: none;
-  font-size: var(--text-xl);
   padding: var(--space-2);
   color: var(--text-primary);
   min-width: 44px;
   min-height: 44px;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 /* User menu */
@@ -284,6 +284,10 @@
 
 .navbar-notif-btn {
   position: relative;
+}
+
+.navbar-wishlist-link {
+  min-width: auto;
 }
 
 .navbar-notif-badge {

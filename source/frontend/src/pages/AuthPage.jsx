@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { authApi } from '../api/endpoints';
 import { getMsalInstance, msalLoginRequest } from '../msalConfig';
+import { getApiErrorMessage } from '../utils/apiError';
 import './AuthPage.css';
 
 /* ── Icons ───────────────────────────────────────────────── */
@@ -97,10 +98,10 @@ export default function AuthPage() {
         return;
       }
       const userData = await socialLogin('google', token);
-      toast.success(`Đăng nhập Google thành công! Chào ${userData.username} 🎉`);
+      toast.success(`Đăng nhập Google thành công! Chào ${userData.username}.`);
       goHome(userData);
     } catch (err) {
-      toast.error(err.message || 'Đăng nhập Google thất bại. Thử lại.');
+      toast.error(getApiErrorMessage(err, err?.message || 'Đăng nhập Google thất bại. Thử lại.'));
     } finally {
       setSocialLoading('');
     }
@@ -118,10 +119,15 @@ export default function AuthPage() {
         authorizationCode: code,
         redirectUri: 'postmessage',
       });
-      toast.success(`Đăng nhập Google thành công! Chào ${userData.username} 🎉`);
+      toast.success(`Đăng nhập Google thành công! Chào ${userData.username}.`);
       goHome(userData);
     } catch (err) {
-      toast.error(err.message || 'Đăng nhập Google thất bại. Cần GOOGLE_CLIENT_SECRET trên server cho auth-code.');
+      toast.error(
+        getApiErrorMessage(
+          err,
+          err?.message || 'Đăng nhập Google thất bại. Cần GOOGLE_CLIENT_SECRET trên server cho auth-code.',
+        ),
+      );
     } finally {
       setSocialLoading('');
     }
@@ -162,14 +168,14 @@ export default function AuthPage() {
       if (!idToken) throw new Error('Microsoft không trả về token định danh. Vui lòng thử lại.');
 
       const userData = await socialLogin('microsoft', idToken);
-      toast.success(`Đăng nhập Microsoft thành công! Chào ${userData.username} 🎉`);
+      toast.success(`Đăng nhập Microsoft thành công! Chào ${userData.username}.`);
       goHome(userData);
     } catch (err) {
       if (err.errorCode === 'user_cancelled') {
         toast.info('Đăng nhập Microsoft đã bị hủy.');
       } else {
         console.error('[MSAL Error]', err);
-        toast.error(err.message || 'Đăng nhập Microsoft thất bại. Vui lòng thử lại.');
+        toast.error(getApiErrorMessage(err, err?.message || 'Đăng nhập Microsoft thất bại. Vui lòng thử lại.'));
       }
     } finally {
       setSocialLoading('');
@@ -322,7 +328,6 @@ export default function AuthPage() {
               <MicrosoftIcon />
             )}
             <span>Microsoft 365</span>
-            {!microsoftConfigured && <span style={{ fontSize: 10, opacity: .6, marginLeft: 2 }}>⚠️</span>}
           </button>
 
           {/* GOOGLE */}
@@ -339,19 +344,18 @@ export default function AuthPage() {
               <GoogleIcon />
             )}
             <span>Google</span>
-            {!googleConfigured && <span style={{ fontSize: 10, opacity: .6, marginLeft: 2 }}>⚠️</span>}
           </button>
         </div>
 
         {(!googleConfigured || !microsoftConfigured) && (
           <p className="auth-social-hint" style={{ color: '#e65100' }}>
-            ⚠️ Cần cấu hình OAuth — xem file <code>.env.example</code> để hướng dẫn
+            Lưu ý: cần cấu hình OAuth — xem file <code>.env.example</code>.
           </p>
         )}
 
         {googleConfigured && microsoftConfigured && (
           <p className="auth-social-hint">
-            💡 Đăng nhập bằng tài khoản Microsoft / Google trường học
+            Có thể đăng nhập bằng tài khoản Microsoft hoặc Google (thường là email trường).
           </p>
         )}
       </div>
@@ -365,7 +369,7 @@ export default function AuthPage() {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <div className="auth-logo">🎓 EduCycle</div>
+          <div className="auth-logo">EduCycle</div>
           <div className="auth-tagline">Sàn giao dịch tài liệu dành cho sinh viên</div>
         </div>
 
@@ -383,12 +387,11 @@ export default function AuthPage() {
           {view === VIEW.LOGIN && (
             <form className="auth-form" onSubmit={handleLoginSubmit}>
               <div className="auth-edu-notice">
-                <span>🎓</span>
-                <span>Sinh viên dùng email <strong>.edu.vn</strong> hoặc đăng nhập Google / Microsoft</span>
+                <span>Đăng ký chỉ chấp nhận email <strong>.edu.vn</strong>. Đăng nhập bằng mật khẩu dùng cho tài khoản đã tạo bằng email trường; nếu bạn chỉ đăng nhập Google hoặc Microsoft, dùng các nút bên dưới.</span>
               </div>
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="login-email">Email sinh viên</label>
+                <label className="auth-label" htmlFor="login-email">Email</label>
                 <input type="email" id="login-email" className={`auth-input ${errors.loginEmail ? 'error' : ''}`}
                   placeholder="ten@truong.edu.vn"
                   value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} />
@@ -418,8 +421,7 @@ export default function AuthPage() {
           {view === VIEW.REGISTER && (
             <form className="auth-form" onSubmit={handleRegisterSubmit}>
               <div className="auth-edu-notice">
-                <span>🎓</span>
-                <span>Bắt buộc dùng email sinh viên <strong>.edu.vn</strong> để đăng ký</span>
+                <span>Bắt buộc dùng email sinh viên <strong>.edu.vn</strong> để đăng ký.</span>
               </div>
 
               <div className="auth-form-group">
@@ -472,7 +474,6 @@ export default function AuthPage() {
           {view === VIEW.OTP && (
             <form className="auth-form" onSubmit={handleVerifyOtp}>
               <div className="auth-otp-hero">
-                <div className="auth-otp-icon">📧</div>
                 <h3>Xác thực email</h3>
                 <p>Mã OTP đã gửi đến<br /><strong>{pendingEmail}</strong></p>
               </div>
@@ -484,7 +485,7 @@ export default function AuthPage() {
                   maxLength={6} autoFocus />
                 <div className={`auth-error ${errors.otp ? 'show' : ''}`}>{errors.otp}</div>
               </div>
-              <div className="auth-otp-note">✅ Sau khi xác thực email, bạn có thể đăng nhập và đăng bán sản phẩm.</div>
+              <div className="auth-otp-note">Sau khi xác thực email, bạn có thể đăng nhập và đăng bán sản phẩm.</div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                 {isSubmitting ? 'Đang xác thực...' : 'Xác Nhận'}
               </button>
@@ -500,7 +501,7 @@ export default function AuthPage() {
           {view === VIEW.FORGOT && (
             <form className="auth-form" onSubmit={handleForgotSubmit}>
               <div className="auth-back-header">
-                <button type="button" className="auth-link-btn" onClick={() => { setView(VIEW.LOGIN); clearErrors(); }}>← Quay lại đăng nhập</button>
+                <button type="button" className="auth-link-btn" onClick={() => { setView(VIEW.LOGIN); clearErrors(); }}>Quay lại đăng nhập</button>
                 <h3>Quên mật khẩu</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>
                   Nhập email sinh viên. Chúng tôi sẽ gửi link đặt lại mật khẩu.
@@ -514,7 +515,7 @@ export default function AuthPage() {
                 <div className={`auth-error ${errors.forgotEmail ? 'show' : ''}`}>{errors.forgotEmail}</div>
               </div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Đang gửi...' : '📧 Gửi Link Đặt Lại'}
+                {isSubmitting ? 'Đang gửi...' : 'Gửi link đặt lại'}
               </button>
             </form>
           )}
@@ -523,13 +524,12 @@ export default function AuthPage() {
           {view === VIEW.FORGOT_SENT && (
             <div className="auth-form">
               <div className="auth-otp-hero">
-                <div className="auth-otp-icon">📬</div>
                 <h3>Kiểm tra email</h3>
                 <p>Link đặt lại đã gửi đến<br /><strong>{forgotEmail}</strong></p>
                 <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 'var(--space-2)' }}>Không thấy? Kiểm tra thư mục Spam.</p>
               </div>
               <button type="button" className="auth-submit-btn" onClick={() => setView(VIEW.FORGOT_RESET)}>
-                🔑 Tôi đã có token — Đặt lại mật khẩu
+                Tôi đã có token — đặt lại mật khẩu
               </button>
               <div className="auth-footer">
                 <button type="button" className="auth-link-btn" onClick={() => { setForgotEmail(''); setView(VIEW.FORGOT); clearErrors(); }}>Thử email khác</button>
@@ -543,7 +543,7 @@ export default function AuthPage() {
           {view === VIEW.FORGOT_RESET && (
             <form className="auth-form" onSubmit={handleResetSubmit}>
               <div className="auth-back-header">
-                <button type="button" className="auth-link-btn" onClick={() => setView(VIEW.FORGOT_SENT)}>← Quay lại</button>
+                <button type="button" className="auth-link-btn" onClick={() => setView(VIEW.FORGOT_SENT)}>Quay lại</button>
                 <h3>Đặt lại mật khẩu</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>Nhập token từ email và mật khẩu mới.</p>
               </div>
@@ -569,7 +569,7 @@ export default function AuthPage() {
                 <div className={`auth-error ${errors.resetConfirm ? 'show' : ''}`}>{errors.resetConfirm}</div>
               </div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Đang đặt lại...' : '🔐 Đặt Lại Mật Khẩu'}
+                {isSubmitting ? 'Đang đặt lại...' : 'Đặt lại mật khẩu'}
               </button>
             </form>
           )}

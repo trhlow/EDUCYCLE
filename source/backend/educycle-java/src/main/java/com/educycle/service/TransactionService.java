@@ -11,7 +11,9 @@ public interface TransactionService {
     TransactionResponse getById(UUID id);
     List<TransactionResponse> getAll();
     List<TransactionResponse> getMyTransactions(UUID userId);
-    TransactionResponse updateStatus(UUID id, UpdateTransactionStatusRequest request);
+    TransactionResponse updateStatus(UUID id, UUID actorUserId, UpdateTransactionStatusRequest request);
+
+    TransactionResponse cancelTransaction(UUID id, UUID actorUserId, CancelTransactionRequest request);
     Map<String, String> generateOtp(UUID id, UUID actorUserId);
     void verifyOtp(UUID id, String otp, UUID actorUserId);
     TransactionResponse confirmReceipt(UUID id);

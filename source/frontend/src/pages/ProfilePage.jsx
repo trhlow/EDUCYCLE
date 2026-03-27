@@ -162,7 +162,7 @@ export default function ProfilePage() {
     setVerifySending(true);
     try {
       await verifyPhone(verifyPhoneNumber);
-      toast.success('Xác thực số điện thoại thành công! ✅');
+      toast.success('Xác thực số điện thoại thành công.');
       setPhoneVerifyStep('idle');
       setVerifyPhoneNumber('');
     } catch (err) {
@@ -183,7 +183,7 @@ export default function ProfilePage() {
         <aside className="profile-sidebar">
           <div className="profile-avatar-section">
             <div className="profile-avatar">
-              {user?.username?.[0]?.toUpperCase() || '👤'}
+              {user?.username?.[0]?.toUpperCase() || '?'}
             </div>
             <h2 className="profile-name">{user?.username}</h2>
             <p className="profile-email">{user?.email}</p>
@@ -191,28 +191,28 @@ export default function ProfilePage() {
 
             <div className="profile-badges">
               <span className={`profile-badge ${isEmailVerified ? 'verified' : 'unverified'}`}>
-                {isEmailVerified ? '✅' : '⚠️'} Email
+                Email
               </span>
               <span className={`profile-badge ${isPhoneVerified ? 'verified' : 'unverified'}`}>
-                {isPhoneVerified ? '✅' : '⚠️'} SĐT
+                SĐT
               </span>
             </div>
           </div>
 
           <nav className="profile-nav">
             {[
-              { id: 'profile', icon: '👤', label: 'Hồ Sơ' },
-              { id: 'verification', icon: '🛡️', label: 'Xác Thực' },
-              { id: 'security', icon: '🔒', label: 'Bảo Mật' },
-              { id: 'notifications', icon: '🔔', label: 'Thông Báo' },
-              { id: 'danger', icon: '⚠️', label: 'Vùng Nguy Hiểm' },
+              { id: 'profile', label: 'Hồ sơ' },
+              { id: 'verification', label: 'Xác thực' },
+              { id: 'security', label: 'Bảo mật' },
+              { id: 'notifications', label: 'Thông báo' },
+              { id: 'danger', label: 'Vùng nguy hiểm' },
             ].map((item) => (
               <button
                 key={item.id}
                 className={`profile-nav-btn ${activeSection === item.id ? 'active' : ''}`}
                 onClick={() => setActiveSection(item.id)}
               >
-                <span>{item.icon}</span> {item.label}
+                {item.label}
               </button>
             ))}
           </nav>
@@ -280,13 +280,12 @@ export default function ProfilePage() {
               {/* Email Verification */}
               <div className="verify-card">
                 <div className="verify-card-header">
-                  <div className="verify-card-icon">📧</div>
                   <div className="verify-card-info">
                     <h3>Email</h3>
                     <p>{user?.email}</p>
                   </div>
                   <span className={`verify-status ${isEmailVerified ? 'verified' : ''}`}>
-                    {isEmailVerified ? '✅ Đã xác thực' : '⚠️ Chưa xác thực'}
+                    {isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
                   </span>
                 </div>
                 {!isEmailVerified && (
@@ -302,13 +301,12 @@ export default function ProfilePage() {
               {/* Phone Verification — Issue #1 FIX */}
               <div className="verify-card">
                 <div className="verify-card-header">
-                  <div className="verify-card-icon">📱</div>
                   <div className="verify-card-info">
                     <h3>Số Điện Thoại</h3>
                     <p>{isPhoneVerified ? (user?.phone || 'Đã xác thực') : 'Chưa xác thực'}</p>
                   </div>
                   <span className={`verify-status ${isPhoneVerified ? 'verified' : ''}`}>
-                    {isPhoneVerified ? '✅ Đã xác thực' : '⚠️ Chưa xác thực'}
+                    {isPhoneVerified ? 'Đã xác thực' : 'Chưa xác thực'}
                   </span>
                 </div>
 
@@ -323,7 +321,7 @@ export default function ProfilePage() {
                         className="verify-action-btn"
                         onClick={() => setPhoneVerifyStep('input')}
                       >
-                        📱 Xác Thực Số Điện Thoại
+                        Xác thực số điện thoại
                       </button>
                     )}
 
@@ -347,7 +345,7 @@ export default function ProfilePage() {
                             onClick={handleVerifyPhoneDirect}
                             disabled={verifySending}
                           >
-                            {verifySending ? '⏳ Đang xác thực...' : '✅ Xác Nhận'}
+                            {verifySending ? 'Đang xác thực…' : 'Xác nhận'}
                           </button>
                           <button
                             className="verify-cancel-btn"

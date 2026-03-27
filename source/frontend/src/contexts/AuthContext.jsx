@@ -29,6 +29,7 @@ function mapMeResponse(data) {
     notifyProductModeration: data.notifyProductModeration ?? true,
     notifyTransactions: data.notifyTransactions ?? true,
     notifyMessages: data.notifyMessages ?? true,
+    transactionRulesAcceptedAt: data.transactionRulesAcceptedAt ?? null,
   };
 }
 

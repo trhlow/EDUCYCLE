@@ -48,14 +48,16 @@ public final class MessageConstants {
     public static final String CURRENT_PASSWORD_WRONG = "Mật khẩu hiện tại không đúng";
     public static final String OTP_GENERATE_BUYER_ONLY = "Chỉ người mua mới được tạo mã OTP cho giao dịch này.";
     public static final String OTP_VERIFY_SELLER_ONLY = "Chỉ người bán mới được nhập mã OTP để hoàn tất giao dịch.";
+    public static final String OTP_REQUIRES_ACCEPTED =
+            "Chỉ có thể tạo hoặc xác nhận OTP khi giao dịch đã được chấp nhận (ACCEPTED).";
 
     public static final String FORGOT_PASSWORD_GENERIC_RESPONSE =
             "Nếu email tồn tại trong hệ thống, bạn sẽ nhận hướng dẫn đặt lại mật khẩu.";
     public static final String RESET_TOKEN_INVALID_OR_EXPIRED = "Liên kết hoặc mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
     public static final String RESET_PASSWORD_SUCCESS = "Đã đặt lại mật khẩu thành công.";
     public static final String DISPUTE_ONLY_BUYER = "Chỉ người mua mới được báo tranh chấp.";
-    public static final String DISPUTE_REQUIRES_MEETING =
-            "Chỉ có thể báo tranh chấp khi giao dịch đang ở trạng thái gặp mặt (MEETING).";
+    public static final String DISPUTE_REQUIRES_ACCEPTED =
+            "Chỉ có thể báo tranh chấp khi giao dịch đã được chấp nhận (ACCEPTED) và chưa hoàn tất.";
     public static final String DISPUTE_ONLY_BUYER_MEETING =
             "Chỉ người mua có thể báo tranh chấp, và chỉ khi giao dịch đang ở trạng thái gặp mặt (MEETING).";
     public static final String TRANSACTION_NOT_DISPUTED = "Giao dịch không ở trạng thái tranh chấp.";
@@ -63,4 +65,26 @@ public final class MessageConstants {
             "Không thể đặt trạng thái DISPUTED qua API cập nhật chung. Hãy dùng POST /transactions/{id}/dispute.";
     public static final String ADMIN_RESOLUTION_INVALID =
             "resolution phải là COMPLETED (hoàn tất) hoặc CANCELLED (hủy giao dịch).";
+
+    public static final String TRANSACTION_NOT_PARTICIPANT =
+            "Chỉ người mua hoặc người bán trong giao dịch mới thực hiện được thao tác này.";
+    public static final String TRANSACTION_USE_CANCEL_ENDPOINT =
+            "Để hủy giao dịch đã chấp nhận, dùng POST /api/transactions/{id}/cancel.";
+    public static final String TRANSACTION_MEETING_DEPRECATED =
+            "Trạng thái MEETING không còn dùng. Tạo OTP trực tiếp khi giao dịch ở ACCEPTED.";
+
+    public static final String TRANSACTION_CANCEL_PENDING_BUYER_ONLY =
+            "Chỉ người mua mới hủy được yêu cầu khi giao dịch đang chờ xác nhận.";
+    public static final String TRANSACTION_CANNOT_CANCEL =
+            "Không thể hủy giao dịch ở trạng thái hiện tại.";
+    public static final String TRANSACTION_STATUS_TRANSITION_INVALID =
+            "Không thể chuyển trạng thái giao dịch theo yêu cầu này.";
+
+    /** Lý do hệ thống khi job định kỳ hủy yêu cầu PENDING quá hạn */
+    public static final String TRANSACTION_EXPIRED_PENDING_SYSTEM =
+            "Hết hạn tự động: người bán không phản hồi trong thời gian cho phép.";
+
+    /** Lý do hệ thống khi job định kỳ hủy ACCEPTED/MEETING quá hạn */
+    public static final String TRANSACTION_EXPIRED_ACCEPTED_SYSTEM =
+            "Hết hạn tự động: giao dịch chưa hoàn tất (OTP) trong thời gian cho phép.";
 }

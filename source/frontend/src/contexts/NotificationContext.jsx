@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { resolveWsOrigin } from '../utils/apiBase';
+import { IconX } from '../components/icons/Icons';
 
 const NotificationContext = createContext(null);
 
@@ -181,7 +182,6 @@ function NotificationPopupContainer({ popups, dismissPopup, resolveRoute, markAs
             navigate(route);
           }}
         >
-          <span style={{ fontSize: '1.4rem', flexShrink: 0, marginTop: 2 }}>🔔</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--text-primary)', marginBottom: 2 }}>
               {notif.title || 'Thông báo mới'}
@@ -194,18 +194,22 @@ function NotificationPopupContainer({ popups, dismissPopup, resolveRoute, markAs
               {notif.message}
             </div>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--primary-600)', marginTop: 4 }}>
-              Nhấn để xem →
+              Nhấn để xem
             </div>
           </div>
           <button
+            type="button"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-tertiary)', fontSize: '1rem', flexShrink: 0,
-              padding: 0, lineHeight: 1,
+              color: 'var(--text-tertiary)', flexShrink: 0,
+              padding: 'var(--space-1)', lineHeight: 1,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             }}
             onClick={e => { e.stopPropagation(); dismissPopup(pid); }}
+            aria-label="Đóng thông báo"
+            title="Đóng"
           >
-            ✕
+            <IconX size={18} />
           </button>
         </div>
       ))}

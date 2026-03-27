@@ -15,5 +15,8 @@ public interface UserProfileService {
 
     UserMeResponse updateNotificationPrefs(UUID userId, UpdateNotificationPrefsRequest request);
 
+    /** Ghi nhận user đã chấp nhận nội quy giao dịch (một lần, idempotent). */
+    UserMeResponse acceptTransactionRules(UUID userId);
+
     PublicUserProfileResponse getPublicProfile(UUID userId);
 }

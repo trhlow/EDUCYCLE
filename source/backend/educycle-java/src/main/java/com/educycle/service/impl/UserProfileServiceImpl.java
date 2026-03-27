@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +58,16 @@ public class UserProfileServiceImpl implements UserProfileService {
         u.setNotifyTransactions(request.notifyTransactions());
         u.setNotifyMessages(request.notifyMessages());
         userRepository.save(u);
+        return toResponse(u);
+    }
+
+    @Override
+    public UserMeResponse acceptTransactionRules(UUID userId) {
+        User u = loadUser(userId);
+        if (u.getTransactionRulesAcceptedAt() == null) {
+            u.setTransactionRulesAcceptedAt(Instant.now());
+            userRepository.save(u);
+        }
         return toResponse(u);
     }
 
@@ -105,7 +116,8 @@ public class UserProfileServiceImpl implements UserProfileService {
                 u.getAvatar(),
                 u.isNotifyProductModeration(),
                 u.isNotifyTransactions(),
-                u.isNotifyMessages()
+                u.isNotifyMessages(),
+                u.getTransactionRulesAcceptedAt()
         );
     }
 }

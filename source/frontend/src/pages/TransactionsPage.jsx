@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi } from '../api/endpoints';
+import { transactionsApi, usersApi } from '../api/endpoints';
 import './TransactionsPage.css';
 
 const STATUS_CONFIG = {
-  PENDING:   { label: 'Chờ xác nhận', color: 'warning', icon: '⏳' },
-  ACCEPTED:  { label: 'Đã chấp nhận', color: 'info',    icon: '✅' },
-  MEETING:   { label: 'Đang gặp mặt', color: 'primary', icon: '🤝' },
-  COMPLETED: { label: 'Hoàn thành',   color: 'success', icon: '🎉' },
-  REJECTED:  { label: 'Từ chối',      color: 'error',   icon: '❌' },
-  CANCELLED: { label: 'Đã hủy',       color: 'neutral', icon: '🚫' },
-  DISPUTED:  { label: 'Tranh chấp',   color: 'error',   icon: '⚠️' },
+  PENDING:   { label: 'Chờ xác nhận', color: 'warning' },
+  ACCEPTED:  { label: 'Đã chấp nhận', color: 'info' },
+  MEETING:   { label: 'Đang gặp mặt', color: 'primary' },
+  COMPLETED: { label: 'Hoàn thành',   color: 'success' },
+  REJECTED:  { label: 'Từ chối',      color: 'error' },
+  CANCELLED: { label: 'Đã hủy',       color: 'neutral' },
+  DISPUTED:  { label: 'Tranh chấp',   color: 'error' },
 };
 
 const FILTER_TABS   = [
@@ -31,20 +31,41 @@ const STATUS_FILTERS = [
 ];
 
 export default function TransactionsPage() {
-  const { user }  = useAuth();
+  const { user, refreshUser } = useAuth();
   const toast     = useToast();
   const [transactions, setTransactions] = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [activeTab,    setActiveTab]    = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [rulesAccepted, setRulesAccepted] = useState(() =>
-    localStorage.getItem('educycle_tx_rules_accepted') === 'true'
-  );
+  const [rulesGateReady, setRulesGateReady] = useState(false);
   const [rulesChecked, setRulesChecked] = useState(false);
 
-  useEffect(() => { fetchTransactions(); }, []);
+  const rulesAccepted = Boolean(user?.transactionRulesAcceptedAt);
 
-  const fetchTransactions = async () => {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await refreshUser();
+        if (cancelled) return;
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('educycle_tx_rules_accepted') === 'true' && !next?.transactionRulesAcceptedAt) {
+          try {
+            await usersApi.acceptTransactionRules();
+            await refreshUser();
+          } finally {
+            localStorage.removeItem('educycle_tx_rules_accepted');
+          }
+        }
+      } catch {
+        /* mạng / 401 — vẫn mở gate để user thấy modal hoặc lỗi */
+      } finally {
+        if (!cancelled) setRulesGateReady(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [refreshUser]);
+
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await transactionsApi.getMyTransactions();
@@ -54,7 +75,12 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!rulesGateReady || !rulesAccepted) return;
+    fetchTransactions();
+  }, [rulesGateReady, rulesAccepted, fetchTransactions]);
 
   const filteredTransactions = transactions.filter(tx => {
     if (activeTab === 'buying'  && tx.buyer?.id  !== user?.id) return false;
@@ -72,7 +98,11 @@ export default function TransactionsPage() {
   // Issue #2 FIX: use UPPERCASE status values to match BE enum
   const handleQuickAction = async (txId, action) => {
     try {
-      await transactionsApi.updateStatus(txId, { status: action });
+      if (action === 'CANCELLED') {
+        await transactionsApi.cancel(txId, {});
+      } else {
+        await transactionsApi.updateStatus(txId, { status: action });
+      }
       toast.success(
         action === 'ACCEPTED'   ? 'Đã chấp nhận yêu cầu!' :
         action === 'REJECTED'   ? 'Đã từ chối yêu cầu.'   :
@@ -95,16 +125,31 @@ export default function TransactionsPage() {
   const stats = {
     total:     transactions.length,
     pending:   transactions.filter(tx => tx.status?.toUpperCase() === 'PENDING').length,
-    active:    transactions.filter(tx => ['ACCEPTED','MEETING'].includes(tx.status?.toUpperCase())).length,
+    active:    transactions.filter(tx => ['ACCEPTED', 'MEETING'].includes(tx.status?.toUpperCase())).length,
     completed: transactions.filter(tx => ['COMPLETED','AUTO_COMPLETED'].includes(tx.status?.toUpperCase())).length,
   };
 
-  const handleAcceptRules = () => {
+  const handleAcceptRules = async () => {
     if (!rulesChecked) { toast.error('Vui lòng đọc và đồng ý với nội quy giao dịch!'); return; }
-    localStorage.setItem('educycle_tx_rules_accepted', 'true');
-    setRulesAccepted(true);
-    toast.success('Bạn đã chấp thuận nội quy giao dịch!');
+    try {
+      await usersApi.acceptTransactionRules();
+      await refreshUser();
+      toast.success('Bạn đã chấp thuận nội quy giao dịch!');
+    } catch (e) {
+      const msg = e?.response?.data?.message || e?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Không lưu được. Kiểm tra kết nối và thử lại.');
+    }
   };
+
+  if (!rulesGateReady) {
+    return (
+      <div className="tx-page">
+        <div className="tx-container">
+          <div className="tx-loading"><div className="loading-spinner" /><p>Đang tải...</p></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!rulesAccepted) {
     return (
@@ -112,14 +157,14 @@ export default function TransactionsPage() {
         <div className="tx-rules-overlay">
           <div className="tx-rules-modal">
             <div className="tx-rules-header">
-              <div className="tx-rules-logo">🎓 EduCycle</div>
+              <div className="tx-rules-logo">EduCycle</div>
               <h2 className="tx-rules-title">Nội Quy Giao Dịch</h2>
               <p className="tx-rules-subtitle">Vui lòng đọc kỹ và chấp thuận trước khi tham gia giao dịch</p>
             </div>
 
             <div className="tx-rules-content">
               <div className="tx-rules-section">
-                <h3>📋 Quy Định Chung</h3>
+                <h3>Quy định chung</h3>
                 <ul>
                   <li>Mọi giao dịch là <strong>trực tiếp giữa người mua và người bán</strong> (P2P). EduCycle chỉ là nền tảng kết nối.</li>
                   <li>Người dùng phải cung cấp thông tin trung thực về sản phẩm.</li>
@@ -127,26 +172,26 @@ export default function TransactionsPage() {
                 </ul>
               </div>
               <div className="tx-rules-section">
-                <h3>🤝 Quy Trình</h3>
+                <h3>Quy trình</h3>
                 <ul>
-                  <li><strong>Bước 1:</strong> Người mua gửi yêu cầu → người bán xác nhận.</li>
+                  <li><strong>Bước 1:</strong> Người mua gửi yêu cầu; người bán xác nhận.</li>
                   <li><strong>Bước 2:</strong> Chat để thống nhất địa điểm & giờ gặp.</li>
                   <li><strong>Bước 3:</strong> Gặp mặt, kiểm tra sản phẩm, xác nhận bằng <strong>mã OTP</strong>.</li>
-                  <li><strong>Bước 4:</strong> Hai bên xác nhận → giao dịch hoàn thành.</li>
+                  <li><strong>Bước 4:</strong> Hai bên xác nhận, giao dịch hoàn thành.</li>
                 </ul>
               </div>
               <div className="tx-rules-section">
-                <h3>🔒 OTP</h3>
+                <h3>Mã OTP</h3>
                 <ul>
-                  <li>Người <strong>mua</strong> tạo mã OTP → đọc cho người <strong>bán</strong> nhập.</li>
-                  <li>Mã có hiệu lực 10 phút. Xác nhận tại chỗ.</li>
+                  <li>Người <strong>mua</strong> tạo mã OTP và đọc cho người <strong>bán</strong> nhập.</li>
+                  <li>Mã có hiệu lực 30 phút. Xác nhận tại chỗ.</li>
                   <li>Chưa nhập OTP = giao dịch chưa chốt, người mua được bảo vệ.</li>
                 </ul>
               </div>
               <div className="tx-rules-section">
-                <h3>⚠️ Vi Phạm</h3>
+                <h3>Vi phạm</h3>
                 <ul>
-                  <li>Hủy liên tục không lý do: cảnh cáo → khóa tạm → khóa vĩnh viễn.</li>
+                  <li>Hủy liên tục không lý do: cảnh cáo, sau đó khóa tạm, rồi khóa vĩnh viễn.</li>
                   <li>Đăng sản phẩm giả: khóa tài khoản vĩnh viễn.</li>
                   <li>Tranh chấp được admin xử lý dựa trên bằng chứng chat.</li>
                 </ul>
@@ -163,7 +208,7 @@ export default function TransactionsPage() {
                 onClick={handleAcceptRules}
                 disabled={!rulesChecked}
               >
-                ✅ Chấp Thuận & Tiếp Tục
+                Chấp thuận và tiếp tục
               </button>
             </div>
           </div>
@@ -188,7 +233,7 @@ export default function TransactionsPage() {
             <h1 className="tx-title">Giao dịch của tôi</h1>
             <p className="tx-subtitle">Quản lý tất cả giao dịch mua bán tài liệu học tập</p>
           </div>
-          <Link to="/transactions/guide" className="tx-guide-btn">📖 Hướng dẫn giao dịch</Link>
+          <Link to="/transactions/guide" className="tx-guide-btn">Hướng dẫn giao dịch</Link>
         </div>
 
         <div className="tx-stats">
@@ -220,7 +265,6 @@ export default function TransactionsPage() {
 
         {filteredTransactions.length === 0 ? (
           <div className="tx-empty">
-            <div className="tx-empty-icon">📦</div>
             <h3>Không có giao dịch nào</h3>
             <p>Hãy bắt đầu bằng cách duyệt sản phẩm!</p>
             <Link to="/products" className="tx-empty-btn">Duyệt sản phẩm</Link>
@@ -243,7 +287,7 @@ export default function TransactionsPage() {
                       <h3 className="tx-card-product-name">{tx.product?.name}</h3>
                       <div className="tx-card-meta">
                         <span className={`tx-role-badge tx-role-${role}`}>
-                          {role === 'buyer' ? '🛒 Người mua' : '📦 Người bán'}
+                          {role === 'buyer' ? 'Người mua' : 'Người bán'}
                         </span>
                         <span className="tx-card-with">với <strong>@{otherUser?.username}</strong></span>
                       </div>
@@ -254,20 +298,20 @@ export default function TransactionsPage() {
                   <div className="tx-card-right">
                     <div className="tx-card-price">{formatPrice(tx.product?.price)}</div>
                     <span className={`tx-status-badge tx-status-${config.color}`}>
-                      {config.icon} {config.label}
+                      {config.label}
                     </span>
                     <div className="tx-card-actions">
                       {/* Issue #2 FIX: use UPPERCASE status in quick actions */}
                       {role === 'seller' && statusKey === 'PENDING' && (
                         <>
-                          <button className="tx-action-btn tx-action-accept" onClick={() => handleQuickAction(tx.id, 'ACCEPTED')}>✅ Chấp nhận</button>
-                          <button className="tx-action-btn tx-action-reject" onClick={() => handleQuickAction(tx.id, 'REJECTED')}>❌ Từ chối</button>
+                          <button className="tx-action-btn tx-action-accept" onClick={() => handleQuickAction(tx.id, 'ACCEPTED')}>Chấp nhận</button>
+                          <button className="tx-action-btn tx-action-reject" onClick={() => handleQuickAction(tx.id, 'REJECTED')}>Từ chối</button>
                         </>
                       )}
                       {role === 'buyer' && statusKey === 'PENDING' && (
-                        <button className="tx-action-btn tx-action-cancel" onClick={() => handleQuickAction(tx.id, 'CANCELLED')}>🚫 Hủy yêu cầu</button>
+                        <button className="tx-action-btn tx-action-cancel" onClick={() => handleQuickAction(tx.id, 'CANCELLED')}>Hủy yêu cầu</button>
                       )}
-                      <Link to={`/transactions/${tx.id}`} className="tx-action-btn tx-action-detail">Chi tiết →</Link>
+                      <Link to={`/transactions/${tx.id}`} className="tx-action-btn tx-action-detail">Chi tiết</Link>
                     </div>
                   </div>
                 </div>

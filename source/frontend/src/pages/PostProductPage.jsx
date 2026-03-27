@@ -194,7 +194,7 @@ export default function PostProductPage() {
         navigate(`/products/${editProductId}`);
       } else {
         const res = await productsApi.create(payload);
-        toast.success('Đăng sản phẩm thành công! 🎉');
+        toast.success('Đăng sản phẩm thành công.');
         const newId = res.data?.id || res.data?.Id;
         navigate(newId ? `/products/${newId}` : '/dashboard');
       }
@@ -214,7 +214,7 @@ export default function PostProductPage() {
   if (loadingEdit) {
     return (
       <div className="post-product-page" style={{ textAlign: 'center', padding: '4rem' }}>
-        <p>⏳ Đang tải sản phẩm…</p>
+        <p>Đang tải sản phẩm…</p>
       </div>
     );
   }
@@ -228,8 +228,7 @@ export default function PostProductPage() {
           <div style={{ background:'var(--bg-primary)', borderRadius:'var(--radius-xl)', padding:'var(--space-8)', maxWidth:420, width:'100%', boxShadow:'var(--shadow-xl)' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ textAlign:'center', marginBottom:'var(--space-6)' }}>
-              <div style={{ fontSize:'3rem', marginBottom:'var(--space-3)' }}>📧</div>
-              <h2 style={{ fontSize:'var(--text-xl)', fontWeight:'var(--weight-medium)', color:'var(--text-primary)', marginBottom:'var(--space-2)' }}>Xác Thực Email</h2>
+              <h2 style={{ fontSize:'var(--text-xl)', fontWeight:'var(--weight-medium)', color:'var(--text-primary)', marginBottom:'var(--space-2)' }}>Xác thực email</h2>
               <p style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)', lineHeight:1.6 }}>
                 Bạn cần xác thực email sinh viên (<strong>.edu.vn</strong>) trước khi đăng bán sản phẩm. Kiểm tra hộp thư và nhập mã OTP đã gửi lúc đăng ký.
               </p>
@@ -237,7 +236,7 @@ export default function PostProductPage() {
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
               <button style={{ padding:'var(--space-3) var(--space-4)', background:'var(--primary-500)', color:'#fff', border:'none', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', cursor:'pointer' }}
                 onClick={() => { setShowEmailModal(false); navigate('/auth'); }}>
-                📧 Xác thực email ngay
+                Xác thực email ngay
               </button>
               <button style={{ padding:'var(--space-3) var(--space-4)', background:'transparent', color:'var(--text-secondary)', border:'1px solid var(--border-light)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', cursor:'pointer' }}
                 onClick={() => setShowEmailModal(false)}>
@@ -251,20 +250,19 @@ export default function PostProductPage() {
       <div className="post-product-container">
         <div className="post-product-header">
           <div>
-            <h1 className="post-product-title">{isEditMode ? '✏️ Sửa tin đăng' : '📦 Đăng Bán Sản Phẩm'}</h1>
+            <h1 className="post-product-title">{isEditMode ? 'Sửa tin đăng' : 'Đăng bán sản phẩm'}</h1>
             <p className="post-product-subtitle">
               {isEditMode ? 'Cập nhật thông tin — sau khi lưu tin sẽ chờ kiểm duyệt lại.' : 'Đăng sách, tài liệu hoặc dụng cụ học tập bạn muốn trao đổi'}
             </p>
           </div>
           <Link to="/transactions/guide" style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', padding:'var(--space-2) var(--space-4)', background:'var(--primary-50)', color:'var(--primary-700)', borderRadius:'var(--radius-md)', textDecoration:'none', fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', border:'1px solid var(--primary-200)' }}>
-            📖 Hướng dẫn giao dịch
+            Hướng dẫn giao dịch
           </Link>
         </div>
 
         {/* Banner xác thực email (thay SĐT) */}
         {!isEmailVerified && (
           <div style={{ background:'var(--warning-light)', border:'1px solid #fbbf24', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', marginBottom:'var(--space-6)', display:'flex', alignItems:'center', gap:'var(--space-3)', fontSize:'var(--text-sm)', color:'#92400e' }}>
-            <span style={{ fontSize:'1.25rem' }}>⚠️</span>
             <span>Bạn chưa xác thực email. Vui lòng{' '}
               <button onClick={() => navigate('/auth')} style={{ background:'none', border:'none', color:'#92400e', fontWeight:'var(--weight-medium)', textDecoration:'underline', cursor:'pointer', padding:0 }}>
                 xác thực email .edu.vn
@@ -325,7 +323,7 @@ export default function PostProductPage() {
                   </>
                 ) : (
                   <div style={{ padding:'var(--space-3)', background:'var(--info-light)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'#1565c0' }}>
-                    💬 Giá sẽ được thương lượng khi gặp mặt. Ghi gợi ý giá trong phần Ghi chú.
+                    Giá sẽ được thương lượng khi gặp mặt. Ghi gợi ý giá trong phần Ghi chú.
                   </div>
                 )}
               </div>
@@ -348,12 +346,12 @@ export default function PostProductPage() {
               </div>
 
               <div style={{ background:'var(--primary-50)', border:'1px solid var(--primary-200)', borderRadius:'var(--radius-md)', padding:'var(--space-4)', marginTop:'var(--space-4)' }}>
-                <h4 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', color:'var(--primary-700)', marginBottom:'var(--space-2)' }}>📋 Lưu ý khi đăng bán</h4>
+                <h4 style={{ fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', color:'var(--primary-700)', marginBottom:'var(--space-2)' }}>Lưu ý khi đăng bán</h4>
                 <ul style={{ paddingLeft:'var(--space-5)', margin:0, fontSize:'var(--text-xs)', color:'var(--primary-900)', lineHeight:1.7 }}>
                   <li>Sản phẩm được admin kiểm duyệt trước khi hiển thị công khai.</li>
                   <li>Mô tả phải trung thực — sai mô tả dẫn đến tranh chấp và khóa tài khoản.</li>
                   <li>Giao dịch được xác nhận bằng mã OTP tại điểm gặp mặt.</li>
-                  <li><Link to="/transactions/guide" style={{ color:'var(--primary-700)', fontWeight:'var(--weight-medium)' }}>Xem đầy đủ hướng dẫn →</Link></li>
+                  <li><Link to="/transactions/guide" style={{ color:'var(--primary-700)', fontWeight:'var(--weight-medium)' }}>Xem đầy đủ hướng dẫn</Link></li>
                 </ul>
               </div>
             </div>
@@ -365,7 +363,7 @@ export default function PostProductPage() {
                 <div className="post-image-upload">
                   <input type="file" ref={fileInputRef} accept="image/*" multiple onChange={handleFileUpload} style={{ display:'none' }} disabled={uploadingImages} />
                   <button type="button" className="post-file-upload-btn" onClick={() => fileInputRef.current?.click()} disabled={uploadingImages}>
-                    {uploadingImages ? '⏳ Đang tải ảnh…' : '📁 Chọn ảnh từ thiết bị'}
+                    {uploadingImages ? 'Đang tải ảnh…' : 'Chọn ảnh từ thiết bị'}
                   </button>
                   <div className="post-image-divider"><span>hoặc dán link ảnh</span></div>
                   <div className="post-image-url-row">
@@ -379,7 +377,7 @@ export default function PostProductPage() {
                       {imageUrls.map((url, idx) => (
                         <div key={idx} className="post-image-preview-item">
                           <img src={url} alt={`Ảnh ${idx+1}`} onError={e => { e.target.src='https://via.placeholder.com/150?text=Loi'; }} />
-                          <button type="button" className="post-image-remove-btn" onClick={() => removeImage(idx)}>✕</button>
+                          <button type="button" className="post-image-remove-btn" onClick={() => removeImage(idx)}>Xóa</button>
                           {idx === 0 && <span className="post-image-main-badge">Ảnh chính</span>}
                         </div>
                       ))}
@@ -387,7 +385,6 @@ export default function PostProductPage() {
                   )}
                   {imageUrls.length === 0 && (
                     <div className="post-image-empty">
-                      <span className="post-image-empty-icon">📷</span>
                       <p>Chưa có ảnh nào</p>
                       <p className="post-hint">Thêm ảnh để thu hút người mua</p>
                     </div>
@@ -396,12 +393,12 @@ export default function PostProductPage() {
               </div>
 
               <div className="post-preview-card">
-                <h3 className="post-preview-title">👁️ Xem trước</h3>
+                <h3 className="post-preview-title">Xem trước</h3>
                 <div className="post-preview-content">
                   {imageUrls[0] ? (
                     <img className="post-preview-image" src={imageUrls[0]} alt="Preview" onError={e => { e.target.src='https://via.placeholder.com/300x180?text=EduCycle'; }} />
                   ) : (
-                    <div className="post-preview-image-placeholder">📚</div>
+                    <div className="post-preview-image-placeholder">Chưa có ảnh</div>
                   )}
                   <div className="post-preview-info">
                     <h4 className="post-preview-name">{form.name || 'Tên sản phẩm...'}</h4>
@@ -418,7 +415,7 @@ export default function PostProductPage() {
               </div>
 
               <div className="post-tips">
-                <h4 className="post-tips-title">💡 Mẹo đăng bán hiệu quả</h4>
+                <h4 className="post-tips-title">Mẹo đăng bán hiệu quả</h4>
                 <ul className="post-tips-list">
                   <li>Chụp ảnh rõ ràng, đủ sáng</li>
                   <li>Mô tả tình trạng thật chi tiết</li>
@@ -432,7 +429,7 @@ export default function PostProductPage() {
           <div className="post-actions">
             <button type="button" className="post-btn-cancel" onClick={() => navigate(-1)}>Hủy</button>
             <button type="submit" className="post-btn-submit" disabled={isSubmitting || uploadingImages}>
-              {isSubmitting ? '⏳ Đang lưu...' : isEditMode ? '💾 Lưu thay đổi' : '📤 Đăng Bán Ngay'}
+              {isSubmitting ? 'Đang lưu…' : isEditMode ? 'Lưu thay đổi' : 'Đăng bán ngay'}
             </button>
           </div>
         </form>

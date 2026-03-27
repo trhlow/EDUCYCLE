@@ -100,6 +100,8 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, … | `.env` + profile `smtp` | Real email — see [Email (SMTP)](#email-smtp) |
 | `VITE_DEV_PROXY_TARGET` | `source/frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
 | `VITE_GOOGLE_CLIENT_ID`, `VITE_MICROSOFT_CLIENT_ID` | Frontend `.env` | OAuth; must align with backend `application.yml` |
+| `VITE_GOOGLE_OAUTH_USE_AUTH_CODE` | Frontend `.env.development` / `.env.local` | `false` = implicit (dev, no `GOOGLE_CLIENT_SECRET`). `true` = auth-code + PKCE — set `GOOGLE_CLIENT_SECRET` on backend |
+| `GOOGLE_CLIENT_SECRET` | Root `.env` (Docker) or shell | Required on API when using Google **auth-code** flow |
 
 **OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [NOTES.md](NOTES.md) (FE↔BE mapping).
 

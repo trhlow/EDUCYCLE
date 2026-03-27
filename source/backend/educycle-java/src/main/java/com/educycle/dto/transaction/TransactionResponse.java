@@ -16,7 +16,9 @@ public record TransactionResponse(
         Instant createdAt,
         Instant updatedAt,
         String disputeReason,
-        Instant disputedAt
+        Instant disputedAt,
+        String cancelReason,
+        Instant cancelledAt
 ) {
     public record TransactionUserDto(String id, String username, String email) {}
 

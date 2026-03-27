@@ -8,6 +8,9 @@ spring:
 educycle:
   rate-limit:
     enabled: false
+  transactions:
+    expiry:
+      enabled: false
 
 logging:
   level:

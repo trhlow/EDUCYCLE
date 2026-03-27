@@ -1,5 +1,6 @@
 package com.educycle.dto.user;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record UserMeResponse(
@@ -14,5 +15,6 @@ public record UserMeResponse(
         String avatar,
         boolean notifyProductModeration,
         boolean notifyTransactions,
-        boolean notifyMessages
+        boolean notifyMessages,
+        Instant transactionRulesAcceptedAt
 ) {}

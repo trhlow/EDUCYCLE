@@ -37,6 +37,9 @@ build/
 Thumbs.db
 desktop.ini
 
+# === Local uploads (dev) ===
+source/backend/educycle-java/data/
+
 # === Misc ===
 *.log
 *.tmp

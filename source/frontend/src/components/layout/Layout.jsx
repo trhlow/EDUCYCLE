@@ -17,7 +17,7 @@ export default function Layout() {
         <div className="footer-container">
           <div className="footer-grid">
             <div className="footer-section">
-              <div className="footer-brand">🎓 EduCycle</div>
+              <div className="footer-brand">EduCycle</div>
               <p className="footer-text">Sàn giao dịch tài liệu giáo dục chất lượng</p>
             </div>
             <div className="footer-section">
@@ -50,9 +50,9 @@ export default function Layout() {
             </div>
             <div className="footer-section">
               <h4 className="footer-section-title">Liên hệ</h4>
-              <span className="footer-link">📧 support@educycle.com</span>
-              <span className="footer-link">📞 +84 (0) 342478051</span>
-              <span className="footer-link">📍 Trà Vinh</span>
+              <span className="footer-link">support@educycle.com</span>
+              <span className="footer-link">+84 (0) 342478051</span>
+              <span className="footer-link">Trà Vinh</span>
             </div>
           </div>
           <div className="footer-bottom">

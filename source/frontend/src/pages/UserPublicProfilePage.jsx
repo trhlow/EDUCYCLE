@@ -30,7 +30,7 @@ export default function UserPublicProfilePage() {
   if (loading) {
     return (
       <div className="upp-wrap">
-        <div className="upp-card upp-loading">⏳ Đang tải hồ sơ...</div>
+        <div className="upp-card upp-loading">Đang tải hồ sơ…</div>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function UserPublicProfilePage() {
         <div className="upp-card">
           <h1>Không tìm thấy người dùng</h1>
           <p className="upp-muted">Tài khoản không tồn tại hoặc đã bị xóa.</p>
-          <Link to="/" className="upp-back">← Về trang chủ</Link>
+          <Link to="/" className="upp-back">Về trang chủ</Link>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function UserPublicProfilePage() {
         <div className="upp-head-text">
           <h1>@{maskUsername(profile.username)}</h1>
           <div className="upp-stats">
-            <span className="upp-stars">★ {avg}</span>
+            <span className="upp-stars">{avg}/5</span>
             <span className="upp-muted">({profile.reviewCount ?? 0} đánh giá)</span>
           </div>
           {profile.bio && <p className="upp-bio">{profile.bio}</p>}
@@ -86,7 +86,7 @@ export default function UserPublicProfilePage() {
               <li key={r.id} className="upp-review-item">
                 <div className="upp-review-meta">
                   <strong>{maskUsername(r.reviewerUsername)}</strong>
-                  <span className="upp-stars">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                  <span className="upp-stars">{r.rating}/5</span>
                   <span className="upp-muted">
                     {r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : ''}
                   </span>

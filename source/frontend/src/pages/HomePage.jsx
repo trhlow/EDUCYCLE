@@ -7,6 +7,7 @@ import { productsApi, categoriesApi } from '../api/endpoints';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
+import { IconChevronLeft, IconChevronRight, IconHeart, IconHeartFilled, IconX } from '../components/icons/Icons';
 import './HomePage.css';
 
 /* ── Scroll-reveal ── */
@@ -31,28 +32,28 @@ function Reveal({ children, delay = 0 }) {
 /* ── Slides for the hero banner ── */
 const SLIDES = [
   {
-    tag: '📖 Giáo Trình',
+    tag: 'Giáo trình',
     title: 'Tiết kiệm đến\n60% chi phí sách.',
     sub: 'Mua bán tài liệu giữa sinh viên. An toàn. Không phí ẩn.',
     bg: 'linear-gradient(150deg, #eef6ff 0%, #e8f5e9 100%)',
     accent: '#2196f3',
   },
   {
-    tag: '🔐 Xác nhận OTP',
+    tag: 'Xác nhận OTP',
     title: 'Giao dịch\nan toàn 100%.',
     sub: 'Mỗi giao dịch được bảo vệ bằng mã OTP xác nhận tại chỗ.',
     bg: 'linear-gradient(150deg, #fce4ec 0%, #e8eaf6 100%)',
     accent: '#e91e63',
   },
   {
-    tag: '⭐ Uy tín người bán',
+    tag: 'Uy tín người bán',
     title: 'Đánh giá\nminh bạch.',
     sub: 'Điểm uy tín sau mỗi giao dịch giúp bạn chọn đúng người bán.',
     bg: 'linear-gradient(150deg, #fff8e1 0%, #f3e5f5 100%)',
     accent: '#ff9800',
   },
   {
-    tag: '🌱 Tái sử dụng',
+    tag: 'Tái sử dụng',
     title: 'Sách cũ—\ngiá mới.',
     sub: 'Trao đổi tài liệu, giảm lãng phí, xây dựng cộng đồng xanh.',
     bg: 'linear-gradient(150deg, #e8f5e9 0%, #e3f2fd 100%)',
@@ -61,12 +62,12 @@ const SLIDES = [
 ];
 
 const CAT_LIST = [
-  { name: 'Tất cả',       icon: '📦', color: '#607d8b', val: 'all' },
-  { name: 'Giáo Trình',   icon: '📖', color: '#2196f3', val: 'Giáo Trình' },
-  { name: 'Chuyên Ngành', icon: '🔬', color: '#9c27b0', val: 'Sách Chuyên Ngành' },
-  { name: 'Ôn Thi',       icon: '📝', color: '#ff9800', val: 'Tài Liệu Ôn Thi' },
-  { name: 'Dụng Cụ',      icon: '✏️', color: '#4caf50', val: 'Dụng Cụ Học Tập' },
-  { name: 'Ngoại Ngữ',    icon: '🌍', color: '#00bcd4', val: 'Ngoại Ngữ' },
+  { name: 'Tất cả',       color: '#607d8b', val: 'all' },
+  { name: 'Giáo Trình',   color: '#2196f3', val: 'Giáo Trình' },
+  { name: 'Chuyên Ngành', color: '#9c27b0', val: 'Sách Chuyên Ngành' },
+  { name: 'Ôn Thi',       color: '#ff9800', val: 'Tài Liệu Ôn Thi' },
+  { name: 'Dụng Cụ',      color: '#4caf50', val: 'Dụng Cụ Học Tập' },
+  { name: 'Ngoại Ngữ',    color: '#00bcd4', val: 'Ngoại Ngữ' },
 ];
 
 function mapApiProductToCard(p) {
@@ -132,7 +133,7 @@ export default function HomePage() {
     if (data.length === 0) return CAT_LIST;
     const apiCats = data.map((c) => {
       const name = c.name || c.Name || '';
-      return CAT_LIST.find((x) => x.val === name) || { name, icon: '📦', color: '#607d8b', val: name };
+      return CAT_LIST.find((x) => x.val === name) || { name, color: '#607d8b', val: name };
     });
     return [CAT_LIST[0], ...apiCats];
   }, [catData]);
@@ -224,10 +225,10 @@ export default function HomePage() {
             </p>
             <div className="hp-hero__cta">
               <button className="hp-btn hp-btn--solid" style={{ background: current.accent, borderColor: current.accent }} onClick={scrollToProducts}>
-                🔍 Tìm sách
+                Tìm sách
               </button>
               <Link to="/auth" className="hp-btn hp-btn--ghost" style={{ color: current.accent, borderColor: current.accent + '66' }}>
-                Bắt đầu bán →
+                Bắt đầu bán
               </Link>
             </div>
 
@@ -247,30 +248,35 @@ export default function HomePage() {
           {/* Right: floating book cards (decorative) */}
           <div className="hp-hero__right" aria-hidden="true">
             <div className="hp-book hp-book--a">
-              <span className="hp-book__icon">📖</span>
               <div><div className="hp-book__name">Giải tích 1</div><div className="hp-book__price">45.000đ</div></div>
             </div>
             <div className="hp-book hp-book--b">
-              <span className="hp-book__icon">🔬</span>
               <div><div className="hp-book__name">Vật lý ĐC</div><div className="hp-book__price">35.000đ</div></div>
             </div>
             <div className="hp-book hp-book--c">
-              <span className="hp-book__icon">🌍</span>
               <div><div className="hp-book__name">IELTS Cam 18</div><div className="hp-book__price">60.000đ</div></div>
             </div>
-            <div className="hp-badge-otp">🔐 OTP xác nhận</div>
+            <div className="hp-badge-otp">OTP xác nhận</div>
 
             {/* Slide prev/next arrows */}
             <button
               className="hp-slide-arrow hp-slide-arrow--left"
               onClick={() => goToSlide((slide - 1 + SLIDES.length) % SLIDES.length, -1)}
-              aria-label="Trước"
-            >‹</button>
+              aria-label="Slide trước"
+              title="Slide trước"
+              type="button"
+            >
+              <IconChevronLeft size={22} />
+            </button>
             <button
               className="hp-slide-arrow hp-slide-arrow--right"
               onClick={() => goToSlide((slide + 1) % SLIDES.length, 1)}
-              aria-label="Sau"
-            >›</button>
+              aria-label="Slide sau"
+              title="Slide sau"
+              type="button"
+            >
+              <IconChevronRight size={22} />
+            </button>
           </div>
         </div>
       </section>
@@ -297,7 +303,7 @@ export default function HomePage() {
                   style={{ '--c': c.color }}
                   onClick={() => setSelectedCat(c.val)}
                 >
-                  <span>{c.icon}</span> {c.name}
+                  {c.name}
                 </button>
               ))}
             </div>
@@ -307,7 +313,6 @@ export default function HomePage() {
           <Reveal delay={100}>
             <div className="hp-products-toolbar">
               <div className="hp-search-box">
-                <span>🔍</span>
                 <input
                   type="text"
                   placeholder="Tìm sách, tài liệu..."
@@ -315,7 +320,15 @@ export default function HomePage() {
                   onChange={e => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="hp-search-clear">✕</button>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="hp-search-clear"
+                    type="button"
+                    aria-label="Xóa từ khóa tìm kiếm"
+                    title="Xóa từ khóa"
+                  >
+                    <IconX size={18} />
+                  </button>
                 )}
               </div>
               <div className="hp-toolbar-right">
@@ -327,8 +340,8 @@ export default function HomePage() {
                 </select>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="hp-select">
                   <option value="newest">Mới nhất</option>
-                  <option value="price-low">Giá thấp → cao</option>
-                  <option value="price-high">Giá cao → thấp</option>
+                  <option value="price-low">Giá tăng dần</option>
+                  <option value="price-high">Giá giảm dần</option>
                 </select>
               </div>
             </div>
@@ -340,10 +353,9 @@ export default function HomePage() {
           <ProductGridSkeleton count={8} />
         ) : products.length === 0 ? (
           <div className="hp-products-empty">
-            <div style={{ fontSize: '2.5rem' }}>📚</div>
             <p>{totalElements === 0 ? 'Chưa có sản phẩm nào.' : 'Không tìm thấy kết quả phù hợp.'}</p>
             {totalElements === 0 ? (
-              <Link to="/products/new" className="hp-btn hp-btn--solid" style={{ marginTop: 16 }}>➕ Đăng bán ngay</Link>
+              <Link to="/products/new" className="hp-btn hp-btn--solid" style={{ marginTop: 16 }}>Đăng bán ngay</Link>
             ) : (
               <button onClick={() => { setSearchQuery(''); setSelectedCat('all'); setPriceRange('all'); }} className="hp-btn hp-btn--solid" style={{ marginTop: 16 }}>
                 Xóa bộ lọc
@@ -360,15 +372,16 @@ export default function HomePage() {
                       ? <img src={product.imageUrl} alt={product.name} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                       : null
                     }
-                    <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>📚</div>
+                    <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>Chưa có ảnh</div>
                     <div className="hp-product-card__cat">{product.category}</div>
                     <button
                       type="button"
                       className={`hp-product-card__wish ${isInWishlist(product.id) ? 'active' : ''}`}
                       aria-label={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                      title={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
                       onClick={e => { e.preventDefault(); e.stopPropagation(); toggleWishlist(product); toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích'); }}
                     >
-                      {isInWishlist(product.id) ? '❤️' : '🤍'}
+                      {isInWishlist(product.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
                     </button>
                   </div>
                   <div className="hp-product-card__body">
@@ -376,7 +389,7 @@ export default function HomePage() {
                     <p className="hp-product-card__desc">{product.description}</p>
                     <div className="hp-product-card__footer">
                       <div className="hp-product-card__price">{formatPrice(product.price, product.priceType)}</div>
-                      {product.rating > 0 && <div className="hp-product-card__rating">★ {product.rating}</div>}
+                      {product.rating > 0 && <div className="hp-product-card__rating">{product.rating}/5</div>}
                     </div>
                     <div className="hp-product-card__seller">bởi {product.seller}</div>
                   </div>
@@ -394,7 +407,7 @@ export default function HomePage() {
               disabled={loadingMore}
               onClick={loadMoreProducts}
             >
-              {loadingMore ? '⏳ Đang tải...' : '⬇️ Tải thêm sản phẩm'}
+              {loadingMore ? 'Đang tải...' : 'Tải thêm sản phẩm'}
             </button>
           </div>
         )}

@@ -2,6 +2,7 @@ import { formatPrice } from '../utils/format';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
+import { IconTrash } from '../components/icons/Icons';
 import './WishlistPage.css';
 
 export default function WishlistPage() {
@@ -30,7 +31,6 @@ export default function WishlistPage() {
     return (
       <div className="wishlist-page">
         <div className="wishlist-empty">
-          <span className="wishlist-empty-icon">💝</span>
           <h2>Danh sách yêu thích trống</h2>
           <p>Bạn chưa lưu sách hoặc tài liệu nào.</p>
           <Link to="/products" className="wishlist-browse-btn">
@@ -63,8 +63,9 @@ export default function WishlistPage() {
                 className="wishlist-remove-btn"
                 onClick={() => handleRemove(product.id, product.name)}
                 title="Xóa khỏi yêu thích"
+                aria-label="Xóa khỏi yêu thích"
               >
-                ✕
+                <IconTrash size={18} />
               </button>
             </div>
             <div className="wishlist-card-body">
@@ -74,10 +75,8 @@ export default function WishlistPage() {
               <p className="wishlist-card-instructor">Người bán: {product.seller || '—'}</p>
               <div className="wishlist-card-rating">
                 <span className="wishlist-stars">
-                  {'★'.repeat(Math.floor(product.rating || 0))}
-                  {'☆'.repeat(5 - Math.floor(product.rating || 0))}
+                  {(product.rating != null ? Number(product.rating).toFixed(1) : '—')}/5
                 </span>
-                <span>{product.rating || 'N/A'}</span>
                 <span className="wishlist-students">({(product.reviews || 0).toLocaleString()} đánh giá)</span>
               </div>
               <div className="wishlist-card-price">

@@ -103,7 +103,7 @@ class TransactionServiceTest {
         @Test
         @DisplayName("should complete transaction when OTP is valid")
         void shouldComplete_whenOtpValid() {
-            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
@@ -120,7 +120,7 @@ class TransactionServiceTest {
         @Test
         @DisplayName("should throw BadRequestException when OTP is wrong")
         void shouldThrow_whenOtpWrong() {
-            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
@@ -134,7 +134,7 @@ class TransactionServiceTest {
         @Test
         @DisplayName("should throw BadRequestException when OTP is expired")
         void shouldThrow_whenOtpExpired() {
-            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES)); // expired
 
@@ -148,7 +148,7 @@ class TransactionServiceTest {
         @Test
         @DisplayName("should throw ForbiddenException when caller is not seller")
         void shouldThrow_whenNotSeller() {
-            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             t.setOtpCode(OtpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
@@ -201,7 +201,7 @@ class TransactionServiceTest {
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
             TransactionResponse result = transactionService.updateStatus(
-                    t.getId(), new UpdateTransactionStatusRequest("ACCEPTED"));
+                    t.getId(), seller.getId(), new UpdateTransactionStatusRequest("ACCEPTED"));
 
             assertThat(result.status()).isEqualTo("ACCEPTED");
         }
@@ -213,7 +213,7 @@ class TransactionServiceTest {
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
             assertThatThrownBy(() -> transactionService.updateStatus(
-                    t.getId(), new UpdateTransactionStatusRequest("INVALID_STATUS")))
+                    t.getId(), buyer.getId(), new UpdateTransactionStatusRequest("INVALID_STATUS")))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("Trạng thái giao dịch không hợp lệ");
         }
@@ -225,7 +225,7 @@ class TransactionServiceTest {
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
             assertThatThrownBy(() -> transactionService.updateStatus(
-                    t.getId(), new UpdateTransactionStatusRequest("DISPUTED")))
+                    t.getId(), buyer.getId(), new UpdateTransactionStatusRequest("DISPUTED")))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("DISPUTED");
         }

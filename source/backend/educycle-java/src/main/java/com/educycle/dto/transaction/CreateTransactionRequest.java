@@ -1,12 +1,16 @@
 package com.educycle.dto.transaction;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * {@code amount} = 0 khi sản phẩm &quot;giá liên hệ&quot; (FE gửi 0); &gt; 0 khi có giá cố định.
+ */
 public record CreateTransactionRequest(
         @NotNull UUID productId,
         @NotNull UUID sellerId,
-        @NotNull @DecimalMin("0.01") BigDecimal amount
+        @NotNull @PositiveOrZero BigDecimal amount
 ) {}

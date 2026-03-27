@@ -5,13 +5,14 @@ import { useToast } from './Toast';
 import { aiApi } from '../api/endpoints';
 import { streamAiChat } from '../api/aiStream';
 import { getApiErrorMessage } from '../utils/apiError';
+import { IconLock, IconMessageCircle, IconSend, IconTrash, IconX } from './icons/Icons';
 import './ChatbotWidget.css';
 
 /* ── Bot Avatar ── */
 function BotAvatar() {
   return (
     <div className="cb-avatar cb-avatar--bot" aria-hidden="true">
-      🎓
+      AI
     </div>
   );
 }
@@ -40,7 +41,7 @@ const QUICK_QUESTIONS = [
 const WELCOME_MESSAGE = {
   id: 'welcome',
   role: 'assistant',
-  content: 'Xin chào! 👋 Tôi là trợ lý AI của **EduCycle**.\n\nTôi có thể giúp bạn giải đáp mọi thắc mắc về mua bán tài liệu, quy trình giao dịch, OTP, uy tín người dùng và nhiều hơn nữa.\n\nBạn muốn hỏi gì? 😊',
+  content: 'Xin chào. Tôi là trợ lý AI của **EduCycle**.\n\nTôi có thể giúp bạn giải đáp thắc mắc về mua bán tài liệu, quy trình giao dịch, OTP và uy tín người dùng.\n\nBạn muốn hỏi gì?',
 };
 
 /** Parse **bold** markdown thành <strong> */
@@ -91,7 +92,7 @@ export default function ChatbotWidget() {
     if (!content || loading) return;
 
     if (!isAuthenticated) {
-      toast.info('Vui lòng đăng nhập để dùng chatbot AI 🎓');
+      toast.info('Vui lòng đăng nhập để dùng chatbot AI.');
       return;
     }
 
@@ -155,19 +156,24 @@ export default function ChatbotWidget() {
     <>
       {/* ── Floating button ── */}
       <button
+        type="button"
         className={`cb-fab ${open ? 'cb-fab--open' : ''}`}
         onClick={() => setOpen(o => !o)}
-        aria-label={open ? 'Đóng chatbot' : 'Mở chatbot AI'}
+        aria-label={open ? 'Đóng chatbot' : 'Mở chat trợ lý AI'}
+        title={open ? 'Đóng' : 'Hỏi AI'}
       >
         {open ? (
-          <span className="cb-fab-icon">✕</span>
+          <span className="cb-fab-icon">
+            <IconX size={22} />
+          </span>
         ) : (
           <>
-            <span className="cb-fab-icon">🤖</span>
+            <span className="cb-fab-icon">
+              <IconMessageCircle size={22} />
+            </span>
             {hasNewMsg && <span className="cb-fab-badge" />}
           </>
         )}
-        <span className="cb-fab-label">{open ? '' : 'Hỏi AI'}</span>
       </button>
 
       {/* ── Chat panel ── */}
@@ -176,7 +182,7 @@ export default function ChatbotWidget() {
           {/* Header */}
           <div className="cb-header">
             <div className="cb-header-left">
-              <div className="cb-header-avatar">🎓</div>
+              <div className="cb-header-avatar">AI</div>
               <div>
                 <div className="cb-header-name">EduCycle AI</div>
                 <div className="cb-header-status">
@@ -187,18 +193,22 @@ export default function ChatbotWidget() {
             </div>
             <div className="cb-header-actions">
               <button
+                type="button"
                 className="cb-header-btn"
                 onClick={handleClear}
                 title="Xóa lịch sử chat"
+                aria-label="Xóa lịch sử chat"
               >
-                🗑️
+                <IconTrash size={16} />
               </button>
               <button
+                type="button"
                 className="cb-header-btn"
                 onClick={() => setOpen(false)}
                 title="Thu nhỏ"
+                aria-label="Đóng chatbot"
               >
-                ✕
+                <IconX size={18} />
               </button>
             </div>
           </div>
@@ -240,7 +250,12 @@ export default function ChatbotWidget() {
           <div className="cb-input-area">
             {!isAuthenticated ? (
               <div className="cb-login-prompt">
-                🔐 <Link to="/auth">Đăng nhập</Link> để chat với AI
+                <span className="cb-login-prompt-inner">
+                  <IconLock size={16} />
+                  <span>
+                    <Link to="/auth">Đăng nhập</Link> để chat với AI
+                  </span>
+                </span>
               </div>
             ) : (
               <div className="cb-input-row">
@@ -256,12 +271,14 @@ export default function ChatbotWidget() {
                   disabled={loading}
                 />
                 <button
+                  type="button"
                   className="cb-send-btn"
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || loading}
-                  aria-label="Gửi"
+                  aria-label="Gửi tin nhắn"
+                  title="Gửi"
                 >
-                  {loading ? <span className="cb-send-spinner" /> : '➤'}
+                  {loading ? <span className="cb-send-spinner" /> : <IconSend size={18} />}
                 </button>
               </div>
             )}

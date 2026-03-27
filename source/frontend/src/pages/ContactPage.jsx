@@ -31,22 +31,18 @@ export default function ContactPage() {
       <div className="contact-container">
         <div className="contact-info">
           <div className="contact-info-card">
-            <span className="contact-info-icon">📧</span>
             <h3>Email</h3>
             <p>support@educycle.com</p>
           </div>
           <div className="contact-info-card">
-            <span className="contact-info-icon">📞</span>
             <h3>Điện thoại</h3>
             <p>+84 (0) 342478051</p>
           </div>
           <div className="contact-info-card">
-            <span className="contact-info-icon">📍</span>
             <h3>Địa chỉ</h3>
             <p>Trà Vinh, Việt Nam</p>
           </div>
           <div className="contact-info-card">
-            <span className="contact-info-icon">🕐</span>
             <h3>Giờ làm việc</h3>
             <p>T2 - T6: 8:00 - 17:00</p>
           </div>
