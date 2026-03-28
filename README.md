@@ -232,7 +232,7 @@ The stack is intentionally **boring and hireable**: Spring Boot, PostgreSQL, Fly
 
 ## Core Features
 
-- **Auth:** Email (`.edu.vn` policy in product rules), Google, Microsoft; JWT + rotating refresh token; OTP verification for email.
+- **Auth:** Registration and student identity use **`.edu.vn`** + OTP before first login; **login** accepts any verified account email (including platform **admin**, e.g. `admin@educycle.com`). JWT + rotating refresh token; no social OAuth on this stack.
 - **Password:** Forgot / reset (token link); change password when logged in.
 - **Listings:** CRUD, **server-side pagination** (`GET /api/products?page=&size=&direction=`), image **upload** to server disk (volume in Docker), admin approve / reject with reason.
 - **Transactions:** State machine, **buyer-only OTP generate**, **seller-only OTP verify**, dispute + admin resolution.

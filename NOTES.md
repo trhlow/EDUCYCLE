@@ -176,9 +176,45 @@ npm run build
 | **S‑26** | Compose không giới hạn CPU/RAM | **Sai:** `docker-compose.yml` có **`deploy.resources.limits`** trên `db` và `api`. |
 | **S‑27** | Không healthcheck backend | **Sai:** service **`api`** có **`healthcheck`** (`wget` → `/actuator/health`); `db` / `redis` cũng có. |
 
-**Backlog vẫn khớp hướng review (làm khi target prod thật):** TLS + HSTS; thu hẹp **`/ws/**`** (handshake JWT / STOMP interceptor); `logback-spring.xml` JSON; bật OTEL + OTLP; JaCoCo **`check`** + nâng ngưỡng Vitest; S3/MinIO thay volume upload; CORS qua biến môi trường; SBOM; E2E golden path; Zod (hoặc tương đương) cho response API; v.v.
+**Backlog vẫn khớp hướng review (làm khi target prod thật):** **TLS + HSTS** (xem [ARCHITECTURE.md §11](ARCHITECTURE.md) + [docs/guides/production-tls.md](docs/guides/production-tls.md)); thu hẹp **`/ws/**`** (handshake JWT / STOMP interceptor); `logback-spring.xml` JSON; bật OTEL + OTLP; JaCoCo **`check`** + nâng ngưỡng Vitest; S3/MinIO thay volume upload; ~~CORS qua biến môi trường~~ **đã có** `CORS_ALLOWED_ORIGINS`; SBOM; E2E golden path mở rộng; Zod (hoặc tương đương) cho response API; v.v.
 
 **Production thật:** SMTP (hoặc provider khác), GDPR/xóa TK nếu cần, backup, secret rotation; **Redis** cho AI khi multi-instance; **HTTP rate limit** scale ngang cần thiết kế thêm — xem README + ARCHITECTURE.
+
+### Audit cập nhật 2026-03-28 (điểm số + nợ — đối chiếu nội bộ)
+
+Tóm tắt thay đổi lớn đã có trong repo:
+
+| Chủ đề | Trạng thái |
+|--------|------------|
+| OAuth Google/Microsoft | ✅ Đã gỡ (FE/BE, không route callback) |
+| Auth flow | ✅ `register` → không JWT → `verify-otp` cấp JWT + refresh → `login` sau khi email verified |
+| `tradingAllowed` | ✅ Gán theo email `.edu.vn` (login / verify-otp) |
+| CORS | ✅ `CORS_ALLOWED_ORIGINS` + `cors.allowed-origins-csv` |
+| E2E OTP cố định | ✅ `EDUCYCLE_E2E_FIXED_OTP` (CI, không bật ngoài CI) |
+
+**Bảng điểm ước lượng** (mang tính subjective — dùng cho roadmap, không thay thế pentest):
+
+| Hạng mục | Trước | Sau | Ghi chú |
+|----------|-------|-----|---------|
+| Security | 62 | 74 | Giảm attack surface (OAuth), flow OTP rõ, CORS env |
+| Front-end | 66 | 70 | AuthContext / AuthPage không dead OAuth |
+| Back-end | 82 | 85 | `RegisterPendingResponse`, verify-otp là entry phiên đầy đủ |
+| **Tổng** | **71** | **75** | **TLS** vẫn là blocker #1 trước prod công khai |
+
+**Nợ / rủi ro còn lại (cập nhật danh sách review):**
+
+| Mức | Vấn đề | Ghi chú |
+|-----|--------|---------|
+| 🔴 Critical | Không TLS trên mặt trận công khai | Token qua HTTP — unblock bằng Caddy/nginx/tunnel: [docs/guides/production-tls.md](docs/guides/production-tls.md) |
+| 🟠 High | Coverage FE ~28%; policy gate tùy team | JaCoCo đã có `check` tối thiểu BE — có thể siết thêm |
+| 🟠 High | E2E UI vs BE đầy đủ | `e2e-api` golden path đã có; job `e2e` smoke tách — có thể mở rộng UI |
+| 🟠 High | OTEL mặc định tắt | Bật khi có collector OTLP |
+| 🟠 High | Structured JSON log | Profile `production` + logback — bật theo môi trường |
+| 🟡 Medium | PLP rating filter client-side / `staleTime` / `imageUrls` TEXT / review 1-per-tx | Backlog sản phẩm + schema |
+| 🟢 Low | `POSTGRES_PASSWORD` mẫu trên dev | Chỉ chấp nhận local; prod bắt `.env` mạnh |
+| 🟢 Low | `DELETE /api/users/me` | GDPR — khi có spec |
+
+**TLS:** hướng dẫn snippet Compose + Caddy/nginx — [docs/guides/production-tls.md](docs/guides/production-tls.md); tóm tắt kiến trúc — [ARCHITECTURE.md §11](ARCHITECTURE.md).
 
 ### Page scorecard (UX ước lượng — 2026-03)
 
@@ -393,6 +429,8 @@ git push origin dev
 
 **Changed (docs)**
 - `NOTES.md` (bảng tính năng, P0 e2e-api, Flyway **V14→V15**, mapping API, changelog cross-refs), `ARCHITECTURE.md` §3.2/§5/pitfall/audit, `.cursor/rules/educycle.mdc` (auth + Flyway + `useAuth`).
+- **`docs/guides/production-tls.md`** — TLS ở edge (Caddy / nginx), override Compose mẫu, `APP_FRONTEND_BASE_URL` / `CORS_ALLOWED_ORIGINS`, gợi ý `wss`.
+- **`ARCHITECTURE.md` §11** — tóm tắt Production TLS + bảng **audit 2026-03-28** (điểm 62→74 Security, …); **`NOTES.md` §2.5** — cùng bảng audit + nợ Critical (TLS #1).
 
 ### [0.7.2] — 2026-03-26 — Hoàn thiện backlog “có thể merge” + tổng hợp completion
 
