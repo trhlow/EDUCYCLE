@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException(MessageConstants.EMAIL_NOT_VERIFIED_LOGIN);
         }
 
-        user.setTradingAllowed(isEduVnInstitutionEmail(user.getEmail()));
+        user.setTradingAllowed(isTradingAllowedForUser(user));
         startNewRefreshChain(user);
         userRepository.save(user);
 
@@ -194,6 +194,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         rotateRefreshToken(user);
+        user.setTradingAllowed(isTradingAllowedForUser(user));
         userRepository.save(user);
 
         return toAuthResponse(user, null);
@@ -311,6 +312,11 @@ public class AuthServiceImpl implements AuthService {
 
     private static boolean isEduVnInstitutionEmail(String normalizedEmail) {
         return normalizedEmail != null && EDU_VN_EMAIL.matcher(normalizedEmail).matches();
+    }
+
+    /** Khớp {@link com.educycle.util.TradingAccess}: ADMIN luôn được coi là có quyền giao dịch; USER cần .edu.vn. */
+    private static boolean isTradingAllowedForUser(User user) {
+        return user.getRole() == Role.ADMIN || isEduVnInstitutionEmail(user.getEmail());
     }
 
     private static String normalizeEmail(String email) {
