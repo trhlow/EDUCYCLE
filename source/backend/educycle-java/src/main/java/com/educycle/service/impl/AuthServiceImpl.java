@@ -9,9 +9,7 @@ import com.educycle.model.User;
 import com.educycle.repository.UserRepository;
 import com.educycle.security.JwtTokenProvider;
 import com.educycle.service.AuthService;
-import com.educycle.service.GoogleOAuthCodeExchangeService;
 import com.educycle.service.MailService;
-import com.educycle.service.OAuthTokenVerifier;
 import com.educycle.util.MessageConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -34,28 +33,33 @@ import java.util.UUID;
 @Transactional
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository       userRepository;
-    private final JwtTokenProvider     jwtTokenProvider;
-    private final PasswordEncoder      passwordEncoder;
-    private final OAuthTokenVerifier   oAuthTokenVerifier; // NEW
-    private final GoogleOAuthCodeExchangeService googleOAuthCodeExchangeService;
-    private final MailService          mailService;
+    private final UserRepository   userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder  passwordEncoder;
+    private final MailService      mailService;
 
     @Value("${app.frontend-base-url:http://localhost:5173}")
     private String frontendBaseUrl;
 
+    /** Chỉ bật trong CI E2E ({@code EDUCYCLE_E2E_FIXED_OTP}) — không dùng production. */
+    @Value("${educycle.e2e-fixed-otp:}")
+    private String e2eFixedOtp;
+
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    // ── Register ───────────────────────────────────────────────────────────
+    /** Khớp {@link com.educycle.dto.auth.RegisterRequest} — chỉ đuôi .edu.vn (không phụ thuộc phần trước @). */
+    private static final Pattern EDU_VN_EMAIL = Pattern.compile("(?i)^\\s*.+\\.edu\\.vn\\s*$");
+
+    // ── Register — không cấp JWT; sinh viên phải nhập OTP gửi về email .edu.vn ──
 
     @Override
-    public AuthResponse register(RegisterRequest request) {
+    public RegisterPendingResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
         if (userRepository.existsByEmail(email)) {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
 
-        String otpToken = generateOtp();
+        String otpToken = nextOtpForEmailVerification();
 
         User user = User.builder()
                 .username(request.username())
@@ -66,19 +70,19 @@ public class AuthServiceImpl implements AuthService {
                 .phoneVerified(false)
                 .emailVerificationToken(otpToken)
                 .emailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES))
+                .tradingAllowed(isEduVnInstitutionEmail(email))
                 .build();
 
-        User savedUser = userRepository.save(user);
-        if (savedUser != null) user = savedUser;
-        startNewRefreshChain(user);
+        userRepository.save(user);
+        clearRefreshSession(user);
         userRepository.save(user);
 
         log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
         sendVerificationOtpEmail(user, otpToken);
-        return toAuthResponse(user, MessageConstants.REGISTER_OTP_SENT);
+        return new RegisterPendingResponse(MessageConstants.REGISTER_OTP_SENT, email, user.getUsername());
     }
 
-    // ── Login ──────────────────────────────────────────────────────────────
+    // ── Login — chỉ sau khi email đã xác thực OTP ───────────────────────────
 
     @Override
     public AuthResponse login(LoginRequest request) {
@@ -90,66 +94,13 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException(MessageConstants.INVALID_CREDENTIALS);
         }
 
+        if (!user.isEmailVerified()) {
+            throw new UnauthorizedException(MessageConstants.EMAIL_NOT_VERIFIED_LOGIN);
+        }
+
+        user.setTradingAllowed(isEduVnInstitutionEmail(user.getEmail()));
         startNewRefreshChain(user);
         userRepository.save(user);
-
-        return toAuthResponse(user, null);
-    }
-
-    // ── Social Login (Google / Microsoft) ─────────────────────────────────
-    //
-    // Flow:
-    //  1. FE calls Google/Microsoft SDK → receives ID token
-    //  2. FE sends { provider, token } to POST /api/auth/social-login
-    //  3. OAuthTokenVerifier validates the token against Google/Microsoft JWKS
-    //  4. Extract email → find or create user → issue our own JWT
-    //
-    // Security: the token is cryptographically verified — we never trust
-    // the email from the request body directly.
-
-    @Override
-    public AuthResponse socialLogin(SocialLoginRequest request) {
-        boolean googleCode = "google".equalsIgnoreCase(request.provider())
-                && request.authorizationCode() != null
-                && !request.authorizationCode().isBlank();
-        boolean hasToken = request.token() != null && !request.token().isBlank();
-        if (!googleCode && !hasToken) {
-            throw new BadRequestException(MessageConstants.OAUTH_TOKEN_REQUIRED);
-        }
-
-        String verifiedEmail;
-        if (googleCode) {
-            verifiedEmail = googleOAuthCodeExchangeService.exchangeCodeForEmail(
-                    request.authorizationCode(),
-                    request.redirectUri());
-        } else {
-            verifiedEmail = oAuthTokenVerifier.verifyAndExtractEmail(
-                    request.provider().toLowerCase().trim(),
-                    request.token());
-        }
-
-        String username = verifiedEmail.split("@")[0];
-
-        User user = userRepository.findByEmail(verifiedEmail).orElseGet(() -> {
-            User newUser = User.builder()
-                    .username(username)
-                    .email(verifiedEmail)
-                    .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
-                    .role(Role.USER)
-                    .emailVerified(true)   // email is verified by the OAuth provider
-                    .phoneVerified(false)
-                    .build();
-            startNewRefreshChain(newUser);
-            userRepository.save(newUser);
-            log.info("Đăng nhập mạng xã hội: đã tạo người dùng mới — nhà cung cấp={}, email={}", request.provider(), verifiedEmail);
-            return newUser;
-        });
-
-        // Mỗi lần đăng nhập social: chuỗi refresh mới (family mới)
-        if (user.getId() != null) {
-            startNewRefreshChain(user);
-            userRepository.save(user);
-        }
 
         return toAuthResponse(user, null);
     }
@@ -166,10 +117,10 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-    // ── Email OTP verification ─────────────────────────────────────────────
+    // ── Email OTP — sau khi đúng OTP: cấp JWT + refresh (đăng nhập đầy đủ) ──
 
     @Override
-    public boolean verifyOtp(VerifyOtpRequest request) {
+    public AuthResponse verifyOtp(VerifyOtpRequest request) {
         String email = normalizeEmail(request.email());
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.EMAIL_NOT_FOUND));
@@ -190,10 +141,12 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerified(true);
         user.setEmailVerificationToken(null);
         user.setEmailVerificationTokenExpiry(null);
+        user.setTradingAllowed(isEduVnInstitutionEmail(user.getEmail()));
+        startNewRefreshChain(user);
         userRepository.save(user);
 
-        log.info("Đã xác thực email cho: {}", email);
-        return true;
+        log.info("Đã xác thực email và cấp phiên cho: {}", email);
+        return toAuthResponse(user, MessageConstants.EMAIL_VERIFIED_SUCCESS);
     }
 
     @Override
@@ -206,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_VERIFIED);
         }
 
-        String otp = generateOtp();
+        String otp = nextOtpForEmailVerification();
         user.setEmailVerificationToken(otp);
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
@@ -226,6 +179,12 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_REFRESH_TOKEN));
+
+        if (!user.isEmailVerified()) {
+            clearRefreshSession(user);
+            userRepository.save(user);
+            throw new UnauthorizedException(MessageConstants.EMAIL_NOT_VERIFIED_LOGIN);
+        }
 
         if (user.getRefreshTokenExpiry() == null
                 || user.getRefreshTokenExpiry().isBefore(Instant.now())) {
@@ -304,6 +263,13 @@ public class AuthServiceImpl implements AuthService {
 
     // ── Private helpers ────────────────────────────────────────────────────
 
+    private String nextOtpForEmailVerification() {
+        if (e2eFixedOtp != null && !e2eFixedOtp.isBlank()) {
+            return e2eFixedOtp.trim();
+        }
+        return generateOtp();
+    }
+
     private void startNewRefreshChain(User user) {
         user.setRefreshTokenFamily(UUID.randomUUID());
         user.setRefreshToken(jwtTokenProvider.generateRefreshToken());
@@ -341,6 +307,10 @@ public class AuthServiceImpl implements AuthService {
 
     private static String generateOtp() {
         return String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
+    }
+
+    private static boolean isEduVnInstitutionEmail(String normalizedEmail) {
+        return normalizedEmail != null && EDU_VN_EMAIL.matcher(normalizedEmail).matches();
     }
 
     private static String normalizeEmail(String email) {

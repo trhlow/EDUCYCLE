@@ -16,9 +16,16 @@ public final class MessageConstants {
     public static final String REFRESH_TOKEN_EXPIRED = "Mã làm mới phiên đã hết hạn. Vui lòng đăng nhập lại.";
     public static final String SOCIAL_LOGIN_EMAIL_REQUIRED_PREFIX = "Đăng nhập mạng xã hội bắt buộc phải có email. Nhà cung cấp: ";
     public static final String REGISTER_OTP_SENT = "Vui lòng xác thực email bằng mã OTP đã được gửi.";
+    /** Đăng nhập khi email chưa qua OTP sau đăng ký */
+    public static final String EMAIL_NOT_VERIFIED_LOGIN =
+            "Email chưa được xác thực. Kiểm tra hộp thư .edu.vn và nhập mã OTP trên trang đăng ký trước khi đăng nhập.";
     public static final String EMAIL_VERIFIED_SUCCESS = "Xác thực email thành công";
     public static final String OTP_RESENT_SUCCESS = "Đã gửi lại mã OTP thành công";
     public static final String OAUTH_TOKEN_REQUIRED = "Bắt buộc phải có mã đăng nhập mạng xã hội.";
+    /** Khi bật {@code app.oauth-require-edu-vn} — khớp chính sách đăng ký {@link com.educycle.dto.auth.RegisterRequest} */
+    public static final String OAUTH_EMAIL_EDU_VN_REQUIRED =
+            "EduCycle chỉ chấp nhận email trường (.edu.vn) cho đăng nhập Google/Microsoft. "
+                    + "Hãy dùng tài khoản trường cấp hoặc đăng ký bằng email .edu.vn.";
     public static final String OAUTH_EMAIL_CLAIM_MISSING = "Mã đăng nhập mạng xã hội không chứa email. Hãy cấp quyền email rồi thử lại.";
     public static final String GOOGLE_ACCESS_TOKEN_VERIFY_FAILED = "Không thể xác minh mã truy cập Google.";
     public static final String GOOGLE_TOKEN_WRONG_AUDIENCE = "Token Google không được cấp cho ứng dụng này.";
@@ -28,6 +35,10 @@ public final class MessageConstants {
     public static final String INVALID_OAUTH_TOKEN_SUFFIX = " không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.";
     public static final String UNSUPPORTED_OAUTH_PROVIDER_PREFIX = "Nhà cung cấp đăng nhập mạng xã hội không được hỗ trợ: ";
     public static final String SUPPORTED_OAUTH_PROVIDERS = ". Hỗ trợ: google, microsoft";
+
+    /** Tài khoản không có email trường (.edu.vn) — chỉ xem, không mua/bán trên sàn */
+    public static final String TRADING_NOT_ALLOWED =
+            "Tài khoản này chỉ xem được nội dung. Để đăng bán hoặc gửi yêu cầu mua, cần đăng ký bằng email .edu.vn.";
 
     public static final String BUYER_SAME_AS_SELLER = "Người mua không thể trùng với người bán";
     public static final String BUYER_NOT_FOUND = "Không tìm thấy người mua";

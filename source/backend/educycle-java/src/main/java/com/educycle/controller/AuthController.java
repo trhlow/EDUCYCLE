@@ -29,9 +29,9 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // POST /api/auth/register
+    // POST /api/auth/register — không JWT; OTP gửi về email .edu.vn
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterPendingResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -54,17 +54,10 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    // POST /api/auth/social-login
-    @PostMapping("/social-login")
-    public ResponseEntity<AuthResponse> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
-        return ResponseEntity.ok(authService.socialLogin(request));
-    }
-
-    // POST /api/auth/verify-otp
+    // POST /api/auth/verify-otp — xác thực OTP + cấp JWT (đăng nhập đầy đủ)
     @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, String>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        authService.verifyOtp(request);
-        return ResponseEntity.ok(Map.of("message", MessageConstants.EMAIL_VERIFIED_SUCCESS));
+    public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
     // POST /api/auth/resend-otp

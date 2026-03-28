@@ -10,15 +10,13 @@ import java.util.UUID;
  */
 public interface AuthService {
 
-    AuthResponse register(RegisterRequest request);
+    RegisterPendingResponse register(RegisterRequest request);
 
     AuthResponse login(LoginRequest request);
 
-    AuthResponse socialLogin(SocialLoginRequest request);
-
     boolean verifyPhone(UUID userId, VerifyPhoneRequest request);
 
-    boolean verifyOtp(VerifyOtpRequest request);
+    AuthResponse verifyOtp(VerifyOtpRequest request);
 
     boolean resendOtp(ResendOtpRequest request);
 

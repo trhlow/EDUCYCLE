@@ -49,7 +49,6 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/social-login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/verify-otp").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/resend-otp").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
