@@ -1,4 +1,5 @@
 @import './styles/tokens.css';
+@import './styles/marketplace-ui.css';
 
 *,
 *::before,
@@ -62,8 +63,8 @@ textarea {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--primary-500);
-  outline-offset: 2px;
+  outline: var(--space-1) solid var(--border-focus);
+  outline-offset: var(--space-1);
   border-radius: var(--radius-sm);
 }
 
@@ -92,12 +93,12 @@ textarea {
 
 /* Loading spinner for ProtectedRoute */
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--neutral-200);
+  width: var(--space-10);
+  height: var(--space-10);
+  border: var(--space-1) solid var(--neutral-200);
   border-top-color: var(--primary-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  border-radius: var(--radius-full);
+  animation: spin var(--duration-slow) linear infinite;
 }
 
 @keyframes spin {

@@ -15,13 +15,31 @@
 }
 
 .admin-sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--neutral-700);
+}
+
+.admin-sidebar-brand-home {
+  display: block;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.admin-sidebar-brand-home:hover {
+  opacity: 0.9;
+}
+
+.admin-sidebar-brand-title {
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
   color: var(--neutral-0);
-  padding-bottom: var(--space-6);
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--neutral-700);
+  line-height: 1.25;
 }
 
 .admin-sidebar-section {
@@ -206,7 +224,7 @@
 }
 
 .admin-btn-danger:hover {
-  background: #d32f2f;
+  background: var(--error);
 }
 
 .admin-btn-warning {

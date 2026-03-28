@@ -14,7 +14,6 @@
 }
 
 .page-loader-logo {
-  font-size: 3rem;
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold);
   color: var(--primary-600);
@@ -22,6 +21,12 @@
   align-items: center;
   gap: var(--space-3);
   user-select: none;
+}
+
+.page-loader-wordmark {
+  font-size: var(--text-3xl);
+  line-height: 1;
+  color: var(--primary-600);
 }
 
 .page-loader-spinner {

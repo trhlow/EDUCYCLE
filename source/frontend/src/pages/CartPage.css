@@ -42,7 +42,7 @@
 
 .p2p-cart-btn.primary {
   background: var(--color-primary, var(--accent));
-  color: var(--text-on-accent, #fff);
+  color: var(--text-inverse);
   border-color: transparent;
 }
 

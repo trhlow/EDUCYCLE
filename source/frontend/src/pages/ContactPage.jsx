@@ -2,6 +2,57 @@ import { useState } from 'react';
 import { useToast } from '../components/Toast';
 import './ContactPage.css';
 
+const IconMail = () => (
+  <svg className="contact-info-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="m22 6-10 7L2 6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const IconPhone = () => (
+  <svg className="contact-info-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.86.3 1.71.54 2.54a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.83.24 1.68.42 2.54.54A2 2 0 0 1 22 16.92z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const IconMapPin = () => (
+  <svg className="contact-info-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
+
+const IconClock = () => (
+  <svg className="contact-info-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sending, setSending] = useState(false);
@@ -31,18 +82,34 @@ export default function ContactPage() {
       <div className="contact-container">
         <div className="contact-info">
           <div className="contact-info-card">
+            <span className="contact-info-icon">
+              <IconMail />
+            </span>
             <h3>Email</h3>
-            <p>support@educycle.com</p>
+            <p>
+              <a href="mailto:support@educycle.com">support@educycle.com</a>
+            </p>
           </div>
           <div className="contact-info-card">
+            <span className="contact-info-icon">
+              <IconPhone />
+            </span>
             <h3>Điện thoại</h3>
-            <p>+84 (0) 342478051</p>
+            <p>
+              <a href="tel:+84342478051">+84 (0) 342478051</a>
+            </p>
           </div>
           <div className="contact-info-card">
+            <span className="contact-info-icon">
+              <IconMapPin />
+            </span>
             <h3>Địa chỉ</h3>
             <p>Trà Vinh, Việt Nam</p>
           </div>
           <div className="contact-info-card">
+            <span className="contact-info-icon">
+              <IconClock />
+            </span>
             <h3>Giờ làm việc</h3>
             <p>T2 - T6: 8:00 - 17:00</p>
           </div>

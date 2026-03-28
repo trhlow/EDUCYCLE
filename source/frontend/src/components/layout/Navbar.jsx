@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { IconBell, IconHeart, IconMenu, IconX } from '../icons/Icons';
+import EduCycleLogo from '../branding/EduCycleLogo';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -52,7 +53,10 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="navbar-brand">EduCycle</Link>
+        <Link to="/" className="navbar-brand" aria-label="EduCycle — về trang chủ">
+          <EduCycleLogo size={38} className="navbar-brand-logo" />
+          <span className="navbar-brand-text">EduCycle</span>
+        </Link>
 
         <button type="button" className="navbar-hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Đóng menu' : 'Mở menu'}>
           {menuOpen ? <IconX size={22} /> : <IconMenu size={22} />}

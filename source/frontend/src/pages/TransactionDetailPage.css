@@ -105,15 +105,15 @@
 .txd-step-done .txd-step-circle {
   background: var(--success);
   border-color: var(--success);
-  color: white;
-  font-weight: bold;
+  color: var(--text-inverse);
+  font-weight: var(--weight-bold);
 }
 
 .txd-step-active .txd-step-circle {
   background: var(--primary-500);
   border-color: var(--primary-500);
-  color: white;
-  box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.2);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-focus);
   animation: pulse 2s infinite;
 }
 
@@ -124,8 +124,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.2); }
-  50% { box-shadow: 0 0 0 8px rgba(33, 150, 243, 0.1); }
+  0%, 100% { box-shadow: var(--shadow-focus); }
+  50% { box-shadow: 0 0 0 var(--space-2) color-mix(in srgb, var(--primary-400) 22%, transparent); }
 }
 
 .txd-step-label {
@@ -166,8 +166,8 @@
 }
 
 .txd-product-image {
-  width: 120px;
-  height: 120px;
+  width: 7.5rem;
+  height: 7.5rem;
   border-radius: var(--radius-md);
   overflow: hidden;
   flex-shrink: 0;
@@ -307,31 +307,31 @@
 
 .txd-btn:hover { transform: translateY(-1px); }
 
-.txd-btn-accept { background: var(--success); color: white; }
-.txd-btn-accept:hover { background: #16a34a; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+.txd-btn-accept { background: var(--success); color: var(--text-inverse); }
+.txd-btn-accept:hover { filter: brightness(0.95); box-shadow: var(--shadow-md); }
 
-.txd-btn-reject { background: var(--error); color: white; }
-.txd-btn-reject:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); }
+.txd-btn-reject { background: var(--error); color: var(--text-inverse); }
+.txd-btn-reject:hover { filter: brightness(0.95); box-shadow: var(--shadow-md); }
 
 .txd-btn-cancel { background: var(--neutral-200); color: var(--neutral-700); }
 .txd-btn-cancel:hover { background: var(--neutral-300); }
 
-.txd-btn-meeting { background: var(--primary-500); color: white; }
+.txd-btn-meeting { background: var(--primary-500); color: var(--text-inverse); }
 .txd-btn-meeting:hover { background: var(--primary-600); box-shadow: var(--shadow-primary); }
 
-.txd-btn-review { background: var(--accent-500); color: white; }
+.txd-btn-review { background: var(--accent-500); color: var(--text-inverse); }
 .txd-btn-review:hover { background: var(--accent-600); box-shadow: var(--shadow-accent); }
 
-.txd-btn-otp { background: var(--primary-600); color: white; }
+.txd-btn-otp { background: var(--primary-600); color: var(--text-inverse); }
 .txd-btn-otp:hover { background: var(--primary-700); }
 
-.txd-btn-verify { background: var(--success); color: white; padding: var(--space-2) var(--space-4); }
-.txd-btn-verify:hover { background: #16a34a; }
+.txd-btn-verify { background: var(--success); color: var(--text-inverse); padding: var(--space-2) var(--space-4); }
+.txd-btn-verify:hover { filter: brightness(0.95); }
 
-.txd-btn-confirm { background: var(--primary-500); color: white; width: 100%; }
+.txd-btn-confirm { background: var(--primary-500); color: var(--text-inverse); width: 100%; }
 .txd-btn-confirm:hover { background: var(--primary-600); }
 
-.txd-btn-submit-review { background: var(--accent-500); color: white; width: 100%; padding: var(--space-3); }
+.txd-btn-submit-review { background: var(--accent-500); color: var(--text-inverse); width: 100%; padding: var(--space-3); }
 .txd-btn-submit-review:hover { background: var(--accent-600); box-shadow: var(--shadow-accent); }
 
 /* ─── Right Column ──────────────────── */
@@ -342,7 +342,7 @@
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  min-height: 560px;
+  min-height: 35rem;
   overflow: hidden;
 }
 
@@ -428,7 +428,7 @@
   height: 36px;
   border-radius: 50%;
   background: var(--primary-500);
-  color: white;
+  color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -511,7 +511,7 @@
 
 .txd-msg-me .txd-msg-bubble {
   background: var(--primary-500);
-  color: white;
+  color: var(--text-inverse);
   border-bottom-right-radius: var(--radius-sm);
 }
 
@@ -556,7 +556,7 @@
 .txd-chat-send {
   padding: var(--space-2) var(--space-4);
   background: var(--primary-500);
-  color: white;
+  color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-lg);
   font-size: var(--text-sm);
@@ -600,7 +600,7 @@
 
 .txd-otp-guide {
   background: var(--info-light);
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--primary-200);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
 }
@@ -640,8 +640,8 @@
 
 .txd-confirm-item.confirmed {
   background: var(--success-light);
-  border-color: #86efac;
-  color: #15803d;
+  border-color: var(--secondary-300);
+  color: var(--secondary-800);
   font-weight: var(--weight-semibold);
 }
 
@@ -770,7 +770,7 @@
 }
 
 .txd-star-btn.active {
-  color: #fbbf24;
+  color: var(--accent-400);
 }
 
 .txd-star-btn:hover {

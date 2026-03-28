@@ -161,13 +161,13 @@
   border: 2px solid;
 }
 
-.guide-flow-pending { background: var(--warning-light); border-color: #fbbf24; color: #92400e; }
-.guide-flow-accepted { background: var(--info-light); border-color: #60a5fa; color: #1e40af; }
+.guide-flow-pending { background: var(--warning-light); border-color: var(--accent-400); color: var(--accent-900); }
+.guide-flow-accepted { background: var(--info-light); border-color: var(--primary-400); color: var(--primary-900); }
 .guide-flow-meeting { background: var(--primary-100); border-color: var(--primary-400); color: var(--primary-800); }
-.guide-flow-completed { background: var(--success-light); border-color: #4ade80; color: #166534; }
-.guide-flow-rejected { background: var(--error-light); border-color: #f87171; color: #991b1b; }
+.guide-flow-completed { background: var(--success-light); border-color: var(--secondary-400); color: var(--secondary-900); }
+.guide-flow-rejected { background: var(--error-light); border-color: color-mix(in srgb, var(--error) 45%, var(--border-light)); color: color-mix(in srgb, var(--error) 85%, var(--neutral-900)); }
 .guide-flow-cancelled { background: var(--neutral-200); border-color: var(--neutral-400); color: var(--neutral-700); }
-.guide-flow-disputed { background: var(--warning-light); border-color: #fb8c00; color: #e65100; }
+.guide-flow-disputed { background: var(--warning-light); border-color: var(--accent-600); color: var(--accent-900); }
 
 .guide-flow-arrow {
   font-size: var(--text-xl);

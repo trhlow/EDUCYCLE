@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import ChatbotWidget from '../ChatbotWidget';
+import EduCycleLogo from '../branding/EduCycleLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
 
@@ -17,7 +18,10 @@ export default function Layout() {
         <div className="footer-container">
           <div className="footer-grid">
             <div className="footer-section">
-              <div className="footer-brand">EduCycle</div>
+              <Link to="/" className="footer-brand" aria-label="EduCycle — về trang chủ">
+                <EduCycleLogo size={36} variant="inverse" />
+                <span className="footer-brand-text">EduCycle</span>
+              </Link>
               <p className="footer-text">Sàn giao dịch tài liệu giáo dục chất lượng</p>
             </div>
             <div className="footer-section">

@@ -63,7 +63,7 @@
 }
 
 .post-required {
-  color: #ef4444;
+  color: var(--error);
 }
 
 .post-optional {
@@ -95,7 +95,7 @@
 .post-input.error,
 .post-select.error,
 .post-textarea.error {
-  border-color: #ef4444;
+  border-color: var(--error);
 }
 
 .post-textarea {
@@ -104,7 +104,7 @@
 }
 
 .post-error {
-  color: #ef4444;
+  color: var(--error);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
 }
@@ -242,7 +242,7 @@
   right: 4px;
   width: 22px;
   height: 22px;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--bg-overlay);
   color: white;
   border: none;
   border-radius: 50%;
@@ -255,7 +255,7 @@
 }
 
 .post-image-remove-btn:hover {
-  background: #ef4444;
+  background: var(--error);
 }
 
 .post-image-main-badge {
@@ -510,7 +510,7 @@
 /* ── Phone Verify Button ── */
 .post-btn-verify {
   padding: var(--space-3) var(--space-6);
-  background: linear-gradient(135deg, #ff9800, #f57c00);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -530,7 +530,7 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--bg-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;

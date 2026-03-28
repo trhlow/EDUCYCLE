@@ -213,7 +213,7 @@
 
 .pdp-btn-wishlist.active {
   border-color: var(--accent-500);
-  background: var(--accent-50, #fff7ed);
+  background: var(--accent-50);
   color: var(--error);
 }
 
@@ -535,13 +535,13 @@
 /* Sold / Own Product Notices */
 .pdp-sold-notice {
   padding: var(--space-4);
-  background: linear-gradient(135deg, var(--success-50, #ecfdf5), var(--primary-50, #eef2ff));
-  border: 2px solid var(--success-300, #86efac);
+  background: linear-gradient(135deg, var(--success-50), var(--primary-50));
+  border: 2px solid var(--success-300);
   border-radius: var(--radius-md);
   text-align: center;
   font-weight: var(--weight-semibold);
   font-size: var(--text-base);
-  color: var(--success-700, #15803d);
+  color: var(--success-700);
 }
 
 .pdp-own-product-notice {

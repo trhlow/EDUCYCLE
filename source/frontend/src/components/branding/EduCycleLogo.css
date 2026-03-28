@@ -1,0 +1,18 @@
+/* Logo mark — màu từ tokens; accent xanh lá = “cycle” / tái sử dụng tài liệu */
+.educycle-logo {
+  flex-shrink: 0;
+  color: var(--primary-600);
+}
+
+.educycle-logo__accent {
+  stroke: var(--secondary-600);
+  fill: none;
+}
+
+.educycle-logo--inverse {
+  color: var(--neutral-0);
+}
+
+.educycle-logo--inverse .educycle-logo__accent {
+  stroke: var(--secondary-300);
+}

@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { formatPrice, formatDate } from '../utils/format';
 import { useState, useEffect } from 'react';
+import EduCycleLogo from '../components/branding/EduCycleLogo';
 import { useToast } from '../components/Toast';
 import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api/endpoints';
 import { maskEmail } from '../utils/maskUsername'; // Issue #7
@@ -83,7 +85,12 @@ export default function AdminPage() {
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-brand">Quản trị EduCycle</div>
+        <div className="admin-sidebar-brand">
+          <Link to="/" className="admin-sidebar-brand-home" aria-label="EduCycle — về trang chủ">
+            <EduCycleLogo size={34} variant="inverse" />
+          </Link>
+          <div className="admin-sidebar-brand-title">Quản trị EduCycle</div>
+        </div>
         <div className="admin-sidebar-section">
           <div className="admin-sidebar-section-title">Quản Lý</div>
           {ADMIN_MENU.map(item => (
