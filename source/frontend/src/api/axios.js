@@ -38,10 +38,9 @@ const validateAuthJsonIfNeeded = (response) => {
   const url = response.config?.url ?? '';
   if (!url.includes('/auth/') || !response.data || typeof response.data !== 'object') return;
   if (
-    url.includes('/auth/register') ||
     url.includes('/auth/login') ||
     url.includes('/auth/refresh') ||
-    url.includes('/auth/social-login')
+    url.includes('/auth/verify-otp')
   ) {
     parseAuthResponse(response.data, url);
   }

@@ -30,6 +30,7 @@ function mapMeResponse(data) {
     notifyTransactions: data.notifyTransactions ?? true,
     notifyMessages: data.notifyMessages ?? true,
     transactionRulesAcceptedAt: data.transactionRulesAcceptedAt ?? null,
+    tradingAllowed: data.tradingAllowed !== false,
   };
 }
 
@@ -79,6 +80,7 @@ export function AuthProvider({ children }) {
         phone: data.phone ?? null,
         bio: '',
         avatar: null,
+        tradingAllowed: data.tradingAllowed !== false,
       };
       applySession(userData, data.token, data.refreshToken || null);
       return userData;
@@ -98,26 +100,10 @@ export function AuthProvider({ children }) {
     try {
       const res = await authApi.register({ username, email, password });
       const data = res.data;
-      if (data.token) {
-        const userData = {
-          id: data.userId,
-          username: data.username || username,
-          email: data.email || email,
-          role: data.role || 'USER',
-          emailVerified: data.emailVerified ?? false,
-          phoneVerified: data.phoneVerified ?? false,
-          phone: data.phone ?? null,
-          bio: '',
-          avatar: null,
-        };
-        applySession(userData, data.token, data.refreshToken || null);
-        return userData;
-      }
       return {
-        email: data.email || email,
-        username: data.username || username,
-        emailVerified: false,
-        message: data.message || 'Vui lòng kiểm tra email để xác thực OTP.',
+        email: data.email ?? email,
+        username: data.username ?? username,
+        message: data.message ?? 'Vui lòng kiểm tra email để xác thực OTP.',
       };
     } catch (err) {
       const message =
@@ -132,41 +118,38 @@ export function AuthProvider({ children }) {
 
   const verifyOtp = async (email, otpCode) => {
     if (!email || !otpCode) throw new Error('Email và mã OTP là bắt buộc');
-    const res = await authApi.verifyOtp({ email, otp: otpCode });
-    updateProfile({ emailVerified: true });
-    return res.data;
+    try {
+      const res = await authApi.verifyOtp({ email, otp: otpCode });
+      const data = res.data;
+      const userData = {
+        id: data.userId,
+        username: data.username,
+        email: data.email,
+        role: data.role || 'USER',
+        emailVerified: data.emailVerified ?? true,
+        phoneVerified: data.phoneVerified ?? false,
+        phone: data.phone ?? null,
+        bio: '',
+        avatar: null,
+        tradingAllowed: data.tradingAllowed !== false,
+      };
+      applySession(userData, data.token, data.refreshToken || null);
+      return userData;
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.title ||
+        (err.code === 'ERR_NETWORK' ? 'Không thể kết nối server.' : null) ||
+        err.response?.data ||
+        'Mã OTP không đúng hoặc đã hết hạn.';
+      throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+    }
   };
 
   const resendOtp = async (email) => {
     if (!email) throw new Error('Email là bắt buộc');
     const res = await authApi.resendOtp({ email });
     return res.data;
-  };
-
-  const socialLogin = async (provider, tokenOrPayload) => {
-    if (!provider) throw new Error('Nhà cung cấp là bắt buộc');
-    const body =
-      typeof tokenOrPayload === 'string'
-        ? { provider, token: tokenOrPayload }
-        : { provider, ...tokenOrPayload };
-    if (!body.token && !body.authorizationCode) {
-      throw new Error('Cần token hoặc authorizationCode');
-    }
-    const res = await authApi.socialLogin(body);
-    const data = res.data;
-    const userData = {
-      id: data.userId,
-      username: data.username,
-      email: data.email,
-      role: data.role || 'USER',
-      emailVerified: data.emailVerified ?? false,
-      phoneVerified: data.phoneVerified ?? false,
-      phone: data.phone ?? null,
-      bio: '',
-      avatar: null,
-    };
-    applySession(userData, data.token, data.refreshToken || null);
-    return userData;
   };
 
   const verifyPhone = async (phoneNumber) => {
@@ -253,28 +236,6 @@ export function AuthProvider({ children }) {
     [],
   );
 
-  const handleOAuthCallback = (jwtToken) => {
-    if (!jwtToken || typeof jwtToken !== 'string') return;
-    try {
-      const payload = JSON.parse(atob(jwtToken.split('.')[1]));
-      const userData = {
-        id: payload.nameid || payload.sub || payload.userId,
-        username: payload.unique_name || payload.name || payload.username,
-        email: payload.email,
-        role: payload.role || 'USER',
-        emailVerified: payload.emailVerified ?? true,
-        phoneVerified: payload.phoneVerified ?? false,
-        phone: payload.phone ?? null,
-        bio: '',
-        avatar: null,
-      };
-      applySession(userData, jwtToken, payload.refreshToken || null);
-    } catch {
-      clearAuthStorage();
-      setSession({ user: null, token: null });
-    }
-  };
-
   const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const isAuthenticated = !!(token && user?.id);
 
@@ -294,9 +255,7 @@ export function AuthProvider({ children }) {
         saveNotificationPrefsToServer,
         verifyOtp,
         resendOtp,
-        socialLogin,
         verifyPhone,
-        handleOAuthCallback,
         isAdmin,
         isAuthenticated,
       }}

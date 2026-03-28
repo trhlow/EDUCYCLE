@@ -9,7 +9,6 @@ export const authApi = {
   logout:          (data) => api.post('/auth/logout', data),
   verifyOtp:       (data) => api.post('/auth/verify-otp', data),
   resendOtp:       (data) => api.post('/auth/resend-otp', data),
-  socialLogin:     (data) => api.post('/auth/social-login', data),
   verifyPhone:     (data) => api.post('/auth/verify-phone', data),
   changePassword:  (data) => api.post('/auth/change-password', data),
   // Issue: Forgot / Reset password — BE chưa có (Sprint 2)

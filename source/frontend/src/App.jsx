@@ -7,7 +7,6 @@ import RouteTransition from './components/RouteTransition';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
-const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
 // ProductListingPage vẫn giữ như standalone (dùng cho redirect nội bộ nếu cần)
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
@@ -51,8 +50,6 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<SuspenseWrapper><HomePage /></SuspenseWrapper>} />
         <Route path="auth" element={<SuspenseWrapper><GuestRoute><AuthPage /></GuestRoute></SuspenseWrapper>} />
-        <Route path="oauth-callback" element={<SuspenseWrapper><OAuthCallbackPage /></SuspenseWrapper>} />
-
         {/* /products → redirect về trang chủ và scroll xuống section sản phẩm */}
         <Route path="products" element={<ProductsRedirect />} />
 
