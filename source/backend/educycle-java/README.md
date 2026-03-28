@@ -86,7 +86,7 @@ jwt:
 mvn spring-boot:run
 ```
 
-Flyway chạy các file trong `src/main/resources/db/migration/` theo thứ tự phiên bản. Trong repo hiện có **`V2`–`V11`** (schema + seed đã được tách qua nhiều migration; DB mới sẽ apply lần lượt). Seed thường gặp:
+Flyway chạy các file trong `src/main/resources/db/migration/` theo thứ tự phiên bản. Trong repo hiện có **`V2`–`V15`** (schema + seed đã được tách qua nhiều migration; DB mới sẽ apply lần lượt). Seed thường gặp:
 - Admin: `admin@educycle.com` / `admin@1`
 - Danh mục mặc định (nếu có trong migration tương ứng)
 
@@ -150,8 +150,10 @@ src/main/java/com/educycle/
 
 src/main/resources/
 ├── application.yml                 # Config (maps appsettings.json)
+├── rag/
+│   └── educycle-knowledge.md       # Bootstrap RAG (tuỳ chọn + OPENAI_API_KEY)
 └── db/migration/
-    └── V2__…sql … V11__…sql        # Flyway (không sửa file đã apply)
+    └── V2__…sql … V15__…sql        # Flyway (không sửa file đã apply)
 
 src/test/java/com/educycle/service/
 ├── AuthServiceTest.java            # Maps C# AuthServiceTests.cs
@@ -170,7 +172,6 @@ src/test/java/com/educycle/service/
 |--------|------|------|-------------|
 | POST | `/api/auth/register` | Public | Register new user |
 | POST | `/api/auth/login` | Public | Login, returns JWT |
-| POST | `/api/auth/social-login` | Public | Google/Facebook/Microsoft |
 | POST | `/api/auth/verify-phone` | 🔒 User | Set phone number |
 
 ### Products

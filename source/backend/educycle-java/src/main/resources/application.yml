@@ -54,23 +54,17 @@ jwt:
   audience: EduCycleUsers
   expiration-hours: 2
 
-# OAuth client ID là public; production nên set GOOGLE_CLIENT_ID / MICROSOFT_CLIENT_ID qua env (Docker .env).
-oauth:
-  google:
-    client-id: ${GOOGLE_CLIENT_ID:655696942996-23v3ded01q45mth3lufocjntei1mnfp9.apps.googleusercontent.com}
-    client-secret: ${GOOGLE_CLIENT_SECRET:}
-    jwks-uri: https://www.googleapis.com/oauth2/v3/certs
-  microsoft:
-    client-id: ${MICROSOFT_CLIENT_ID:26196491-b38e-48fb-b900-72c05aaec7c0}
-    tenant-id: common
-    jwks-uri: https://login.microsoftonline.com/common/discovery/v2.0/keys
-
 # ── Anthropic AI Chatbot ────────────────────────────────────────────────────
 # Lấy API key tại: https://console.anthropic.com/
 # Dùng biến môi trường ANTHROPIC_API_KEY để không commit key lên git
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
   model: claude-sonnet-4-20250514
+
+# ── OpenAI (tuỳ chọn) — embeddings cho RAG chatbot; không dùng cho chat trực tiếp
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  embedding-model: text-embedding-3-small
 
 # ── EduCycle ── rate limit API (Bucket4j filter), Redis (AI rate limit đa instance)
 educycle:
@@ -81,6 +75,12 @@ educycle:
     enabled: ${EDUCYCLE_REDIS_ENABLED:false}
     host: ${EDUCYCLE_REDIS_HOST:localhost}
     port: ${EDUCYCLE_REDIS_PORT:6379}
+  # RAG: truy xuất đoạn tri thức trước khi gọi Claude (cần OPENAI_API_KEY + chunk có embedding)
+  rag:
+    enabled: ${EDUCYCLE_RAG_ENABLED:true}
+    top-k: ${EDUCYCLE_RAG_TOP_K:5}
+    min-cosine-similarity: ${EDUCYCLE_RAG_MIN_COSINE:0.28}
+    bootstrap-enabled: ${EDUCYCLE_RAG_BOOTSTRAP:true}
   # Hết hạn giao dịch tự động (job định kỳ) — Sprint B
   transactions:
     expiry:

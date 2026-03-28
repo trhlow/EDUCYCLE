@@ -45,12 +45,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- ===== OAUTH2 JOSE (JWT verification for Google/Microsoft tokens) ===== -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-jose</artifactId>
-        </dependency>
-
         <!-- ===== WEBSOCKET (STOMP) ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -11,6 +11,8 @@ educycle:
   transactions:
     expiry:
       enabled: false
+  # Chỉ CI E2E API: OTP cố định thay vì đọc email (không bật ở production).
+  e2e-fixed-otp: ${EDUCYCLE_E2E_FIXED_OTP:}
 
 logging:
   level:
