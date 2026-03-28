@@ -139,9 +139,9 @@ src/test/java/com/educycle/service/
 ### Auth
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/auth/register` | Public | Register new user |
-| POST | `/api/auth/login` | Public | Login, returns JWT |
-| POST | `/api/auth/social-login` | Public | Google/Facebook/Microsoft |
+| POST | `/api/auth/register` | Public | Đăng ký .edu.vn — gửi OTP email, chưa JWT |
+| POST | `/api/auth/login` | Public | Đăng nhập (sau khi đã verify OTP), trả JWT |
+| POST | `/api/auth/verify-otp` | Public | Xác thực OTP — trả JWT + refresh |
 | POST | `/api/auth/verify-phone` | 🔒 User | Set phone number |
 
 ### Products
