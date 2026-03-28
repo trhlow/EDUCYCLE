@@ -34,6 +34,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class AiChatService {
 
+    private final RagRetrievalService ragRetrievalService;
+
     @Value("${anthropic.api-key:}")
     private String apiKey;
 
@@ -59,7 +61,7 @@ public class AiChatService {
             ## Về EduCycle
             - Nền tảng P2P cho sinh viên mua bán sách giáo trình, tài liệu ôn thi, dụng cụ học tập
             - Giao dịch hoàn toàn trực tiếp giữa người mua và người bán (không qua trung gian)
-            - Chỉ dành cho sinh viên có email .edu.vn (hoặc đăng nhập Google/Microsoft tổ chức)
+            - Chỉ dành cho sinh viên đăng ký bằng email .edu.vn (xác thực OTP qua hộp thư trường)
             
             ## Quy trình giao dịch
             1. Người mua tìm sản phẩm → gửi yêu cầu mua
@@ -103,6 +105,20 @@ public class AiChatService {
             - Câu trả lời tối đa 200 từ, ưu tiên ngắn gọn súc tích
             """;
 
+    private static String lastUserContent(List<MessageDto> messages) {
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            MessageDto m = messages.get(i);
+            if ("user".equalsIgnoreCase(m.role())) {
+                return m.content();
+            }
+        }
+        return "";
+    }
+
+    private String resolveSystemPrompt(List<MessageDto> messages) {
+        return ragRetrievalService.augmentSystemPrompt(SYSTEM_PROMPT, lastUserContent(messages));
+    }
+
     public String chat(List<MessageDto> messages) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("Anthropic API key not configured");
@@ -118,7 +134,7 @@ public class AiChatService {
             var requestBody = Map.of(
                     "model",      model,
                     "max_tokens", 1024,
-                    "system",     SYSTEM_PROMPT,
+                    "system",     resolveSystemPrompt(messages),
                     "messages",   anthropicMessages
             );
 
@@ -179,7 +195,7 @@ public class AiChatService {
             var requestBody = Map.of(
                     "model", model,
                     "max_tokens", 1024,
-                    "system", SYSTEM_PROMPT,
+                    "system", resolveSystemPrompt(messages),
                     "messages", anthropicMessages,
                     "stream", true
             );
