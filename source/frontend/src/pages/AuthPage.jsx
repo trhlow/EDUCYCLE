@@ -6,9 +6,15 @@ import { authApi } from '../api/endpoints';
 import EduCycleLogo from '../components/branding/EduCycleLogo';
 import './AuthPage.css';
 
-/* ── Validate .edu.vn email ───────────────────────────────── */
+/* ── Đăng ký: chỉ .edu.vn (khớp BE). Đăng nhập / quên MK: mọi email hợp lệ (vd. admin@educycle.com). ── */
 function isStudentEmail(email) {
-  return typeof email === 'string' && email.toLowerCase().endsWith('.edu.vn');
+  return typeof email === 'string' && email.toLowerCase().trim().endsWith('.edu.vn');
+}
+
+function isValidEmail(email) {
+  if (typeof email !== 'string') return false;
+  const t = email.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
 }
 
 const VIEW = {
@@ -66,8 +72,7 @@ export default function AuthPage() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!loginForm.email.includes('@')) errs.loginEmail = 'Email không hợp lệ';
-    else if (!isStudentEmail(loginForm.email)) errs.loginEmail = 'Chỉ đăng nhập bằng email .edu.vn';
+    if (!isValidEmail(loginForm.email)) errs.loginEmail = 'Email không hợp lệ';
     if (!loginForm.password)            errs.loginPassword = 'Mật khẩu là bắt buộc';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
@@ -141,8 +146,7 @@ export default function AuthPage() {
   ───────────────────────────────────────────────────── */
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    if (!forgotEmail.includes('@')) { setErrors({ forgotEmail: 'Email không hợp lệ' }); return; }
-    if (!isStudentEmail(forgotEmail)) { setErrors({ forgotEmail: 'Chỉ hỗ trợ email .edu.vn' }); return; }
+    if (!isValidEmail(forgotEmail)) { setErrors({ forgotEmail: 'Email không hợp lệ' }); return; }
     setSubmitting(true);
     try {
       const res = await authApi.forgotPassword({ email: forgotEmail });
@@ -209,13 +213,17 @@ export default function AuthPage() {
           {view === VIEW.LOGIN && (
             <form className="auth-form" onSubmit={handleLoginSubmit}>
               <div className="auth-edu-notice">
-                <span>Chỉ email <strong>.edu.vn</strong>. Nếu vừa đăng ký, hãy nhập OTP từ hộp thư trường trước khi đăng nhập.</span>
+                <span>
+                  <strong>Sinh viên:</strong> đăng ký bằng email <strong>.edu.vn</strong>, xác thực OTP rồi mới đăng nhập.
+                  {' '}
+                  <strong>Quản trị:</strong> dùng email tài khoản nền tảng (không bắt buộc .edu.vn).
+                </span>
               </div>
 
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="login-email">Email</label>
                 <input type="email" id="login-email" className={`auth-input ${errors.loginEmail ? 'error' : ''}`}
-                  placeholder="ten@truong.edu.vn"
+                  placeholder="ten@truong.edu.vn hoặc admin@educycle.com"
                   value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} />
                 <div className={`auth-error ${errors.loginEmail ? 'show' : ''}`}>{errors.loginEmail}</div>
               </div>
@@ -322,13 +330,13 @@ export default function AuthPage() {
                 <button type="button" className="auth-link-btn" onClick={() => { setView(VIEW.LOGIN); clearErrors(); }}>Quay lại đăng nhập</button>
                 <h3>Quên mật khẩu</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-4)' }}>
-                  Nhập email sinh viên. Chúng tôi sẽ gửi link đặt lại mật khẩu.
+                  Nhập email đã đăng ký trên EduCycle (sinh viên .edu.vn hoặc tài khoản quản trị). Chúng tôi sẽ gửi link đặt lại mật khẩu nếu email tồn tại.
                 </p>
               </div>
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="forgot-email">Email sinh viên (.edu.vn)</label>
+                <label className="auth-label" htmlFor="forgot-email">Email</label>
                 <input type="email" id="forgot-email" className={`auth-input ${errors.forgotEmail ? 'error' : ''}`}
-                  placeholder="ten@truong.edu.vn" autoFocus
+                  placeholder="ten@truong.edu.vn hoặc admin@educycle.com" autoFocus
                   value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} />
                 <div className={`auth-error ${errors.forgotEmail ? 'show' : ''}`}>{errors.forgotEmail}</div>
               </div>

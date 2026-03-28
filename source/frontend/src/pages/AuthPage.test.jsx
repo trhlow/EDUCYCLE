@@ -22,6 +22,9 @@ vi.mock('../components/Toast', () => ({
 vi.mock('../api/endpoints', () => ({
   authApi: {
     login: vi.fn(),
+    register: vi.fn(),
+    verifyOtp: vi.fn(),
+    resendOtp: vi.fn(),
   },
   usersApi: {
     getMe: vi.fn(),
@@ -52,5 +55,43 @@ test('shows error on failed login', async () => {
 
   await waitFor(() => {
     expect(mockToast.error).toHaveBeenCalledWith('Sai mật khẩu');
+  });
+});
+
+test('login form accepts non-edu.vn email and calls API (admin / staff)', async () => {
+  authApi.login.mockResolvedValueOnce({
+    data: {
+      userId: '00000000-0000-0000-0000-000000000001',
+      username: 'admin',
+      email: 'admin@educycle.com',
+      token: 'a'.repeat(32),
+      role: 'ADMIN',
+      emailVerified: true,
+      message: null,
+      refreshToken: 'b'.repeat(64),
+    },
+  });
+
+  const { container } = render(
+    <MemoryRouter>
+      <AuthProvider>
+        <AuthPage />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+
+  const emailInput = container.querySelector('#login-email');
+  const passwordInput = container.querySelector('#login-password');
+  const submitButton = container.querySelector('button[type="submit"]');
+
+  fireEvent.change(emailInput, { target: { value: 'admin@educycle.com' } });
+  fireEvent.change(passwordInput, { target: { value: 'admin@1' } });
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(authApi.login).toHaveBeenCalledWith({
+      email: 'admin@educycle.com',
+      password: 'admin@1',
+    });
   });
 });
