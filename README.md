@@ -99,9 +99,6 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 | `SPRING_PROFILES_ACTIVE` | e.g. `production,smtp` | Enable real SMTP when `MAIL_*` are set |
 | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, … | `.env` + profile `smtp` | Real email — see [Email (SMTP)](#email-smtp) |
 | `VITE_DEV_PROXY_TARGET` | `source/frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
-| `VITE_GOOGLE_CLIENT_ID`, `VITE_MICROSOFT_CLIENT_ID` | Frontend `.env` | OAuth; must align with backend `application.yml` |
-| `VITE_GOOGLE_OAUTH_USE_AUTH_CODE` | Frontend `.env.development` / `.env.local` | `false` = implicit (dev, no `GOOGLE_CLIENT_SECRET`). `true` = auth-code + PKCE — set `GOOGLE_CLIENT_SECRET` on backend |
-| `GOOGLE_CLIENT_SECRET` | Root `.env` (Docker) or shell | Required on API when using Google **auth-code** flow |
 
 **OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [NOTES.md](NOTES.md) (FE↔BE mapping).
 
@@ -115,7 +112,7 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 
 From the **repository root** (where `docker-compose.yml` lives):
 
-**1) Tạo `.env` (bắt buộc cho Postgres):** sao chép [.env.example](.env.example) → `.env` và giữ hoặc đổi `POSTGRES_PASSWORD`, `JWT_SECRET`, (tuỳ chọn) `GOOGLE_CLIENT_ID` / `MICROSOFT_CLIENT_ID`. Compose **không** còn mật khẩu DB mặc định trong file YAML.
+**1) Tạo `.env` (bắt buộc cho Postgres):** sao chép [.env.example](.env.example) → `.env` và giữ hoặc đổi `POSTGRES_PASSWORD`, `JWT_SECRET`. Compose **không** còn mật khẩu DB mặc định trong file YAML.
 
 **Bash / Git Bash / macOS / Linux**
 
@@ -138,7 +135,7 @@ docker compose up --build
 - **PostgreSQL** runs on the internal Docker network only (no DB port published to the host by default).
 - **Uploads** persist in volume `educycle_uploads` → `/app/data/uploads` in the API container.
 
-Trong `.env` còn có chỗ cho `ANTHROPIC_API_KEY`, SMTP (`MAIL_*`), `GOOGLE_CLIENT_SECRET`, v.v.
+Trong `.env` còn có chỗ cho `ANTHROPIC_API_KEY`, SMTP (`MAIL_*`), v.v.
 
 ### Option 2: Local development (recommended for coding)
 
@@ -252,7 +249,7 @@ Base path: **`/api`**. Interactive docs: **Swagger UI** when the API is running 
 
 | Area | Examples |
 |------|----------|
-| **Auth** | `/api/auth/login`, `register`, `refresh`, `social-login`, `forgot-password`, `reset-password`, `change-password` |
+| **Auth** | `/api/auth/login`, `register`, `verify-otp`, `refresh`, `forgot-password`, `reset-password`, `change-password` |
 | **Users** | `GET/PATCH /api/users/me`, `PATCH .../notification-preferences` |
 | **Public** | `GET /api/public/users/{userId}` |
 | **Products** | `GET /api/products` (paged), `GET /api/products/{id}`, `POST /api/upload/product-image`, `GET /api/files/**` |

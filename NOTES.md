@@ -7,7 +7,7 @@
 
 ## 1. TRẠNG THÁI DỰ ÁN
 
-**Stack hiện tại:** Java **17** + Spring Boot **3.4.x** + PostgreSQL **16** + Flyway **V1–V11** (tiếp theo **V12**) · React **19** + Vite **7** + **JavaScript** + TypeScript entry (`.tsx` + `tsc -b`) + TanStack Query + Axios + STOMP  
+**Stack hiện tại:** Java **17** + Spring Boot **3.4.x** + PostgreSQL **16** + Flyway **V1–V15** (tiếp theo **V16**) · React **19** + Vite **7** + **JavaScript** + TypeScript entry (`.tsx` + `tsc -b`) + TanStack Query + Axios + STOMP  
 **Hướng portfolio 2026:** xem **§2.5** (TS + migrate `.jsx` dần, Zod/RHF, JDK 21, v.v. — **TanStack Query + entry TS** đã bật; còn nợ theo sprint).
 
 **Paths:** `source/backend/educycle-java/` · `source/frontend/`
@@ -29,11 +29,11 @@
 | WebSocket Chat | ✅ | ✅ | STOMP/SockJS, JWT auth |
 | Notification System | ✅ | ✅ | DB + STOMP broadcast, 5 triggers |
 | isAdmin + status uppercase | ✅ | ✅ | `.toUpperCase() === 'ADMIN'` |
-| OTP step sau register | ✅ | ✅ | Form OTP → verify → login |
+| OTP sau đăng ký (bắt buộc vào hệ thống) | ✅ | ✅ | Register không JWT; `verify-otp` cấp JWT; login từ chối nếu chưa verify |
 | Mock bypass đã xóa | — | ✅ | Throw lỗi thật khi BE down |
 | ErrorBoundary + safeSession | — | ✅ | Crash recovery + safe localStorage |
 | Email OTP verification (BE) | ✅ | ✅ | Lưu OTP trong DB, verify đúng field name |
-| FE↔BE field name sync | ✅ | ✅ | verifyPhone, socialLogin, OTP đều đúng |
+| FE↔BE field name sync | ✅ | ✅ | verifyPhone, verifyOtp (`email`+`otp`), register pending response |
 | TransactionProductDto fields | ✅ | ✅ | description + category đã có |
 | Product SOLD status check | ✅ | ✅ | `.toUpperCase() === 'SOLD'` |
 | TransactionGuidePage v2 | — | ✅ | 7 bước, DISPUTED flow, nội quy v2 |
@@ -42,12 +42,13 @@
 | Cart P2P (không giỏ checkout) | — | ✅ | `/cart` → hướng dẫn; xóa `CartContext` |
 | Wishlist + sync BE (`/api/wishlist`) | ✅ | ✅ | Flyway V9; FE `wishlistApi` + `WishlistContext` |
 | Sprint 3 — upload ảnh + phân trang + sửa tin + notif prefs + reject lý do | ✅ | ✅ | `V8` migration, `FileUploadController`, `PageResponse`, `/products/:id/edit` |
-| Sprint 4 — production polish + Docker full stack | ✅ | ✅ | `docker-compose.yml`, FE `Dockerfile`+nginx, `apiError.js`, Vitest OAuth |
+| Sprint 4 — production polish + Docker full stack | ✅ | ✅ | `docker-compose.yml`, FE `Dockerfile`+nginx, `apiError.js`, Vitest |
 | SMTP email thật (tuỳ chọn) | ✅ | — | Profile **`smtp`** + `application-smtp.yml`, biến `MAIL_*`, README + `.env.example`; không bật = `MailService` log console |
 | AI chat rate limit | ✅ | — | 30/user/giờ — **`RedisAiChatRateLimiter`** khi `EDUCYCLE_REDIS_ENABLED=true` (compose có `redis`); không thì **in-memory** |
+| AI chat **RAG** (tuỳ chọn) | ✅ | — | Flyway **V15** `ai_knowledge_chunk`; **`OPENAI_API_KEY`** → embedding; bootstrap `rag/educycle-knowledge.md`; `RagRetrievalService` bổ sung ngữ cảnh theo tin nhắn user trước Claude |
 | README + CI (công khai) | — | — | [`README.md`](README.md): Quick Start, Configuration, **Testing & CI** — đồng bộ với mục chạy dưới đây |
 | Audit 2026 — hardening nhanh | ✅ | ✅ | `GET /api/transactions` chỉ ADMIN; register `.edu.vn` + MK ≥8; `POSTGRES_PASSWORD` compose; nginx CSP/XFO/…; profile `production` tắt Swagger; Flyway **V10** index `status`/`user_id`; Dependabot + `npm audit` (critical) |
-| Audit 2026 — batch 2 | ✅ | ✅ | Lọc/tìm `GET /api/products` server-side; refresh **family** (V11); rate limit **X-Real-IP** (không spoof X-Forwarded-For); Google **auth-code** + `GOOGLE_CLIENT_SECRET` / fallback implicit; CI **e2e-api** (jar+Postgres+Playwright); Testcontainers IT khi `CI=true`; Prometheus + OTel dependency; coverage Vitest; docker-compose gợi ý object storage |
+| Audit 2026 — batch 2 | ✅ | ✅ | Lọc/tìm `GET /api/products` server-side; refresh **family** (V11); rate limit **X-Real-IP** (không spoof X-Forwarded-For); CI **e2e-api** (jar+Postgres+Playwright, golden path register→verify-otp); Testcontainers IT khi `CI=true`; Prometheus + OTel dependency; coverage Vitest; docker-compose gợi ý object storage |
 
 ---
 
@@ -61,7 +62,7 @@ Hiện **không** có mục đỏ đang mở. *(Trước đây NOTES còn ghi th
 
 | Ưu tiên | Issue | Ghi chú |
 |---------|--------|---------|
-| **P0** | **E2E + CI** | Job **`e2e`** + **`e2e-api`**; **golden path API** đăng ký → đăng tin → `/products/mine` *(Playwright `golden-path.spec.js`)*. Flow **giao dịch + OTP** end-to-end qua UI/API dài — vẫn có thể bổ sung sau |
+| **P0** | **E2E + CI** | Job **`e2e`** + **`e2e-api`**; **golden path API** đăng ký → **`verify-otp`** → đăng tin → `/products/mine` *(Playwright `golden-path.spec.js`; CI dùng `EDUCYCLE_E2E_FIXED_OTP`)*. Flow **giao dịch + OTP gặp mặt** end-to-end qua UI dài — vẫn có thể bổ sung sau |
 | **P1** | Rate limit HTTP khi scale ngang | **Bucket4j** (`RateLimitFilter`) vẫn **in-memory per process** — nhiều replica cần store chung (Redis/proxy). **AI chat** đã có **Redis** tuỳ chọn (xem §1 + Sprint 7) |
 | **P2** | AI chat SSE — polish | Stream **đã có** (BE SSE + FE); có thể cải **cancel, retry UI, timeout** |
 | **P2** | Xóa TK / GDPR | Chưa API BE |
@@ -102,7 +103,7 @@ npm run build
 
 ### Sprint 1–4 (đã hoàn thành trong repo — chỉ tham chiếu lịch sử)
 
-- [x] P2P cart, wishlist copy, profile + BE, OTP buyer/seller, forgot/reset, dispute + admin, public profile, upload ảnh (không base64 DB), pagination, edit `/products/:id/edit`, notif prefs BE, Docker full stack, Vitest OAuth, skeleton Home/PLP, README mới.
+- [x] P2P cart, wishlist copy, profile + BE, OTP buyer/seller, forgot/reset, dispute + admin, public profile, upload ảnh (không base64 DB), pagination, edit `/products/:id/edit`, notif prefs BE, Docker full stack, Vitest, skeleton Home/PLP, README mới.
 
 ### Góc nhìn “chuẩn 2026” — đúng hướng, không phải lúc nào cũng dealbreaker
 
@@ -119,7 +120,7 @@ npm run build
 | **Observability** (Sentry, OTel, metrics) | Đúng cho “production story”; **không blocker** portfolio nhưng cộng điểm phỏng vấn. |
 | **Wishlist** | **Đã sync BE** (V9 + `wishlistApi`) — dòng cũ “chỉ localStorage” **lỗi thời**. |
 | **Tailwind v4 / đổi design system** | **Tuỳ chọn**; rule dự án đã cam kết **`tokens.css`** — migrate Tailwind = đổi stack UI, **không nhẹ** → xếp **sau TS + data layer**. |
-| **Admin `Map<String,Object>`** | Anti-pattern cho API nội bộ → **đã thay** `GET /api/admin/users` bằng record **`AdminUserSummaryResponse`** (cùng shape JSON: `id`, `username`, `email`, `role`, `createdAt`). `Map` parse JSON provider bên thứ ba (vd. OAuth userinfo) là use-case khác — không gộp. |
+| **Admin `Map<String,Object>`** | Anti-pattern cho API nội bộ → **đã thay** `GET /api/admin/users` bằng record **`AdminUserSummaryResponse`** (cùng shape JSON: `id`, `username`, `email`, `role`, `createdAt`). `Map` cho payload JSON không kiểu (provider bên thứ ba) là use-case khác — không gộp. |
 
 ### Ba sprint đề xuất (5 → 7) — chia nhỏ để “thở”
 
@@ -181,7 +182,7 @@ npm run build
 
 ### Page scorecard (UX ước lượng — 2026-03)
 
-Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · TransactionDetail ~7 · **Guide ~8** · Dashboard ~6–7 · Profile ~7 · **Wishlist ~7** *(sync BE)* · Cart ~7 · Admin ~6–7 · OAuthCallback ~7 · Chatbot ~7 *(SSE — `POST /api/ai/chat/stream`)*.
+Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · TransactionDetail ~7 · **Guide ~8** · Dashboard ~6–7 · Profile ~7 · **Wishlist ~7** *(sync BE)* · Cart ~7 · Admin ~6–7 · Chatbot ~7 *(SSE — `POST /api/ai/chat/stream`)*.
 
 ### 2.6 Hoàn thành dự án — tổng hợp & phạm vi
 
@@ -197,7 +198,7 @@ Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · T
 | 1 | `isAdmin` luôn false | `AuthContext.jsx` | `=== 'Admin'` → `.toUpperCase() === 'ADMIN'` |
 | 2 | STATUS_CONFIG TitleCase | `TransactionDetailPage.jsx` | Keys → UPPERCASE |
 | 3 | Mock bypass AuthContext | `AuthContext.jsx` | Xóa MOCK_ACCOUNTS + fallback |
-| 4 | endpoints.js thiếu hàm | `endpoints.js` | Thêm verifyOtp/resendOtp/socialLogin/verifyPhone |
+| 4 | endpoints.js thiếu hàm | `endpoints.js` | Thêm verifyOtp/resendOtp/verifyPhone (và các auth endpoint còn thiếu) |
 | 5 | AuthContext thiếu export | `AuthContext.jsx` | Export đủ 4 methods OTP |
 | 6 | AuthPage thiếu OTP step | `AuthPage.jsx` | Form OTP sau register |
 | 7 | Navbar crash khi notifications null | `Navbar.jsx` | `Array.isArray()` defensive check |
@@ -213,7 +214,7 @@ Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · T
 | 17 | **Vite proxy sai port (Docker 8081 vs mặc định 8080)** | `vite.config.js` + `.env.development` | Default `VITE_DEV_PROXY_TARGET` / fallback → `http://localhost:8080` (`mvn spring-boot:run` không profile); docker **8081** → `.env.local` |
 | 18 | **verifyOtp field name mismatch** | `AuthContext.jsx` | `authApi.verifyOtp({ email, otp: otpCode })` — JSON field `otp` khớp `VerifyOtpRequest` |
 | 19 | **verifyPhone field name mismatch** | `AuthContext.jsx` | `authApi.verifyPhone({ phone: phoneNumber })` — JSON field `phone` khớp `VerifyPhoneRequest` |
-| 20 | **socialLogin field name mismatch** | `AuthContext.jsx` | FE gửi `{ provider, idToken }` → đổi thành `{ provider, token }` (đúng BE `SocialLoginRequest`) |
+| 20 | *(lịch sử)* **socialLogin** body | `AuthContext.jsx` | Đã gỡ OAuth — mục này chỉ còn giá trị tham khảo |
 | 21 | **TransactionProductDto thiếu fields** | `TransactionResponse.java` + `TransactionServiceImpl.java` | Thêm `description` và `category` vào DTO + mapToResponse |
 | 22 | **AuthServiceImpl.verifyOtp() luôn throw** | `AuthServiceImpl.java` | Implement OTP thực: sinh OTP trong register, lưu DB, verify đúng + log OTP ra console (dev mode) |
 | 23 | **Product status check TitleCase** | `ProductDetailPage.jsx` | `product.status === 'Sold'` → `.toUpperCase() === 'SOLD'` |
@@ -321,7 +322,7 @@ git push origin dev
 ## 5. RULES BẮT BUỘC
 
 1. **Status UPPERCASE** — BE trả `"PENDING"` `"ADMIN"` `"APPROVED"` `"SOLD"` → FE dùng `.toUpperCase()`
-2. **Flyway** — Không sửa migration đã chạy (hiện **V1–V9**) → file tiếp theo **V10**
+2. **Flyway** — Không sửa migration đã chạy (hiện tới **V15** trong repo) → file tiếp theo **V16** (hoặc số cao nhất + 1)
 3. **Token** — dùng `SecureRandom` 64 bytes, không `UUID.randomUUID()`
 4. **CSS** — dùng `var(--token)` từ `tokens.css`, không hardcode hex
 5. **AuthContext** — không có mock fallback, throw lỗi thật
@@ -337,7 +338,7 @@ git push origin dev
 | 17 | Proxy dev mặc định phải **8080** (`mvn spring-boot:run`) | `vite.config.js` |
 | 18 | FE gửi `otp` đúng BE — không gửi `otpCode` | `AuthContext.jsx` → `verifyOtp` |
 | 19 | FE gửi `{ phone }` — không gửi `phoneNumber` | `AuthContext.jsx` → `verifyPhone` |
-| 20 | FE gửi `token` trong body — không gửi `idToken` | `AuthContext.jsx` → `socialLogin` |
+| 20 | *(lịch sử)* OAuth social-login body `token` vs `idToken` | Đã **gỡ OAuth** — chỉ còn register/login/verify-otp |
 | 21 | BE lưu OTP lúc `register`, `verifyOtp` so khớp | `AuthServiceImpl.java` |
 | 22 | `TransactionProductDto` có `description` + `category` | `TransactionResponse.java`, `TransactionServiceImpl.java` |
 | 23 | So sánh `product.status` với **SOLD** (UPPERCASE) | `ProductDetailPage.jsx` |
@@ -348,11 +349,10 @@ git push origin dev
 |----------------|------------------|-------------------------|
 | **Dev — Vite proxy** | `VITE_DEV_PROXY_TARGET` trong `.env.local` hoặc `.env.development` | Mặc định `http://localhost:8080`; **`8081`** khi BE profile **`docker`** |
 | `POST /auth/login` | `{ email, password }` | `LoginRequest { email, password }` |
-| `POST /auth/register` | `{ username, email, password }` | `RegisterRequest { username, email, password }` |
+| `POST /auth/register` | `{ username, email, password }` | `RegisterRequest` → trả **`RegisterPendingResponse`** `{ message, email, username }` — **không** `token` |
 | `POST /auth/refresh` | `{ refreshToken }` | `RefreshTokenRequest { refreshToken }` |
-| `POST /auth/verify-otp` | `{ email, otp }` | `VerifyOtpRequest { email, otp }` |
+| `POST /auth/verify-otp` | `{ email, otp }` | `VerifyOtpRequest` → trả **`AuthResponse`** (JWT + refresh, như login) |
 | `POST /auth/resend-otp` | `{ email }` | `ResendOtpRequest { email }` |
-| `POST /auth/social-login` | `{ provider, token, email? }` | `SocialLoginRequest { provider, email, token }` |
 | `POST /auth/verify-phone` | `{ phone }` | `VerifyPhoneRequest { phone }` |
 | `POST /auth/logout` | `{ refreshToken }` | `RefreshTokenRequest { refreshToken }` |
 | `POST /transactions` | `{ productId, sellerId, amount }` | `CreateTransactionRequest` |
@@ -377,7 +377,7 @@ git push origin dev
 | v0.6.1 | Fix BE↔FE sync: field names, OTP impl, TransactionProductDto | ✅ Done |
 | v0.6.2 | FE: TransactionGuidePage v2, nội quy v2 | ✅ Done |
 | v0.6.3 | Sprint 2: forgot/reset, dispute + admin resolve, public profile, MailService/SMTP | ✅ Done |
-| v0.7.0 | Sprint 3–4: upload ảnh, pagination, edit tin, notif prefs, reject + lý do; Docker full stack; skeleton; Vitest OAuth; `apiError` + README DeerFlow | ✅ Done |
+| v0.7.0 | Sprint 3–4: upload ảnh, pagination, edit tin, notif prefs, reject + lý do; Docker full stack; skeleton; Vitest; `apiError` + README DeerFlow | ✅ Done |
 | v0.8.0 | **Sprint 5–7** (§2.5): TS + TanStack Query + Zod/RHF; wishlist BE + SSE AI; Java 21 / Spring bump / Redis / observability / S3 — làm theo từng sprint | 📋 Planned |
 | v1.0.0 | Production release (SMTP/GDPR/ops theo nhu cầu) | 📋 Planned |
 
@@ -385,11 +385,20 @@ git push origin dev
 
 ## 7. CHANGELOG
 
+### [0.7.3] — 2026-03-28 — Auth: chỉ `.edu.vn` + OTP; tài liệu đồng bộ
+
+**Policy / product**
+- Đăng ký — đăng nhập **chỉ** email **`.edu.vn`** + mật khẩu; **không** Google/Microsoft OAuth.
+- `POST /auth/register` không cấp JWT; `POST /auth/verify-otp` cấp JWT + refresh; `POST /auth/login` từ chối nếu chưa verify OTP.
+
+**Changed (docs)**
+- `NOTES.md` (bảng tính năng, P0 e2e-api, Flyway **V14→V15**, mapping API, changelog cross-refs), `ARCHITECTURE.md` §3.2/§5/pitfall/audit, `.cursor/rules/educycle.mdc` (auth + Flyway + `useAuth`).
+
 ### [0.7.2] — 2026-03-26 — Hoàn thiện backlog “có thể merge” + tổng hợp completion
 
 **Added**
 - `docs/PROJECT-COMPLETION.md` — matrix **đã làm / còn nợ prod**; mục lục trong `docs/README.md`
-- `source/frontend/e2e/api/golden-path.spec.js` — golden path API (register → product → mine)
+- `source/frontend/e2e/api/golden-path.spec.js` — golden path API (register → verify-otp → product → mine)
 - `source/frontend/src/api/schemas.js` + dependency **zod** — validate `AuthResponse`
 - `source/backend/educycle-java/src/main/resources/logback-spring.xml` — log **JSON** khi profile `production`
 - **CycloneDX** SBOM (`cyclonedx-maven-plugin`) → `target/classes/META-INF/sbom/application.cdx.json`
@@ -402,7 +411,7 @@ git push origin dev
 - `application.yml`, `source/backend/educycle-java/README.md` — Flyway **V2–V11**, SBOM, CORS, log
 
 **Changed (FE)**
-- `axios.js` — parse Zod sau login/register/social/refresh (+ luồng refresh thủ công)
+- `axios.js` — parse Zod sau login / verify-otp / refresh (+ luồng refresh thủ công)
 - `vitest.config.js` — ngưỡng coverage nâng nhẹ (lines **30%**)
 
 **Changed (repo)**
@@ -488,7 +497,7 @@ git push origin dev
 - `vite.config.js`: proxy default → port 8080 (was 8081)
 - `AuthContext.jsx`: `verifyOtp` gửi đúng `{ email, otp }`
 - `AuthContext.jsx`: `verifyPhone` gửi đúng `{ phone }`
-- `AuthContext.jsx`: `socialLogin` gửi đúng `{ provider, token }`
+- `AuthContext.jsx`: *(thời điểm đó)* `socialLogin` gửi đúng `{ provider, token }` *(OAuth đã gỡ sau này)*
 - `ProductDetailPage.jsx`: `status.toUpperCase() === 'SOLD'`
 
 **Fixed (BE)**
@@ -500,7 +509,7 @@ git push origin dev
 **Fixed (FE)**
 - `AuthContext`: isAdmin → `.toUpperCase() === 'ADMIN'`; xóa mock bypass
 - `TransactionDetailPage`: STATUS_CONFIG keys → UPPERCASE
-- `endpoints.js`: thêm verifyOtp/resendOtp/socialLogin/verifyPhone
+- `endpoints.js`: thêm verifyOtp/resendOtp/verifyPhone *(và socialLogin khi còn OAuth — đã gỡ)*
 - `AuthPage`: thêm OTP step sau register
 - `Navbar`: fix crash khi notifications null
 
@@ -515,7 +524,7 @@ git push origin dev
 - Gộp frontend + backend repo vào monorepo `trhlow/EDUCYCLE`
 
 ### [0.1.0–0.3.0] — 2026-03-14 đến 2026-03-16
-- FE khởi tạo: Auth, Product CRUD, Transaction flow, Admin panel, Reviews, Social Login + OTP
+- FE khởi tạo: Auth (sau này: email `.edu.vn` + OTP, không OAuth), Product CRUD, Transaction flow, Admin panel, Reviews
 - Migrate từ ASP.NET Core 10 + SQL Server → Java 17 + Spring Boot 3.2.5 + PostgreSQL
 
 ---
