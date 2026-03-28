@@ -116,4 +116,12 @@ public class User {
     /** Chấp nhận nội quy giao dịch (hiển thị trước khi vào /transactions) */
     @Column(name = "transaction_rules_accepted_at")
     private Instant transactionRulesAcceptedAt;
+
+    /**
+     * {@code false}: chỉ xem nội dung / đăng tin tìm sách — không đăng bán, không tạo giao dịch mua.
+     * Đồng bộ theo email .edu.vn (OAuth Gmail → false).
+     */
+    @Column(name = "trading_allowed", nullable = false)
+    @Builder.Default
+    private boolean tradingAllowed = true;
 }
