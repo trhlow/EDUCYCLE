@@ -62,6 +62,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/educycledb
           SPRING_DATASOURCE_USERNAME: educycle
           SPRING_DATASOURCE_PASSWORD: educycle_test
+          EDUCYCLE_E2E_FIXED_OTP: '123456'
         run: |
           java -jar source/backend/educycle-java/target/educycle-api-1.0.0.jar --spring.profiles.active=ci &
           echo $! > /tmp/educycle-api.pid
@@ -90,6 +91,7 @@ jobs:
         env:
           CI: true
           API_BASE_URL: http://127.0.0.1:8080
+          EDUCYCLE_E2E_FIXED_OTP: '123456'
 
   frontend:
     name: Build Frontend (Node 20)
