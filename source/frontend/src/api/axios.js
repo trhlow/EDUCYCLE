@@ -58,6 +58,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
 
       if (!refreshToken) {
+        delete api.defaults.headers.common.Authorization;
         clearAuthStorage();
         if (!window.location.pathname.startsWith('/auth')) {
           window.location.href = '/auth';
@@ -104,6 +105,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+        delete api.defaults.headers.common.Authorization;
         clearAuthStorage();
         if (!window.location.pathname.startsWith('/auth')) {
           window.location.href = '/auth';
