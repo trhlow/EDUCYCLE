@@ -108,8 +108,12 @@ public class TransactionsController {
 
     // POST /api/transactions/{id}/confirm
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<TransactionResponse> confirmReceipt(@PathVariable UUID id) {
-        return ResponseEntity.ok(transactionService.confirmReceipt(id));
+    public ResponseEntity<TransactionResponse> confirmReceipt(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String userId) {
+
+        return ResponseEntity.ok(
+                transactionService.confirmReceipt(id, UUID.fromString(userId)));
     }
 
     // POST /api/transactions/{id}/dispute — buyer only, status ACCEPTED (hoặc MEETING legacy)

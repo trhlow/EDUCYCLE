@@ -250,6 +250,12 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException(MessageConstants.OTP_REQUIRES_ACCEPTED);
         }
 
+        if (t.getOtpCode() != null
+                && t.getOtpExpiresAt() != null
+                && t.getOtpExpiresAt().isAfter(Instant.now())) {
+            throw new BadRequestException(MessageConstants.OTP_ALREADY_ACTIVE);
+        }
+
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         t.setOtpCode(OtpHasher.hash(otp));
         t.setOtpExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
@@ -289,10 +295,22 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse confirmReceipt(UUID id) {
+    public TransactionResponse confirmReceipt(UUID id, UUID actorUserId) {
         Transaction t = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
 
+        if (t.getBuyer() == null || !t.getBuyer().getId().equals(actorUserId)) {
+            throw new ForbiddenException(MessageConstants.CONFIRM_RECEIPT_BUYER_ONLY);
+        }
+
+        TransactionStatus st = t.getStatus();
+        if (st != TransactionStatus.ACCEPTED && st != TransactionStatus.MEETING) {
+            throw new BadRequestException(MessageConstants.CONFIRM_RECEIPT_INVALID_STATUS);
+        }
+
+        t.setBuyerConfirmed(true);
+        t.setOtpCode(null);
+        t.setOtpExpiresAt(null);
         t.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(t);
 

@@ -62,6 +62,14 @@ public final class MessageConstants {
     public static final String OTP_REQUIRES_ACCEPTED =
             "Chỉ có thể tạo hoặc xác nhận OTP khi giao dịch đã được chấp nhận (ACCEPTED).";
 
+    public static final String OTP_ALREADY_ACTIVE =
+            "Mã OTP cho giao dịch này đã được tạo và chưa hết hạn. Hãy dùng mã hiện tại hoặc chờ hết hạn rồi tạo lại.";
+
+    public static final String CONFIRM_RECEIPT_BUYER_ONLY = "Chỉ người mua mới xác nhận nhận hàng.";
+
+    public static final String CONFIRM_RECEIPT_INVALID_STATUS =
+            "Chỉ có thể xác nhận nhận hàng khi giao dịch ở trạng thái ACCEPTED hoặc MEETING.";
+
     public static final String FORGOT_PASSWORD_GENERIC_RESPONSE =
             "Nếu email tồn tại trong hệ thống, bạn sẽ nhận hướng dẫn đặt lại mật khẩu.";
     public static final String RESET_TOKEN_INVALID_OR_EXPIRED = "Liên kết hoặc mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";

@@ -188,6 +188,60 @@ class TransactionServiceTest {
                     .isInstanceOf(ForbiddenException.class)
                     .hasMessageContaining("Chỉ người mua");
         }
+
+        @Test
+        @DisplayName("should throw BadRequestException when OTP already active and not expired")
+        void shouldThrow_whenOtpAlreadyActive() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            t.setOtpCode(OtpHasher.hash("111111"));
+            t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.generateOtp(t.getId(), buyer.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("Mã OTP cho giao dịch này đã được tạo");
+        }
+    }
+
+    @Nested
+    @DisplayName("confirmReceipt()")
+    class ConfirmReceipt {
+
+        @Test
+        @DisplayName("should complete when buyer confirms in ACCEPTED")
+        void shouldComplete_whenBuyer() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+            given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
+
+            TransactionResponse res = transactionService.confirmReceipt(t.getId(), buyer.getId());
+
+            assertThat(res.status()).isEqualTo("COMPLETED");
+            assertThat(t.isBuyerConfirmed()).isTrue();
+            verify(productRepository, times(1)).save(product);
+        }
+
+        @Test
+        @DisplayName("should throw ForbiddenException when caller is not buyer")
+        void shouldThrow_whenNotBuyer() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.confirmReceipt(t.getId(), seller.getId()))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasMessageContaining("Chỉ người mua");
+        }
+
+        @Test
+        @DisplayName("should throw BadRequestException when status is PENDING")
+        void shouldThrow_whenWrongStatus() {
+            Transaction t = buildTransaction(TransactionStatus.PENDING);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.confirmReceipt(t.getId(), buyer.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("xác nhận nhận hàng");
+        }
     }
 
     @Nested

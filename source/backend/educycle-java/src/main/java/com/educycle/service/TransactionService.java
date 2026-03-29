@@ -16,7 +16,7 @@ public interface TransactionService {
     TransactionResponse cancelTransaction(UUID id, UUID actorUserId, CancelTransactionRequest request);
     Map<String, String> generateOtp(UUID id, UUID actorUserId);
     void verifyOtp(UUID id, String otp, UUID actorUserId);
-    TransactionResponse confirmReceipt(UUID id);
+    TransactionResponse confirmReceipt(UUID id, UUID actorUserId);
 
     TransactionResponse openDispute(UUID id, UUID buyerId, DisputeTransactionRequest request);
 
