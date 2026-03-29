@@ -74,8 +74,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        clearRefreshSession(user);
-        userRepository.save(user);
 
         log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
         sendVerificationOtpEmail(user, otpToken);
@@ -226,21 +224,26 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
         String email = normalizeEmail(request.email());
-        Optional<User> found = userRepository.findByEmail(email);
-        if (found.isPresent()) {
-            User user = found.get();
-            String token = UUID.randomUUID().toString().replace("-", "");
-            user.setPasswordResetToken(token);
-            user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
-            userRepository.save(user);
-            String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
-            String link = base + "/auth?resetToken=" + token;
-            String body = String.format(
-                    "Xin chào %s,%n%nBạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu EduCycle.%n"
-                            + "Mở liên kết sau trên trình duyệt:%n%s%n%nLiên kết hết hạn sau 1 giờ.%n"
-                            + "Nếu không phải bạn, hãy bỏ qua email này.",
-                    user.getUsername(), link);
-            mailService.sendPlain(user.getEmail(), "EduCycle — đặt lại mật khẩu", body);
+        try {
+            Optional<User> found = userRepository.findByEmail(email);
+            if (found.isPresent()) {
+                User user = found.get();
+                String token = UUID.randomUUID().toString().replace("-", "");
+                user.setPasswordResetToken(token);
+                user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
+                userRepository.save(user);
+                String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+                String link = base + "/auth?resetToken=" + token;
+                String body = String.format(
+                        "Xin chào %s,%n%nBạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu EduCycle.%n"
+                                + "Mở liên kết sau trên trình duyệt:%n%s%n%nLiên kết hết hạn sau 1 giờ.%n"
+                                + "Nếu không phải bạn, hãy bỏ qua email này.",
+                        user.getUsername(), link);
+                mailService.sendPlain(user.getEmail(), "EduCycle — đặt lại mật khẩu", body);
+            }
+        } finally {
+            // Chuẩn hóa chi phí CPU giữa email tồn tại / không — giảm enumerate qua timing (không thay thế rate limit).
+            passwordEncoder.encode("educycle.forgot-password.constant-time-pad");
         }
         return Map.of("message", MessageConstants.FORGOT_PASSWORD_GENERIC_RESPONSE);
     }

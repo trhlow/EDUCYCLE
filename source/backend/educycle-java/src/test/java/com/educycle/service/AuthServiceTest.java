@@ -71,7 +71,7 @@ class AuthServiceTest {
             assertThat(result.message()).isEqualTo(MessageConstants.REGISTER_OTP_SENT);
             verify(jwtTokenProvider, never()).generateToken(any());
             verify(jwtTokenProvider, never()).generateRefreshToken();
-            verify(userRepository, times(2)).save(any(User.class));
+            verify(userRepository, times(1)).save(any(User.class));
             verify(mailService, times(1)).sendPlain(anyString(), anyString(), anyString());
         }
 
