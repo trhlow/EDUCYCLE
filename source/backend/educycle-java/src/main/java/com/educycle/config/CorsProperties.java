@@ -7,6 +7,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Cấu hình CORS + SockJS allowed origins.
+ * Bean được đăng ký qua {@link com.educycle.EduCycleApplication}
+ * {@code @EnableConfigurationProperties(CorsProperties.class)} — không cần {@code @Component} trùng lặp.
+ */
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "cors")
