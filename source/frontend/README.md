@@ -273,7 +273,7 @@ educycle-frontend/
 │   ├── styles/
 │   │   └── tokens.css          # 🎨 Design system: 169 CSS custom properties
 │   │                           #    Colors (primary/secondary/accent/neutral/semantic)
-│   │                           #    Typography (Inter + Poppins, 9 sizes, 6 weights)
+│   │                           #    Typography (Plus Jakarta Sans; icons Phosphor)
 │   │                           #    Spacing (8pt grid), Radius, Shadows, Transitions
 │   │
 │   └── utils/
@@ -341,8 +341,8 @@ EduCycle sử dụng quy trình giao dịch **5 bước** đảm bảo minh bạ
 | **HTTP Client** | Axios | 1.13 |
 | **State** | Context API | 3 providers (Auth, Cart, Wishlist) |
 | **Design System** | CSS Custom Properties | 169 tokens |
-| **Typography** | Inter + Poppins | Google Fonts |
-| **Icons** | Emoji-native | No icon library dependency |
+| **Typography** | Plus Jakarta Sans ([Google Fonts](https://fonts.google.com/specimen/Plus+Jakarta+Sans)) | Google Fonts |
+| **Icons** | [Phosphor Icons](https://phosphoricons.com/) via `@phosphor-icons/react` | npm |
 
 ### Backend (Monorepo)
 
@@ -368,8 +368,8 @@ EduCycle sử dụng hệ thống **Design Token** hoàn chỉnh — không depe
 --accent-500: #ff9800;      /* Vibrant Orange */
 
 /* 📐 Typography */
---font-display: 'Poppins';  /* Headings */
---font-body: 'Inter';       /* Body text */
+--font-display: 'Plus Jakarta Sans';  /* Headings + UI */
+--font-body: 'Plus Jakarta Sans';      /* Body */
 
 /* 📏 Spacing — 8pt Grid */
 --space-1: 0.25rem;  --space-2: 0.5rem;   --space-4: 1rem;
