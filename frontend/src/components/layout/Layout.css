@@ -20,7 +20,7 @@
 
 .app-footer {
   background: var(--neutral-900);
-  color: var(--neutral-400);
+  color: var(--neutral-200);
   padding: var(--space-12) var(--space-6) var(--space-6);
   margin-top: auto;
 }
@@ -54,9 +54,9 @@
 
 .footer-link {
   font-size: var(--text-sm);
-  color: var(--neutral-400);
+  color: var(--neutral-200);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 a.footer-link:hover { color: var(--neutral-0); }
 
@@ -94,7 +94,7 @@ a.footer-link:hover { color: var(--neutral-0); }
 
 .footer-copyright {
   font-size: var(--text-xs);
-  color: var(--neutral-500);
+  color: var(--neutral-300);
 }
 
 @media (max-width: 768px) {

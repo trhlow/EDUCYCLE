@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { IconBell, IconHeart, IconMenu, IconX } from '../icons/Icons';
 import EduCycleLogo from '../branding/EduCycleLogo';
+import NavbarCatalog from './NavbarCatalog';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -15,6 +16,7 @@ export default function Navbar() {
   const notifList = Array.isArray(notifications) ? notifications : [];
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const userMenuRef = useRef(null);
   const notifMenuRef = useRef(null);
 
@@ -51,15 +53,17 @@ export default function Navbar() {
     navigate(resolveNotifRoute(n));
   };
 
-  const handleBrowse = (e) => {
-    e.preventDefault();
+  const catalogActive = location.pathname === '/' && searchParams.has('category');
+
+  const goCatalog = useCallback((category, query) => {
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    const trimmed = query != null ? String(query).trim() : '';
+    if (trimmed) params.set('q', trimmed);
+    const qs = params.toString();
+    navigate({ pathname: '/', search: qs ? `?${qs}` : '' }, { state: { scrollTo: 'products' } });
     setMenuOpen(false);
-    if (location.pathname === '/') {
-      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      navigate('/', { state: { scrollTo: 'products' } });
-    }
-  };
+  }, [navigate]);
 
   const userInitial = (() => {
     const u = user?.username;
@@ -91,17 +95,23 @@ export default function Navbar() {
 
         <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
           {isAdmin ? (
-            <NavLink to="/admin" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-              Quản trị
-            </NavLink>
+            <>
+              <NavLink to="/admin" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                Quản trị
+              </NavLink>
+              <NavbarCatalog mode="desktop" onPick={goCatalog} catalogActive={catalogActive} />
+              <NavbarCatalog mode="mobile" onPick={goCatalog} catalogActive={catalogActive} />
+              <NavLink to="/book-wanted" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                Tìm sách
+              </NavLink>
+            </>
           ) : (
             <>
-              <NavLink to="/" end className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
-                Trang Chủ
+              <NavbarCatalog mode="desktop" onPick={goCatalog} catalogActive={catalogActive} />
+              <NavbarCatalog mode="mobile" onPick={goCatalog} catalogActive={catalogActive} />
+              <NavLink to="/book-wanted" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
+                Tìm sách
               </NavLink>
-              <a href="/#products" className="navbar-link" onClick={handleBrowse}>
-                Duyệt sản phẩm
-              </a>
               {isAuthenticated && (
                 <NavLink to="/dashboard" className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
                   Sản phẩm của tôi

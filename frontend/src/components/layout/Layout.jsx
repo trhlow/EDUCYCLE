@@ -30,6 +30,7 @@ export default function Layout() {
             <div className="footer-section">
               <h4 className="footer-section-title">Khám phá</h4>
               <Link to="/products" className="footer-link">Sản phẩm</Link>
+              <Link to="/book-wanted" className="footer-link">Tìm sách</Link>
               <Link to="/about" className="footer-link">Giới thiệu</Link>
               <Link to="/contact" className="footer-link">Liên hệ</Link>
             </div>

@@ -11,6 +11,7 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
+  overflow: visible;
 }
 
 .navbar-backdrop {
@@ -32,6 +33,7 @@
   max-width: var(--layout-max-width);
   margin: 0 auto;
   width: 100%;
+  overflow: visible;
 }
 
 .navbar-brand {
@@ -69,6 +71,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
+  overflow: visible;
 }
 
 .navbar-link {
