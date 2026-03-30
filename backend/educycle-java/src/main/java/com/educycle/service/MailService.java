@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Gửi email qua SMTP khi {@link JavaMailSender} có bean (cấu hình spring.mail.*).
- * Nếu không cấu hình — chỉ log nội dung (dev).
+ * Nếu không cấu hình SMTP — {@link #sendPlain} trả về {@code false} và ghi WARN kèm nội dung (dev).
  */
 @Slf4j
 @Service
@@ -25,11 +25,18 @@ public class MailService {
         this.mailFrom = mailFrom;
     }
 
-    public void sendPlain(String to, String subject, String body) {
+    /**
+     * @return {@code true} nếu mail đã gửi qua SMTP thành công; {@code false} nếu chỉ log console (dev) hoặc lỗi gửi.
+     */
+    public boolean sendPlain(String to, String subject, String body) {
         JavaMailSender sender = mailSenderProvider.getIfAvailable();
         if (sender == null) {
-            log.info("[Mail chưa cấu hình SMTP] To: {}\nSubject: {}\n{}", to, subject, body);
-            return;
+            log.warn(
+                    "[EduCycle — chưa cấu hình SMTP] OTP/link chỉ có trên console này. "
+                            + "Để gửi email thật: thêm profile `smtp` và biến MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD "
+                            + "(xem application-smtp.yml).\nTo: {}\nSubject: {}\n---\n{}\n---",
+                    to, subject, body);
+            return false;
         }
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
@@ -39,9 +46,13 @@ public class MailService {
             msg.setText(body);
             sender.send(msg);
             log.debug("Đã gửi mail tới {}", to);
+            return true;
         } catch (Exception e) {
             log.error("Gửi mail thất bại tới {}: {}", to, e.getMessage());
-            log.info("[Fallback log] To: {}\nSubject: {}\n{}", to, subject, body);
+            log.warn(
+                    "[EduCycle — SMTP lỗi, nội dung mail dự phòng trên console]\nTo: {}\nSubject: {}\n---\n{}\n---",
+                    to, subject, body);
+            return false;
         }
     }
 }

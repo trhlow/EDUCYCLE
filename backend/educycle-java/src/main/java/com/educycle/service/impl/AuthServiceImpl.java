@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        log.info("Đăng ký thành công: {} | OTP (log khi chưa cấu hình SMTP): {}", email, otpToken);
+        log.warn("Đăng ký thành công: {} — mã OTP xác thực email (xem thêm log MailService nếu không dùng SMTP): {}", email, otpToken);
         sendVerificationOtpEmail(user, otpToken);
         return new RegisterPendingResponse(MessageConstants.REGISTER_OTP_SENT, email, user.getUsername());
     }
@@ -162,7 +162,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
 
-        log.info("Đã gửi lại OTP cho {} | OTP (log khi chưa cấu hình SMTP): {}", email, otp);
+        log.warn("Gửi lại OTP cho {} — mã mới (xem thêm log MailService nếu không dùng SMTP): {}", email, otp);
         sendVerificationOtpEmail(user, otp);
         return true;
     }
@@ -239,7 +239,9 @@ public class AuthServiceImpl implements AuthService {
                                 + "Mở liên kết sau trên trình duyệt:%n%s%n%nLiên kết hết hạn sau 1 giờ.%n"
                                 + "Nếu không phải bạn, hãy bỏ qua email này.",
                         user.getUsername(), link);
-                mailService.sendPlain(user.getEmail(), "EduCycle — đặt lại mật khẩu", body);
+                if (!mailService.sendPlain(user.getEmail(), "EduCycle — đặt lại mật khẩu", body)) {
+                    log.warn("Quên mật khẩu — liên kết đặt lại (chỉ dev / khi không gửi được SMTP): {}", link);
+                }
             }
         } finally {
             // Chuẩn hóa chi phí CPU giữa email tồn tại / không — giảm enumerate qua timing (không thay thế rate limit).
