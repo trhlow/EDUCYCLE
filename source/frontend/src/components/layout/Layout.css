@@ -2,10 +2,20 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .main-content {
   flex: 1;
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+#main-content:focus-visible {
+  outline: var(--space-1) solid var(--border-focus);
+  outline-offset: var(--space-2);
 }
 
 .app-footer {

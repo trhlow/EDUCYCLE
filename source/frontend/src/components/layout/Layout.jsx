@@ -10,8 +10,11 @@ export default function Layout() {
 
   return (
     <div className="app-layout">
+      <a href="#main-content" className="skip-nav">
+        Bỏ qua điều hướng
+      </a>
       <Navbar />
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex={-1}>
         <Outlet />
       </main>
       <footer className="app-footer">

@@ -27,7 +27,23 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => { logout(); setUserMenuOpen(false); navigate('/'); };
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setUserMenuOpen(false);
+        setNotifOpen(false);
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setUserMenuOpen(false);
+    navigate('/');
+  };
 
   const handleNotifClick = (n) => {
     if (!n.read) markAsRead(n.id);
@@ -35,23 +51,34 @@ export default function Navbar() {
     navigate(resolveNotifRoute(n));
   };
 
-  // Scroll to products section — nếu đang ở trang chủ thì scroll, không thì navigate về '/#products'
   const handleBrowse = (e) => {
     e.preventDefault();
     setMenuOpen(false);
     if (location.pathname === '/') {
       document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      navigate('/#products');
-      // Sau khi navigate về home, scroll (dùng timeout nhỏ cho React render xong)
-      setTimeout(() => {
-        document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
+      navigate('/', { state: { scrollTo: 'products' } });
     }
   };
 
+  const userInitial = (() => {
+    const u = user?.username;
+    if (!u || typeof u !== 'string') return '?';
+    const ch = u.charAt(0);
+    return ch ? ch.toUpperCase() : '?';
+  })();
+
   return (
     <nav className="navbar">
+      {menuOpen && (
+        <button
+          type="button"
+          className="navbar-backdrop"
+          aria-label="Đóng menu điều hướng"
+          tabIndex={-1}
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
       <div className="navbar-container">
         <Link to="/" className="navbar-brand" aria-label="EduCycle — về trang chủ">
           <EduCycleLogo size={38} className="navbar-brand-logo" />
@@ -72,7 +99,6 @@ export default function Navbar() {
               <NavLink to="/" end className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}>
                 Trang Chủ
               </NavLink>
-              {/* Duyệt → scroll xuống section sản phẩm trên trang chủ */}
               <a href="/#products" className="navbar-link" onClick={handleBrowse}>
                 Duyệt sản phẩm
               </a>
@@ -101,19 +127,34 @@ export default function Navbar() {
                 <div className="navbar-notif-dropdown">
                   <div className="navbar-notif-header">
                     <span className="navbar-notif-title">Thông báo</span>
-                    {unreadCount > 0 && <button className="navbar-notif-mark-all" onClick={() => markAllAsRead()}>Đánh dấu tất cả đã đọc</button>}
+                    {unreadCount > 0 && (
+                      <button type="button" className="navbar-notif-mark-all" onClick={() => markAllAsRead()}>
+                        Đánh dấu tất cả đã đọc
+                      </button>
+                    )}
                   </div>
                   <div className="navbar-notif-list">
                     {notifList.length === 0 ? (
                       <div className="navbar-notif-empty">Không có thông báo</div>
-                    ) : notifList.slice(0, 20).map(n => (
-                      <div key={n.id} className={`navbar-notif-item ${!n.read ? 'unread' : ''}`} style={{ cursor: 'pointer' }} onClick={() => handleNotifClick(n)}>
-                        <div className="navbar-notif-item-title">{n.title}</div>
-                        <div className="navbar-notif-item-msg">{n.message}</div>
-                        <div className="navbar-notif-item-time">{n.createdAt ? new Date(n.createdAt).toLocaleString('vi-VN') : ''}</div>
-                      </div>
-                    ))}
+                    ) : (
+                      notifList.slice(0, 20).map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          className={`navbar-notif-item ${!n.read ? 'unread' : ''}`}
+                          onClick={() => handleNotifClick(n)}
+                          aria-label={`${!n.read ? 'Chưa đọc: ' : ''}${n.title ?? 'Thông báo'}`}
+                        >
+                          <div className="navbar-notif-item-title">{n.title}</div>
+                          <div className="navbar-notif-item-msg">{n.message}</div>
+                          <div className="navbar-notif-item-time">{n.createdAt ? new Date(n.createdAt).toLocaleString('vi-VN') : ''}</div>
+                        </button>
+                      ))
+                    )}
                   </div>
+                  {notifList.length > 20 && (
+                    <div className="navbar-notif-more">Hiển thị 20 thông báo gần nhất · tổng {notifList.length}</div>
+                  )}
                 </div>
               )}
             </div>
@@ -127,33 +168,51 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <div className="navbar-user-menu" ref={userMenuRef}>
-              <button className="navbar-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)}>
-                <span className="navbar-user-avatar">{user?.username?.charAt(0)?.toUpperCase() || '?'}</span>
+              <button type="button" className="navbar-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)}>
+                <span className="navbar-user-avatar">{userInitial}</span>
                 <span className="navbar-user-name">{user?.username}</span>
               </button>
               {userMenuOpen && (
                 <div className="navbar-dropdown">
                   {isAdmin ? (
                     <>
-                      <Link to="/admin" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Quản trị</Link>
+                      <Link to="/admin" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Quản trị
+                      </Link>
                       <div className="navbar-dropdown-divider" />
                     </>
                   ) : (
                     <>
-                      <Link to="/profile" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Hồ sơ</Link>
-                      <Link to="/products/new" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Đăng bán</Link>
-                      <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Sản phẩm của tôi</Link>
-                      <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Giao dịch</Link>
-                      <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>Yêu thích</Link>
+                      <Link to="/profile" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Hồ sơ
+                      </Link>
+                      <Link to="/products/new" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Đăng bán
+                      </Link>
+                      <Link to="/dashboard" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Sản phẩm của tôi
+                      </Link>
+                      <Link to="/transactions" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Giao dịch
+                      </Link>
+                      <Link to="/wishlist" className="navbar-dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                        Yêu thích
+                      </Link>
                       <div className="navbar-dropdown-divider" />
                     </>
                   )}
-                  <button className="navbar-dropdown-item navbar-dropdown-logout" onClick={handleLogout}>Đăng xuất</button>
+                  <button type="button" className="navbar-dropdown-item navbar-dropdown-logout" onClick={handleLogout}>
+                    Đăng xuất
+                  </button>
                 </div>
               )}
             </div>
           ) : (
-            <Link to="/auth"><button className="navbar-auth-btn">Đăng nhập</button></Link>
+            <Link to="/auth">
+              <button type="button" className="navbar-auth-btn">
+                Đăng nhập
+              </button>
+            </Link>
           )}
         </div>
       </div>
