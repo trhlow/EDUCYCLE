@@ -318,7 +318,7 @@ class ProductServiceTest {
 
             assertThatThrownBy(() -> productService.delete(productId, testUser.getId()))
                     .isInstanceOf(BadRequestException.class);
-            verify(productRepository, never()).delete(any());
+            verify(productRepository, never()).delete(any(Product.class));
         }
 
         @Test
