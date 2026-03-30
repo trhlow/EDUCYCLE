@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
@@ -63,8 +63,19 @@ const priceLine = (p) => {
 
 export default function HomePage() {
   const productsRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
+
+  useEffect(() => {
+    if (location.state?.scrollTo !== 'products') return;
+    const id = requestAnimationFrame(() => {
+      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      navigate('.', { replace: true, state: {} });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [location.state?.scrollTo, navigate]);
 
   const PAGE_SIZE = 24;
   const [searchQuery, setSearchQuery] = useState('');
@@ -221,7 +232,15 @@ export default function HomePage() {
                       >
                         <div className="hp-spotlight__media">
                           {p.imageUrl ? (
-                            <img src={p.imageUrl} alt="" className="hp-spotlight__img" loading="lazy" />
+                            <img
+                              src={p.imageUrl}
+                              alt=""
+                              className="hp-spotlight__img"
+                              loading="lazy"
+                              decoding="async"
+                              width={200}
+                              height={150}
+                            />
                           ) : (
                             <div className="hp-spotlight__placeholder">Chưa có ảnh</div>
                           )}
@@ -326,7 +345,20 @@ export default function HomePage() {
                 <Link to={`/products/${product.id}`} className="hp-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="hp-product-card__img">
                     {product.imageUrl
-                      ? <img src={product.imageUrl} alt={product.name} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                      ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                          width={400}
+                          height={300}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        )
                       : null
                     }
                     <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>Chưa có ảnh</div>

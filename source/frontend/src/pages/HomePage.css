@@ -42,6 +42,7 @@
   border-color: var(--primary-300);
 }
 .hp-btn--ghost:hover {
+  background: var(--primary-50);
   background: color-mix(in srgb, var(--primary-500) 8%, transparent);
   transform: translateY(calc(var(--space-1) * -1));
   box-shadow: var(--shadow-sm);
@@ -60,9 +61,17 @@
   position: relative;
   overflow: hidden;
   min-height: min(90vh, 52rem);
+  min-height: min(90dvh, 52rem);
   display: flex;
   align-items: center;
-  padding: var(--space-16) var(--space-6) var(--space-12);
+  padding: var(--space-16) max(var(--space-6), env(safe-area-inset-right, 0))
+    max(var(--space-12), env(safe-area-inset-bottom, 0)) max(var(--space-6), env(safe-area-inset-left, 0));
+  background: linear-gradient(
+    165deg,
+    var(--bg-primary) 0%,
+    var(--primary-50) 45%,
+    var(--secondary-50) 100%
+  );
   background: linear-gradient(
     165deg,
     var(--bg-primary) 0%,
@@ -76,8 +85,10 @@
 .hp-hero__blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(60px);
   opacity: 0.35;
+  will-change: transform;
+  contain: layout style;
   animation: blobFloat 10s ease-in-out infinite;
 }
 .hp-hero__blob--a {
@@ -85,6 +96,7 @@
   height: min(500px, 90vw);
   top: -120px;
   right: -100px;
+  background: var(--primary-200);
   background: color-mix(in srgb, var(--primary-200) 40%, transparent);
 }
 .hp-hero__blob--b {
@@ -93,7 +105,14 @@
   bottom: -60px;
   left: -80px;
   animation-delay: 4s;
+  background: var(--neutral-200);
   background: color-mix(in srgb, var(--neutral-200) 55%, transparent);
+}
+
+@media (max-width: 47.99rem) {
+  .hp-hero__blob {
+    display: none;
+  }
 }
 
 @keyframes blobFloat {
@@ -112,7 +131,7 @@
   gap: var(--space-10);
   align-items: center;
 }
-@media (min-width: 1024px) {
+@media (min-width: 64rem) {
   .hp-hero__body { grid-template-columns: 1fr 1fr; gap: var(--space-12); }
 }
 
@@ -165,7 +184,7 @@
   margin: 0 auto;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 64rem) {
   .hp-spotlight-grid {
     margin: 0 0 0 auto;
     height: 400px;
@@ -279,6 +298,7 @@
   padding: var(--space-6);
   border-radius: var(--radius-lg);
   border: 1px dashed var(--border-medium);
+  background: var(--bg-elevated);
   background: color-mix(in srgb, var(--bg-elevated) 92%, var(--neutral-100));
 }
 
@@ -300,7 +320,7 @@
 }
 
 /* Mobile: hàng ngang cuộn thay vì lớp tuyệt đối */
-@media (max-width: 1023px) {
+@media (max-width: 63.99rem) {
   .hp-spotlight-grid {
     display: flex;
     flex-direction: row;
@@ -487,6 +507,7 @@
 .hp-product-card:hover {
   transform: translateY(calc(var(--space-1) * -1.25));
   box-shadow: var(--shadow-card-hover);
+  border-color: var(--primary-300);
   border-color: color-mix(in srgb, var(--primary-300) 55%, var(--border-light));
 }
 
@@ -503,6 +524,7 @@
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
+  background: var(--bg-elevated);
   background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   color: var(--primary-700);
   font-size: var(--text-xs);
@@ -518,6 +540,7 @@
   width: var(--space-10);
   height: var(--space-10);
   border-radius: var(--radius-full);
+  background: var(--bg-elevated);
   background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   border: 1px solid var(--border-light);
   cursor: pointer;
@@ -544,8 +567,13 @@
 .hp-products-empty p { margin: var(--space-3) 0 0; font-size: var(--text-sm); }
 
 /* ── Responsive ── */
-@media (max-width: 40rem) {
-  .hp-hero { min-height: 80vh; padding: var(--space-16) var(--space-4) var(--space-10); }
+@media (max-width: 39.99rem) {
+  .hp-hero {
+    min-height: 80vh;
+    min-height: 80dvh;
+    padding: var(--space-16) max(var(--space-4), env(safe-area-inset-right, 0))
+      max(var(--space-10), env(safe-area-inset-bottom, 0)) max(var(--space-4), env(safe-area-inset-left, 0));
+  }
   .hp-hero__h1 { font-size: clamp(var(--text-3xl), 10vw, var(--text-5xl)); }
   .hp-products-section { padding: var(--space-12) var(--space-4) var(--space-16); }
   .hp-product-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
