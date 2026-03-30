@@ -1,4 +1,4 @@
-📍 Vị trí trong monorepo: `source/frontend/`
+📍 Vị trí trong monorepo: `frontend/`
 
 # 🎓 EduCycle Frontend
 
@@ -155,7 +155,7 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 
 ```bash
 git clone https://github.com/trhlow/EDUCYCLE.git
-cd EDUCYCLE/source/frontend
+cd EDUCYCLE/frontend
 npm install
 
 # 2. Configure (optional)

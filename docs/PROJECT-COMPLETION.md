@@ -28,10 +28,10 @@ Tài liệu này bổ sung [`NOTES.md`](../NOTES.md): **đã làm trong code** v
 ## Cách tự kiểm tra nhanh
 
 ```powershell
-cd D:\EDUCYCLE\source\backend\educycle-java
+cd D:\EDUCYCLE\backend\educycle-java
 mvn -q clean verify
 
-cd D:\EDUCYCLE\source\frontend
+cd D:\EDUCYCLE\frontend
 npm ci
 npm test
 npm run test:e2e:api

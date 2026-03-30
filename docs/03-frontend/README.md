@@ -1,6 +1,6 @@
-📍 Vị trí trong monorepo: `source/frontend/`
+📍 Vị trí trong monorepo: `frontend/`
 
-> **Bản chính (cập nhật):** [source/frontend/README.md](../../source/frontend/README.md).
+> **Bản chính (cập nhật):** [frontend/README.md](../../frontend/README.md).
 
 # 🎓 EduCycle Frontend
 
@@ -139,7 +139,7 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 
 ```bash
 git clone https://github.com/trhlow/EDUCYCLE.git
-cd EDUCYCLE/source/frontend
+cd EDUCYCLE/frontend
 npm install
 ```
 

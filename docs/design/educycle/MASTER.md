@@ -1,6 +1,6 @@
 # Design System Master File
 
-> **LOGIC:** When building a specific page, first check `design-system/educycle/pages/[page-name].md`.
+> **LOGIC:** When building a specific page, first check `docs/design/educycle/pages/[page-name].md`.
 > If that file exists, its rules **override** this Master file.
 > If not, strictly follow the rules below.
 
@@ -8,7 +8,7 @@
 
 ## EduCycle — triển khai trong repo (bắt buộc)
 
-1. **CSS / JSX style:** chỉ dùng **`var(--tên-token)`** từ `source/frontend/src/styles/tokens.css`. **Không** hardcode mã hex, **không** hardcode giá trị pixel cho spacing (dùng `--space-*`, `--radius-*`, v.v.) — đồng bộ `.cursor/rules/educycle.mdc` và `NOTES.md` §8.
+1. **CSS / JSX style:** chỉ dùng **`var(--tên-token)`** từ `frontend/src/styles/tokens.css`. **Không** hardcode mã hex, **không** hardcode giá trị pixel cho spacing (dùng `--space-*`, `--radius-*`, v.v.) — đồng bộ `.cursor/rules/educycle.mdc` và `NOTES.md` §8.
 2. **MASTER file này + output UI UX Pro Max** (màu Baloo/Comic, purple/green, v.v.) là **hướng dẫn layout, pattern, mood và checklist**. Khi commit code, **ánh xạ** sang token hiện có; chỉ khi team quyết định đổi brand mới chỉnh giá trị trong `tokens.css`.
 3. **Typography:** app đang dùng **Poppins / Inter** (`--font-display`, `--font-body`). Giữ font này trừ khi có task đổi toàn hệ thống; có thể vẫn áp dụng *mood* “friendly / education” từ MASTER qua spacing, contrast, hierarchy.
 

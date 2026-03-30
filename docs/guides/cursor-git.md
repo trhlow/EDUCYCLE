@@ -28,4 +28,4 @@ Quy ước dự án: `NOTES.md` §4 và `.cursor/rules/educycle.mdc` §6.
 ## Tham khảo repo khác (layout tài liệu / monorepo)
 
 - **[deer-flow](https://github.com/bytedance/deer-flow)** — gợi ý tổ chức `docs/` theo mục (EduCycle: `docs/getting-started/`, `docs/architecture/`, …).
-- **[MiroFish](https://github.com/666ghj/MiroFish)** — ví dụ layout app: `backend/` + `frontend/` ở root, script `npm run dev` / `docker compose`; EduCycle giữ code dưới `source/backend/educycle-java` và `source/frontend` (xem `docs/README.md`).
+- **[MiroFish](https://github.com/666ghj/MiroFish)** — ví dụ layout app: `backend/` + `frontend/` ở root, script `npm run dev` / `docker compose`; EduCycle giữ code dưới `backend/educycle-java` và `frontend` (xem `docs/README.md`).

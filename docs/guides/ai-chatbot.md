@@ -22,7 +22,7 @@ Rebuild / khởi động lại service `api` sau khi thêm key.
 ## Dev local
 
 ```powershell
-cd source/backend/educycle-java
+cd backend/educycle-java
 $env:ANTHROPIC_API_KEY="sk-ant-..."
 mvn spring-boot:run
 ```

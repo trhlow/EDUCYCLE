@@ -1,6 +1,6 @@
 # Home — override (EduCycle)
 
-Ưu tiên so với `design-system/educycle/MASTER.md`:
+Ưu tiên so với `docs/design/educycle/MASTER.md`:
 
 - **Pattern:** marketplace — hero + search/catalog block; CTA đăng bán nổi (`Navbar` + `hp-btn--solid`).
 - **CTA chính:** dùng token `--secondary-*` (xanh giao dịch); brand/link `--primary-*`.

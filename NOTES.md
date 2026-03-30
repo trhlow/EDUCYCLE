@@ -10,13 +10,13 @@
 **Stack hiện tại:** Java **17** + Spring Boot **3.4.x** + PostgreSQL **16** + Flyway **V1–V15** (tiếp theo **V16**) · React **19** + Vite **7** + **JavaScript** + TypeScript entry (`.tsx` + `tsc -b`) + TanStack Query + Axios + STOMP  
 **Hướng portfolio 2026:** xem **§2.5** (TS + migrate `.jsx` dần, Zod/RHF, JDK 21, v.v. — **TanStack Query + entry TS** đã bật; còn nợ theo sprint).
 
-**Paths:** `source/backend/educycle-java/` · `source/frontend/`
+**Paths:** `backend/educycle-java/` · `frontend/`
 
 **Ports (dev):**
 - `mvn spring-boot:run` (default) → API **8080**, Postgres **5432** (local hoặc Docker map 5432)
 - `mvn spring-boot:run "-Dspring-boot.run.profiles=docker"` → API **8081**, Postgres URL mặc định **`localhost:5433`** (`application-docker.yml`)
-- Vite proxy mặc định → `http://localhost:8080` — nếu BE chạy profile **docker** (8081): đặt `VITE_DEV_PROXY_TARGET=http://localhost:8081` trong `source/frontend/.env.local` hoặc `.env.development`, rồi restart `npm run dev`
-- **Postgres / pgAdmin:** `docker-compose.yml` **gốc repo** (db + api + web) **không publish** cổng DB ra máy host → pgAdmin `localhost:5433` sẽ **timeout** nếu chỉ chạy stack đó. Để có **5433** trên Windows: chạy `source/backend/educycle-java/docker-compose.yml` (`ports: 5433:5432`), hoặc thêm `ports` cho service `db` trong compose gốc (override), hoặc `docker exec` vào container `db` dùng `psql`
+- Vite proxy mặc định → `http://localhost:8080` — nếu BE chạy profile **docker** (8081): đặt `VITE_DEV_PROXY_TARGET=http://localhost:8081` trong `frontend/.env.local` hoặc `.env.development`, rồi restart `npm run dev`
+- **Postgres / pgAdmin:** `docker-compose.yml` **gốc repo** (db + api + web) **không publish** cổng DB ra máy host → pgAdmin `localhost:5433` sẽ **timeout** nếu chỉ chạy stack đó. Để có **5433** trên Windows: chạy `backend/educycle-java/docker-compose.yml` (`ports: 5433:5432`), hoặc thêm `ports` cho service `db` trong compose gốc (override), hoặc `docker exec` vào container `db` dùng `psql`
 - Chỉ chạy stack Docker gốc + `npm run dev`: API **không** lộ ra host — cần thêm `mvn` local hoặc publish cổng `api` nếu muốn proxy Vite tới BE
 
 **Branch:** `dev` (integration) · `main` (release — có thể tụt README so với `dev`, merge có chủ đích)
@@ -75,16 +75,16 @@ Hiện **không** có mục đỏ đang mở. *(Trước đây NOTES còn ghi th
 Giống [README — Testing & CI](README.md#testing--ci) và [Running the Application](README.md#running-the-application):
 
 ```powershell
-cd D:\EDUCYCLE\source\backend\educycle-java
+cd D:\EDUCYCLE\backend\educycle-java
 mvn -q clean verify
 
-cd D:\EDUCYCLE\source\frontend
+cd D:\EDUCYCLE\frontend
 npm ci
 npm test
 npm run build
 ```
 
-**Dev nhanh:** [README — Option 2](README.md#option-2-local-development-recommended-for-coding): Postgres `source/backend/educycle-java/docker-compose` → BE profile **docker** (8081) → `VITE_DEV_PROXY_TARGET=http://localhost:8081` → `npm run dev`.
+**Dev nhanh:** [README — Option 2](README.md#option-2-local-development-recommended-for-coding): Postgres `backend/educycle-java/docker-compose` → BE profile **docker** (8081) → `VITE_DEV_PROXY_TARGET=http://localhost:8081` → `npm run dev`.
 
 **Đăng nhập thử:** `admin@educycle.com` / `admin@1`
 
@@ -243,7 +243,7 @@ Home ~8 · Auth ~7 · ProductDetail ~7 · PostProduct ~7 · Transactions ~7 · T
 | 10 | DashboardPage TitleCase status | `DashboardPage.jsx` | `.toUpperCase()` + UPPERCASE statusMap keys |
 | 11 | TransactionsPage TitleCase status | `TransactionsPage.jsx` | STATUS_CONFIG + STATUS_FILTERS → UPPERCASE |
 | 12 | flyway-database-postgresql thiếu | `pom.xml` | Thêm dependency |
-| 13 | FE README sai stack (.NET→Java) | `source/frontend/README.md` | → Java Spring Boot + port 8080 |
+| 13 | FE README sai stack (.NET→Java) | `frontend/README.md` | → Java Spring Boot + port 8080 |
 | 14 | `updatedAt` thiếu → "Invalid Date" | `Transaction.java` | `@UpdateTimestamp` + V4 migration |
 | 15 | 3 unused npm deps | `package.json` | Xóa react-hot-toast, react-icons, @tanstack/react-query |
 | 16 | react-hot-toast import rải rác | 10 page files | → `useToast()` từ `Toast.jsx` |
@@ -317,8 +317,8 @@ feature/be-<n>  feature/fe-<n>  fix/<n>  docs/<n>
 
 ### Release (đồng bộ [README — Testing & CI](README.md#testing--ci))
 ```powershell
-cd source\backend\educycle-java && mvn -q clean verify
-cd source\frontend && npm ci && npm test && npm run build
+cd backend\educycle-java && mvn -q clean verify
+cd frontend && npm ci && npm test && npm run build
 git checkout main && git pull origin main
 git merge --no-ff dev -m "Release vX.Y.Z — ..."
 git push origin main && git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z
@@ -327,9 +327,9 @@ git push origin main && git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z
 
 ### Không bao giờ commit
 ```
-source/backend/educycle-java/target/
-source/frontend/dist/
-source/frontend/node_modules/
+backend/educycle-java/target/
+frontend/dist/
+frontend/node_modules/
 .env
 ```
 
@@ -338,7 +338,7 @@ source/frontend/node_modules/
 cd D:\EDUCYCLE
 git checkout dev && git pull origin dev
 
-git add source/frontend/src/pages/TransactionGuidePage.jsx
+git add frontend/src/pages/TransactionGuidePage.jsx
 git add NOTES.md
 
 git commit -m "feat(fe): rewrite TransactionGuidePage v2 — 7 steps, DISPUTED flow, nội quy v2
@@ -436,9 +436,9 @@ git push origin dev
 
 **Added**
 - `docs/PROJECT-COMPLETION.md` — matrix **đã làm / còn nợ prod**; mục lục trong `docs/README.md`
-- `source/frontend/e2e/api/golden-path.spec.js` — golden path API (register → verify-otp → product → mine)
-- `source/frontend/src/api/schemas.js` + dependency **zod** — validate `AuthResponse`
-- `source/backend/educycle-java/src/main/resources/logback-spring.xml` — log **JSON** khi profile `production`
+- `frontend/e2e/api/golden-path.spec.js` — golden path API (register → verify-otp → product → mine)
+- `frontend/src/api/schemas.js` + dependency **zod** — validate `AuthResponse`
+- `backend/educycle-java/src/main/resources/logback-spring.xml` — log **JSON** khi profile `production`
 - **CycloneDX** SBOM (`cyclonedx-maven-plugin`) → `target/classes/META-INF/sbom/application.cdx.json`
 
 **Changed (BE)**
@@ -446,7 +446,7 @@ git push origin dev
 - **CORS** — `cors.allowed-origins-csv` + env **`CORS_ALLOWED_ORIGINS`** (`CorsProperties`)
 - **WebSocket** — `WebSocketAuthInterceptor` từ chối STOMP **CONNECT** nếu thiếu / sai JWT
 - `application-production.yml` — ghi chú bật **OTEL**
-- `application.yml`, `source/backend/educycle-java/README.md` — Flyway **V2–V11**, SBOM, CORS, log
+- `application.yml`, `backend/educycle-java/README.md` — Flyway **V2–V11**, SBOM, CORS, log
 
 **Changed (FE)**
 - `axios.js` — parse Zod sau login / verify-otp / refresh (+ luồng refresh thủ công)
@@ -483,7 +483,7 @@ git push origin dev
 
 **Changed**
 - `index.html` → `/src/main.tsx`; xóa `main.jsx`
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml): bước **TypeScript** trước test; [README](README.md#testing--ci) + `source/frontend/README.md` đồng bộ
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml): bước **TypeScript** trước test; [README](README.md#testing--ci) + `frontend/README.md` đồng bộ
 
 ### [0.6.5] — 2026-03-24 — Admin users DTO + NOTES sprint 5–7
 
@@ -606,7 +606,7 @@ Kiểm tra xem FE đang gửi đúng field name theo BE DTO record chưa.
 ### Cập nhật nội quy / hướng dẫn giao dịch
 ```
 Bạn là developer của EduCycle. Đọc file hiện tại:
-  source/frontend/src/pages/TransactionGuidePage.jsx
+  frontend/src/pages/TransactionGuidePage.jsx
 
 Nguyên tắc bắt buộc trước khi sửa:
   1. CHỈ sửa nội dung data (STEPS, RULES, FAQS) — KHÔNG thay đổi JSX, CSS, structure.
@@ -619,7 +619,7 @@ Nguyên tắc bắt buộc trước khi sửa:
   5. Điểm uy tín người mới = "Chưa có đánh giá" (không phải 5.0).
   6. CSS token dùng var(--warning-light) / #e65100 cho DISPUTED
      (class .guide-flow-disputed đã có trong TransactionGuidePage.css).
-  7. Tuân thủ design tokens từ source/frontend/src/styles/tokens.css —
+  7. Tuân thủ design tokens từ frontend/src/styles/tokens.css —
      không hardcode màu hex, không dùng font-weight 600/700.
 
 Transaction status flow đầy đủ:
@@ -642,12 +642,12 @@ Thay đổi cần thực hiện:
 
 ## 9. UI DESIGN RULES
 
-> Nguồn: `source/frontend/src/styles/tokens.css` (169 biến CSS) + mockup đã duyệt.
+> Nguồn: `frontend/src/styles/tokens.css` (169 biến CSS) + mockup đã duyệt.
 > AI đọc phần này trước khi viết bất kỳ CSS, JSX, hay layout nào.
 
 ### 9.1 Design Tokens — Nguồn sự thật duy nhất
 
-File: `source/frontend/src/styles/tokens.css`
+File: `frontend/src/styles/tokens.css`
 
 **Màu chính:**
 ```css
@@ -858,7 +858,7 @@ Admin xem chat + ảnh  →  Admin.resolve(decision)  →  COMPLETED | CANCELLED
 ### 9.7 Asset Management
 
 ```
-source/frontend/
+frontend/
 ├── public/          ← static assets (favicon...)
 └── src/
     ├── styles/

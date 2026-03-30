@@ -7,5 +7,5 @@ Tài liệu kiến trúc đầy đủ nằm ở **root repo**:
 
 Các phần backend/frontend chi tiết hơn:
 
-- API & chạy local: [`source/backend/educycle-java/README.md`](../../source/backend/educycle-java/README.md)
-- SPA: [`source/frontend/README.md`](../../source/frontend/README.md)
+- API & chạy local: [`backend/educycle-java/README.md`](../../backend/educycle-java/README.md)
+- SPA: [`frontend/README.md`](../../frontend/README.md)

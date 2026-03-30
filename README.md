@@ -98,7 +98,7 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 | `ANTHROPIC_API_KEY` | Docker `api` / BE env | AI chat on **server** only (`POST /api/ai/chat`) |
 | `SPRING_PROFILES_ACTIVE` | e.g. `production,smtp` | Enable real SMTP when `MAIL_*` are set |
 | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, … | `.env` + profile `smtp` | Real email — see [Email (SMTP)](#email-smtp) |
-| `VITE_DEV_PROXY_TARGET` | `source/frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
+| `VITE_DEV_PROXY_TARGET` | `frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
 
 **OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [NOTES.md](NOTES.md) (FE↔BE mapping).
 
@@ -144,20 +144,20 @@ Use this when you edit Java/React and want Vite HMR + fast iteration.
 **1) PostgreSQL (host port 5433)**
 
 ```bash
-cd source/backend/educycle-java
+cd backend/educycle-java
 docker compose up -d
 ```
 
 **2) Backend (API on 8081, uses `application-docker.yml`)**
 
 ```bash
-cd source/backend/educycle-java
+cd backend/educycle-java
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
 **3) Frontend — set proxy target to 8081**
 
-Create `source/frontend/.env.local` (or edit `.env.development`):
+Create `frontend/.env.local` (or edit `.env.development`):
 
 ```env
 VITE_DEV_PROXY_TARGET=http://localhost:8081
@@ -166,7 +166,7 @@ VITE_DEV_PROXY_TARGET=http://localhost:8081
 **4) Install and run Vite**
 
 ```bash
-cd source/frontend
+cd frontend
 npm ci
 npm run dev
 ```
@@ -199,7 +199,7 @@ npm run dev
 
 Root `docker-compose` **does not publish** `5432/5433`. Tools like pgAdmin on `localhost:5433` need either:
 
-- `source/backend/educycle-java/docker-compose.yml` (maps **5433:5432**), or  
+- `backend/educycle-java/docker-compose.yml` (maps **5433:5432**), or  
 - a custom `ports:` override on the `db` service, or  
 - `docker exec` + `psql` inside the container.
 
@@ -281,7 +281,7 @@ Without Spring profile **`smtp`**, `MailService` **logs** email bodies — enoug
 
 For real delivery:
 
-1. Activate profile **`smtp`** and set `MAIL_*` (see `source/backend/educycle-java/src/main/resources/application-smtp.yml`).  
+1. Activate profile **`smtp`** and set `MAIL_*` (see `backend/educycle-java/src/main/resources/application-smtp.yml`).  
 2. Gmail: [App Passwords](https://support.google.com/accounts/answer/185833).  
 3. Docker: set `SPRING_PROFILES_ACTIVE=production,smtp` and mail variables in `.env` (see [.env.example](.env.example) comments).  
    Do **not** set empty `MAIL_HOST` if you are not using SMTP (avoids broken Spring mail auto-config).
@@ -301,9 +301,9 @@ Workflow: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
 | Job | Command |
 |-----|---------|
-| Backend | `mvn -f source/backend/educycle-java/pom.xml clean verify` |
-| Frontend | `npm ci` → `npm run typecheck` → `npm test` → `npm run build` in `source/frontend` |
-| E2E | `npx playwright install --with-deps chromium` → `npm run test:e2e` in `source/frontend` (job riêng trên CI) |
+| Backend | `mvn -f backend/educycle-java/pom.xml clean verify` |
+| Frontend | `npm ci` → `npm run typecheck` → `npm test` → `npm run build` in `frontend` |
+| E2E | `npx playwright install --with-deps chromium` → `npm run test:e2e` in `frontend` (job riêng trên CI) |
 
 Triggers: **push** and **pull_request** to `main` and `dev`.
 
@@ -319,7 +319,7 @@ bash scripts/verify.sh
 .\scripts\verify.ps1
 ```
 
-Hoặc thủ công: `mvn -f source/backend/educycle-java/pom.xml clean verify` rồi `npm run typecheck` + `npm run build` trong `source/frontend`.
+Hoặc thủ công: `mvn -f backend/educycle-java/pom.xml clean verify` rồi `npm run typecheck` + `npm run build` trong `frontend`.
 
 ---
 
@@ -327,10 +327,9 @@ Hoặc thủ công: `mvn -f source/backend/educycle-java/pom.xml clean verify` r
 
 ```
 EDUCYCLE/
-├── source/
-│   ├── backend/educycle-java/    # Spring Boot API, Flyway
-│   └── frontend/                 # Vite + React (+ TS entry)
-├── docs/                         # Hub tài liệu theo mục (getting-started, architecture, guides, …)
+├── backend/educycle-java/        # Spring Boot API, Flyway
+├── frontend/                     # Vite + React (+ TS entry)
+├── docs/                         # Hub tài liệu (getting-started, architecture, guides, design/educycle, …)
 ├── scripts/                      # verify.ps1 / verify.sh — kiểm tra BE+FE local
 ├── docker-compose.yml            # db + api + nginx (production-style)
 ├── .github/workflows/ci.yml
@@ -347,13 +346,12 @@ EDUCYCLE/
 
 | Layer | Technologies |
 |-------|----------------|
-| API | Java 17, Spring Boot 3.2.5, Spring Security, Spring Data JPA, Flyway |
-| Auth | JWT (JJWT), refresh token (SecureRandom), OAuth token verification (Google / Microsoft) |
+| API | Java 17, Spring Boot 3.4.x, Spring Security, Spring Data JPA, Flyway |
+| Auth | JWT (JJWT), refresh token (SecureRandom), đăng ký `.edu.vn` + OTP email |
 | DB | PostgreSQL 16 |
 | Realtime | WebSocket STOMP + SockJS |
 | Rate limiting | Bucket4j (IP-based); separate in-memory limiter for AI chat |
-| SPA | React 19, Vite 7, React Router 7, Axios |
-| OAuth clients | @react-oauth/google, @azure/msal-browser |
+| SPA | React 19, Vite 7, React Router 7, Axios, TanStack Query |
 | Build | Maven, npm |
 | Deploy artifact | Docker multi-stage images + Compose |
 
@@ -375,6 +373,6 @@ Educational / personal project — not for commercial use without separate agree
 
 ## Acknowledgments
 
-Built with **Spring Boot**, **React**, **PostgreSQL**, and the broader open-source ecosystem. OAuth and AI integrations rely on provider APIs documented in [NOTES.md](NOTES.md) and [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
+Built with **Spring Boot**, **React**, **PostgreSQL**, and the broader open-source ecosystem. AI chat (optional) is documented in [SETUP_CHATBOT.md](SETUP_CHATBOT.md) and [NOTES.md](NOTES.md).
 
 **Author:** Trần Hoàng Long

@@ -4,7 +4,7 @@ $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
 Write-Host "== Backend: mvn clean verify ==" -ForegroundColor Cyan
-Push-Location (Join-Path $Root "source\backend\educycle-java")
+Push-Location (Join-Path $Root "backend\educycle-java")
 try {
   mvn -q clean verify
 } finally {
@@ -12,7 +12,7 @@ try {
 }
 
 Write-Host "== Frontend: typecheck + build ==" -ForegroundColor Cyan
-Push-Location (Join-Path $Root "source\frontend")
+Push-Location (Join-Path $Root "frontend")
 try {
   npm run typecheck
   npm run build
