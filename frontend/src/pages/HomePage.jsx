@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
-import { productsApi, categoriesApi } from '../api/endpoints';
-import { useDebounce } from '../hooks/useDebounce';
+import { productsApi } from '../api/endpoints';
+import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import { IconHeart, IconHeartFilled, IconX } from '../components/icons/Icons';
@@ -28,15 +28,6 @@ function Reveal({ children, delay = 0 }) {
     </div>
   );
 }
-
-const CAT_LIST = [
-  { name: 'Tất cả',       color: 'var(--neutral-600)', val: 'all' },
-  { name: 'Giáo Trình',   color: 'var(--primary-500)', val: 'Giáo Trình' },
-  { name: 'Chuyên Ngành', color: 'var(--accent-600)', val: 'Sách Chuyên Ngành' },
-  { name: 'Ôn Thi',       color: 'var(--accent-500)', val: 'Tài Liệu Ôn Thi' },
-  { name: 'Dụng Cụ',      color: 'var(--secondary-600)', val: 'Dụng Cụ Học Tập' },
-  { name: 'Ngoại Ngữ',    color: 'var(--primary-400)', val: 'Ngoại Ngữ' },
-];
 
 function mapApiProductToCard(p) {
   return {
@@ -65,32 +56,34 @@ export default function HomePage() {
   const productsRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
+
+  const PAGE_SIZE = 24;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCat, setSelectedCat] = useState('all');
+  const [priceRange, setPriceRange] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    const q = searchParams.get('q');
+    setSelectedCat(cat && cat.trim() !== '' ? cat.trim() : 'all');
+    setSearchQuery(q != null ? q : '');
+  }, [searchParams]);
 
   useEffect(() => {
     if (location.state?.scrollTo !== 'products') return;
     const id = requestAnimationFrame(() => {
       document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      navigate('.', { replace: true, state: {} });
+      navigate(
+        { pathname: location.pathname, search: location.search, hash: location.hash },
+        { replace: true, state: {} },
+      );
     });
     return () => cancelAnimationFrame(id);
-  }, [location.state?.scrollTo, navigate]);
-
-  const PAGE_SIZE = 24;
-  const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
-  const [selectedCat, setSelectedCat] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-
-  const { data: catData } = useQuery({
-    queryKey: ['categories', 'all'],
-    queryFn: async () => {
-      const res = await categoriesApi.getAll();
-      return Array.isArray(res.data) ? res.data : [];
-    },
-  });
+  }, [location.state?.scrollTo, location.pathname, location.search, location.hash, navigate]);
 
   const { data: heroPage, isPending: heroSpotlightLoading } = useQuery({
     queryKey: ['products', 'hero-spotlight'],
@@ -112,19 +105,20 @@ export default function HomePage() {
     return cards.slice(0, HERO_SPOTLIGHT_COUNT);
   }, [heroPage]);
 
-  const categories = useMemo(() => {
-    const data = catData ?? [];
-    if (data.length === 0) return CAT_LIST;
-    const apiCats = data.map((c) => {
-      const name = c.name || c.Name || '';
-      return CAT_LIST.find((x) => x.val === name) || { name, color: 'var(--neutral-600)', val: name };
-    });
-    return [CAT_LIST[0], ...apiCats];
-  }, [catData]);
+  const handleCategoryChipClick = (val) => {
+    setSelectedCat(val);
+    const next = new URLSearchParams(searchParams);
+    if (val === 'all') {
+      next.delete('category');
+    } else {
+      next.set('category', val);
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   const catalogQueryParams = useMemo(() => {
     const params = { size: PAGE_SIZE, direction: 'desc', sort: sortBy };
-    const t = debouncedSearch.trim();
+    const t = searchQuery.trim();
     if (t) params.q = t;
     if (selectedCat !== 'all') params.category = selectedCat;
     if (priceRange === 'under50k') params.priceMax = 49999.99;
@@ -133,7 +127,7 @@ export default function HomePage() {
       params.priceMax = 99999.99;
     } else if (priceRange === 'over100k') params.priceMin = 100000;
     return params;
-  }, [debouncedSearch, selectedCat, priceRange, sortBy]);
+  }, [searchQuery, selectedCat, priceRange, sortBy]);
 
   const {
     data: productPages,
@@ -267,19 +261,25 @@ export default function HomePage() {
                 ? 'Đang tải...'
                 : `${products.length} đã tải${totalElements ? ` · ${totalElements} khớp bộ lọc` : ''}`}
             </p>
+            <p style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
+              <Link to="/book-wanted" style={{ color: 'var(--primary-600)', fontWeight: 600, textDecoration: 'none' }}>
+                Đang cần mua / tìm sách? Xem tin nhu cầu từ sinh viên →
+              </Link>
+            </p>
           </Reveal>
 
           {/* Category pills */}
           <Reveal delay={60}>
             <div className="hp-cat-pills">
-              {categories.map(c => (
+              {HOME_CATEGORY_CHIPS.map((c) => (
                 <button
                   key={c.val}
+                  type="button"
                   className={`hp-cat-pill ${selectedCat === c.val ? 'active' : ''}`}
-                  style={{ '--c': c.color }}
-                  onClick={() => setSelectedCat(c.val)}
+                  style={{ '--c': c.chipColor }}
+                  onClick={() => handleCategoryChipClick(c.val)}
                 >
-                  {c.name}
+                  {c.label}
                 </button>
               ))}
             </div>
@@ -333,7 +333,16 @@ export default function HomePage() {
             {totalElements === 0 ? (
               <Link to="/products/new" className="hp-btn hp-btn--solid hp-btn--spaced-top">Đăng bán ngay</Link>
             ) : (
-              <button type="button" onClick={() => { setSearchQuery(''); setSelectedCat('all'); setPriceRange('all'); }} className="hp-btn hp-btn--solid hp-btn--spaced-top">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCat('all');
+                  setPriceRange('all');
+                  setSearchParams({}, { replace: true });
+                }}
+                className="hp-btn hp-btn--solid hp-btn--spaced-top"
+              >
                 Xóa bộ lọc
               </button>
             )}

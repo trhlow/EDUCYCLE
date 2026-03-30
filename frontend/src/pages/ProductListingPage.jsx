@@ -4,20 +4,14 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
+import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
 import './ProductListingPage.css';
 
-const FALLBACK_CATEGORIES = [
-  'all',
-  'Giáo Trình',
-  'Sách Chuyên Ngành',
-  'Tài Liệu Ôn Thi',
-  'Dụng Cụ Học Tập',
-  'Ngoại Ngữ',
-];
+const FALLBACK_CATEGORIES = ['all', ...NAV_CATALOG.map((n) => n.category)];
 
 const PAGE_SIZE = 24;
 
@@ -145,7 +139,7 @@ export default function ProductListingPage() {
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat === 'all' ? 'Tất Cả Danh Mục' : cat}
+                      {cat === 'all' ? 'Tất Cả Danh Mục' : getCategoryDisplayLabel(cat) || cat}
                     </option>
                   ))}
                 </select>

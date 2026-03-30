@@ -186,6 +186,32 @@
   transition: var(--transition);
 }
 
+.pdp-btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--error-300, #fca5a5);
+  background: transparent;
+  color: var(--error-600, #b91c1c);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+
+.pdp-btn-delete:hover:not(:disabled) {
+  background: var(--error-light, #fef2f2);
+}
+
+.pdp-btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .pdp-btn-buy:hover {
   background: var(--primary-600);
   transform: translateY(-1px);

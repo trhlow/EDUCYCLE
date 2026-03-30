@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
-import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
+import { IconHeart, IconHeartFilled, IconTrash } from '../components/icons/Icons';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -18,6 +18,7 @@ export default function ProductDetailPage() {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [reviews, setReviews] = useState([]);
   const [sendingRequest, setSendingRequest] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -103,7 +104,21 @@ export default function ProductDetailPage() {
   const isReserved  = productStatus === 'RESERVED';
   const isPending   = productStatus === 'PENDING';
   const isRejected  = productStatus === 'REJECTED';
-  const isOwner     = isAuthenticated && product.sellerId === user?.id;
+  const isOwner     = isAuthenticated && String(product.sellerId) === String(user?.id);
+
+  const handleDeleteProduct = async () => {
+    if (!window.confirm('Xóa vĩnh viễn tin đăng này? Không thể hoàn tác.')) return;
+    setDeleting(true);
+    try {
+      await productsApi.delete(product.id);
+      toast.success('Đã xóa tin đăng.');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Không xóa được tin. Có thể sản phẩm đã có giao dịch.'));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Issue #4: Hiển thị "Giá liên hệ" khi price=0 hoặc priceType='contact'
   const isContactPrice = product.priceType === 'contact' || product.price === 0;
@@ -205,15 +220,26 @@ export default function ProductDetailPage() {
 
           {/* Actions */}
           <div className="pdp-actions">
-            {isOwner && !isSold && (
-              <button
-                type="button"
-                className="pdp-btn-buy"
-                style={{ marginBottom: 'var(--space-2)' }}
-                onClick={() => navigate(`/products/${product.id}/edit`)}
-              >
-                Sửa tin đăng
-              </button>
+            {isOwner && !isSold && !isReserved && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', width: '100%', marginBottom: 'var(--space-2)' }}>
+                <button
+                  type="button"
+                  className="pdp-btn-buy"
+                  onClick={() => navigate(`/products/${product.id}/edit`)}
+                >
+                  Sửa tin đăng
+                </button>
+                <button
+                  type="button"
+                  className="pdp-btn-delete"
+                  disabled={deleting}
+                  aria-label="Xóa tin đăng"
+                  onClick={handleDeleteProduct}
+                >
+                  <IconTrash size={18} />
+                  {deleting ? 'Đang xóa…' : 'Xóa tin đăng'}
+                </button>
+              </div>
             )}
             {isSold ? (
               <div className="pdp-sold-notice">Sản phẩm đã được bán</div>

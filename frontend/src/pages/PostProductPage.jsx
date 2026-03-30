@@ -4,16 +4,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi, uploadProductImage } from '../api/endpoints';
+import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
 import './PostProductPage.css';
 
 const FALLBACK_CATEGORIES = [
-  { value: '', label: '-- Chọn danh mục --' },
-  { value: 'Giáo Trình', label: 'Giáo Trình' },
-  { value: 'Sách Chuyên Ngành', label: 'Sách Chuyên Ngành' },
-  { value: 'Tài Liệu Ôn Thi', label: 'Tài Liệu Ôn Thi' },
-  { value: 'Dụng Cụ Học Tập', label: 'Dụng Cụ Học Tập' },
-  { value: 'Ngoại Ngữ', label: 'Ngoại Ngữ' },
-  { value: 'Khác', label: 'Khác' },
+  { value: '', label: '-- Chọn danh mục --', id: '' },
+  ...NAV_CATALOG.map((n) => ({ value: n.category, label: n.label, id: '' })),
 ];
 const CONDITIONS = [
   { value: '', label: '-- Tình trạng --' },
@@ -55,9 +51,17 @@ export default function PostProductPage() {
       .then(res => {
         const data = Array.isArray(res.data) ? res.data : [];
         if (data.length > 0) {
+          const rawName = (c) => c.name || c.Name || '';
           setCategories([
             { value: '', label: '-- Chọn danh mục --', id: '' },
-            ...data.map(c => ({ value: c.name||c.Name||'', label: c.name||c.Name||'', id: c.id||c.Id||'' })),
+            ...data.map((c) => {
+              const name = rawName(c);
+              return {
+                value: name,
+                label: getCategoryDisplayLabel(name) || name,
+                id: c.id || c.Id || '',
+              };
+            }),
           ]);
         }
       }).catch(() => {});
@@ -403,7 +407,11 @@ export default function PostProductPage() {
                   <div className="post-preview-info">
                     <h4 className="post-preview-name">{form.name || 'Tên sản phẩm...'}</h4>
                     <div className="post-preview-meta">
-                      {form.category && <span className="post-preview-badge">{form.category}</span>}
+                      {form.category && (
+                        <span className="post-preview-badge">
+                          {getCategoryDisplayLabel(form.category) || form.category}
+                        </span>
+                      )}
                       {form.condition && <span className="post-preview-condition">{form.condition}</span>}
                     </div>
                     <div className="post-preview-price" style={{ color: priceType==='contact' ? 'var(--accent-500)' : 'inherit' }}>
