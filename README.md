@@ -330,7 +330,8 @@ EDUCYCLE/
 ├── backend/educycle-java/        # Spring Boot API, Flyway
 ├── frontend/                     # Vite + React (+ TS entry)
 ├── docs/                         # Hub tài liệu (getting-started, architecture, guides, design/educycle, …)
-├── scripts/                      # verify.ps1 / verify.sh — kiểm tra BE+FE local
+├── scripts/                      # verify, optional continuous-dev / release bash
+├── VERSION                       # Semantic version (continuous-dev pipeline)
 ├── docker-compose.yml            # db + api + nginx (production-style)
 ├── .github/workflows/ci.yml
 ├── .env.example
