@@ -23,6 +23,17 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@tanstack/react-query',
+        'axios',
+        '@stomp/stompjs',
+        'sockjs-client',
+        'zod',
+        '@phosphor-icons/react',
+      ],
       esbuildOptions: {
         define: {
           global: 'globalThis',
@@ -35,9 +46,22 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: devProxy,
     },
-    // `vite preview` has no proxy by default — /api would 404 without this.
     preview: {
       proxy: devProxy,
+    },
+    build: {
+      target: 'es2020',
+      sourcemap: mode !== 'production',
+      chunkSizeWarningLimit: 500,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'query-vendor': ['@tanstack/react-query'],
+            'stomp-vendor': ['@stomp/stompjs', 'sockjs-client'],
+          },
+        },
+      },
     },
   }
 })
