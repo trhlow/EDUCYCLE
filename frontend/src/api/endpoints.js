@@ -41,6 +41,16 @@ export const productsApi = {
   reject:         (id, data) => api.patch(`/products/${id}/reject`, data ?? {}),
 };
 
+// ─── Tin tìm sách (book wanted) ─────────────────────
+export const bookWantedApi = {
+  list:     (params) => api.get('/book-wanted', { params }),
+  listMine: (params) => api.get('/book-wanted/mine', { params }),
+  getById:  (id)     => api.get(`/book-wanted/${id}`),
+  create:   (data)   => api.post('/book-wanted', data),
+  update:   (id, data) => api.patch(`/book-wanted/${id}`, data),
+  delete:   (id)     => api.delete(`/book-wanted/${id}`),
+};
+
 // ─── Categories ──────────────────────────────────────
 export const categoriesApi = {
   getAll:  ()           => api.get('/categories'),

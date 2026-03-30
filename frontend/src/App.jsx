@@ -20,19 +20,23 @@ const TransactionsPage = lazy(() => import('./pages/TransactionsPage'));
 const TransactionDetailPage = lazy(() => import('./pages/TransactionDetailPage'));
 const TransactionGuidePage = lazy(() => import('./pages/TransactionGuidePage'));
 const PostProductPage = lazy(() => import('./pages/PostProductPage'));
+const BookWantedListPage = lazy(() => import('./pages/BookWantedListPage'));
+const BookWantedDetailPage = lazy(() => import('./pages/BookWantedDetailPage'));
+const BookWantedFormPage = lazy(() => import('./pages/BookWantedFormPage'));
+const BookWantedMinePage = lazy(() => import('./pages/BookWantedMinePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserPublicProfilePage = lazy(() => import('./pages/UserPublicProfilePage'));
 
-// Redirect /products → trang chủ section #products
+// Redirect /products → trang chủ section #products (giữ query: category, q, …)
 function ProductsRedirect() {
+  const location = useLocation();
   useEffect(() => {
-    // Sau khi navigate về '/', scroll xuống section #products
     const t = setTimeout(() => {
       document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 200);
     return () => clearTimeout(t);
   }, []);
-  return <Navigate to="/" replace />;
+  return <Navigate to={{ pathname: '/', search: location.search }} replace />;
 }
 
 function SuspenseWrapper({ children }) {
@@ -56,6 +60,11 @@ export default function App() {
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id/edit" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
+        <Route path="book-wanted/mine" element={<SuspenseWrapper><ProtectedRoute><BookWantedMinePage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="book-wanted/new" element={<SuspenseWrapper><ProtectedRoute><BookWantedFormPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="book-wanted/:id/edit" element={<SuspenseWrapper><ProtectedRoute><BookWantedFormPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="book-wanted/:id" element={<SuspenseWrapper><BookWantedDetailPage /></SuspenseWrapper>} />
+        <Route path="book-wanted" element={<SuspenseWrapper><BookWantedListPage /></SuspenseWrapper>} />
         <Route path="users/:id" element={<SuspenseWrapper><UserPublicProfilePage /></SuspenseWrapper>} />
         <Route path="cart" element={<SuspenseWrapper><CartPage /></SuspenseWrapper>} />
         <Route path="transactions" element={<SuspenseWrapper><ProtectedRoute><TransactionsPage /></ProtectedRoute></SuspenseWrapper>} />

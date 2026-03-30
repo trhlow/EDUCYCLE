@@ -77,6 +77,14 @@ export default function DashboardPage() {
               </button>
             </>
           )}
+          <div className="dash-sidebar-section-title" style={{ marginTop: 'var(--space-4)' }}>Nhu cầu</div>
+          <button
+            type="button"
+            className="dash-sidebar-link"
+            onClick={() => { navigate('/book-wanted/mine'); setSidebarOpen(false); }}
+          >
+            Tin tìm sách của tôi
+          </button>
         </div>
 
         <button className="dash-sidebar-link dash-sidebar-logout" onClick={handleLogout}>
