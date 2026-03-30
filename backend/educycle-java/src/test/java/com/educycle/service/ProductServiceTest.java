@@ -5,12 +5,14 @@ import com.educycle.dto.product.CreateProductRequest;
 import com.educycle.dto.product.ProductResponse;
 import com.educycle.dto.product.UpdateProductRequest;
 import com.educycle.enums.ProductStatus;
+import com.educycle.exception.BadRequestException;
 import com.educycle.exception.NotFoundException;
 import com.educycle.exception.UnauthorizedException;
 import com.educycle.model.Product;
 import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
 import com.educycle.repository.ReviewRepository;
+import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.impl.ProductServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +40,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
 
 /**
  * Maps C# ProductServiceTests.cs (xUnit + Moq) → JUnit 5 + Mockito
@@ -56,6 +59,9 @@ class ProductServiceTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -81,6 +87,7 @@ class ProductServiceTest {
 
         // Default: reviews always return empty (matches C# constructor setup)
         lenient().when(reviewRepository.findByProductId(any())).thenReturn(Collections.emptyList());
+        lenient().when(transactionRepository.existsByProduct_Id(any())).thenReturn(false);
     }
 
     // ===================================================================
@@ -298,6 +305,20 @@ class ProductServiceTest {
             // Act + Assert
             assertThatThrownBy(() -> productService.delete(productId, UUID.randomUUID()))
                     .isInstanceOf(UnauthorizedException.class);
+        }
+
+        @Test
+        @DisplayName("should throw BadRequestException when product has transactions")
+        void shouldThrow_whenHasTransactions() {
+            UUID productId = UUID.randomUUID();
+            Product product = buildProduct(productId, testUser, "Product", "10.00");
+
+            given(productRepository.findByIdWithUser(productId)).willReturn(Optional.of(product));
+            given(transactionRepository.existsByProduct_Id(productId)).willReturn(true);
+
+            assertThatThrownBy(() -> productService.delete(productId, testUser.getId()))
+                    .isInstanceOf(BadRequestException.class);
+            verify(productRepository, never()).delete(any());
         }
 
         @Test

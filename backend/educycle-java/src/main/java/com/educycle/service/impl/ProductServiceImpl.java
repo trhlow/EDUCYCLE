@@ -6,6 +6,7 @@ import com.educycle.dto.product.CreateProductRequest;
 import com.educycle.dto.product.ProductResponse;
 import com.educycle.dto.product.UpdateProductRequest;
 import com.educycle.enums.ProductStatus;
+import com.educycle.exception.BadRequestException;
 import com.educycle.exception.NotFoundException;
 import com.educycle.exception.UnauthorizedException;
 import com.educycle.model.Product;
@@ -13,6 +14,7 @@ import com.educycle.model.Review;
 import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
 import com.educycle.repository.ReviewRepository;
+import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.repository.spec.ProductSpecifications;
 import com.educycle.service.NotificationService;
@@ -53,9 +55,10 @@ import static com.educycle.util.PrivacyHelper.maskUsername;
 @Transactional
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository    productRepository;
-    private final ReviewRepository     reviewRepository;
-    private final UserRepository       userRepository;
+    private final ProductRepository      productRepository;
+    private final ReviewRepository       reviewRepository;
+    private final TransactionRepository  transactionRepository;
+    private final UserRepository         userRepository;
     private final ObjectMapper         objectMapper;
     private final NotificationService  notificationService;
 
@@ -200,6 +203,10 @@ public class ProductServiceImpl implements ProductService {
 
         if (!product.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("Bạn chỉ có thể xóa sản phẩm của mình");
+        }
+
+        if (transactionRepository.existsByProduct_Id(id)) {
+            throw new BadRequestException("Không thể xóa sản phẩm đã có giao dịch liên quan.");
         }
 
         productRepository.delete(product);

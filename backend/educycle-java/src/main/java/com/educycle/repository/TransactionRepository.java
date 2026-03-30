@@ -17,6 +17,8 @@ import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
+    boolean existsByProduct_Id(UUID productId);
+
     @Query("SELECT t FROM Transaction t " +
            "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
            "WHERE t.id = :id")
