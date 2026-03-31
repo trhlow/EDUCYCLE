@@ -59,6 +59,7 @@ export default defineConfig(({ mode }) => {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
             'query-vendor': ['@tanstack/react-query'],
             'stomp-vendor': ['@stomp/stompjs', 'sockjs-client'],
+            'icons-vendor': ['@phosphor-icons/react'],
           },
         },
       },
