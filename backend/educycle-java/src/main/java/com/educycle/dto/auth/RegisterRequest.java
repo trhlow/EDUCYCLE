@@ -12,7 +12,7 @@ public record RegisterRequest(
 
         @NotBlank(message = "Email là bắt buộc")
         @Email(message = "Email không đúng định dạng")
-        @Pattern(regexp = "(?i)^\\s*.+\\.edu\\.vn\\s*$", message = "Chỉ chấp nhận email .edu.vn")
+        @Pattern(regexp = "(?i)^[^@\\s]+@[^@\\s]+\\.edu\\.vn$", message = "Chỉ chấp nhận email .edu.vn")
         String email,
 
         @NotBlank(message = "Mật khẩu là bắt buộc")

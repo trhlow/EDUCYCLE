@@ -47,8 +47,8 @@ public class AuthServiceImpl implements AuthService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    /** Khớp {@link com.educycle.dto.auth.RegisterRequest} — chỉ đuôi .edu.vn (không phụ thuộc phần trước @). */
-    private static final Pattern EDU_VN_EMAIL = Pattern.compile("(?i)^\\s*.+\\.edu\\.vn\\s*$");
+    /** Khớp {@link com.educycle.dto.auth.RegisterRequest} — có @ và đuôi .edu.vn. */
+    private static final Pattern EDU_VN_EMAIL = Pattern.compile("(?i)^[^@\\s]+@[^@\\s]+\\.edu\\.vn$");
 
     // ── Register — không cấp JWT; sinh viên phải nhập OTP gửi về email .edu.vn ──
 
