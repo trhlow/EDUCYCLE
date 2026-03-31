@@ -122,4 +122,10 @@ api.interceptors.response.use(
   }
 );
 
+/** Dùng trong test (Vitest) để tránh leak state refresh giữa file. */
+export const __resetAxiosRefreshStateForTesting = () => {
+  isRefreshing = false;
+  failedQueue = [];
+};
+
 export default api;
