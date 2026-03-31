@@ -11,7 +11,6 @@ export const authApi = {
   resendOtp:       (data) => api.post('/auth/resend-otp', data),
   verifyPhone:     (data) => api.post('/auth/verify-phone', data),
   changePassword:  (data) => api.post('/auth/change-password', data),
-  // Issue: Forgot / Reset password — BE chưa có (Sprint 2)
   forgotPassword:  (data) => api.post('/auth/forgot-password', data),
   resetPassword:   (data) => api.post('/auth/reset-password', data),
 };
@@ -90,7 +89,6 @@ export const reviewsApi = {
   getByTransaction: (txId)  => api.get(`/reviews/transaction/${txId}`),
   getByProduct:     (pid)   => api.get(`/reviews/product/${pid}`),
   getByUser:        (uid)   => api.get(`/reviews/user/${uid}`),
-  createUserReview: (data)  => api.post('/reviews', data),
 };
 
 // ─── Notifications ───────────────────────────────────

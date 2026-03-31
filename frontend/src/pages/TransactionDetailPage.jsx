@@ -259,7 +259,12 @@ export default function TransactionDetailPage() {
     if (!reviewForm.comment.trim()) { toast.error('Vui lòng viết nhận xét!'); return; }
     const targetUserId = otherUser?.id || otherUser?.Id;
     try {
-      await reviewsApi.createUserReview({ targetUserId, transactionId: id, rating: reviewForm.rating, content: reviewForm.comment });
+      await reviewsApi.create({
+          targetUserId,
+          transactionId: id,
+          rating: reviewForm.rating,
+          content: reviewForm.comment,
+        });
       toast.success('Đã gửi đánh giá!');
       setHasReviewed(true);
     } catch (e) {

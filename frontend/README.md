@@ -425,7 +425,7 @@ Tất cả API calls đi qua một Axios instance duy nhất với **JWT interce
 | `categoriesApi` | CRUD categories | Partial |
 | `transactionsApi` | CRUD + status update + OTP generate/verify + confirm | ✅ |
 | `messagesApi` | getByTransaction, send | ✅ |
-| `reviewsApi` | CRUD + getByUser/Product/Transaction + createUserReview | ✅ |
+| `reviewsApi` | CRUD + getByUser/Product/Transaction; `create` cho đánh giá người dùng | ✅ |
 | `adminApi` | getStats, getUsers | ✅ Admin |
 
 ---
