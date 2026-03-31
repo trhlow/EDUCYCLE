@@ -24,6 +24,7 @@ export default function BookWantedListPage() {
 
   const { data, isPending } = useQuery({
     queryKey: ['book-wanted', 'open', page, q],
+    staleTime: 60_000,
     queryFn: async () => {
       const res = await bookWantedApi.list({ page, size: 12, q: q.trim() || undefined });
       return extractPage(res);
@@ -75,6 +76,7 @@ export default function BookWantedListPage() {
           placeholder="Tìm theo tiêu đề, mô tả…"
           value={qInput}
           onChange={(e) => setQInput(e.target.value)}
+          autoComplete="off"
           aria-label="Từ khóa tìm tin tìm sách"
         />
         <button type="submit" className="bw-btn bw-btn--ghost">
@@ -82,7 +84,15 @@ export default function BookWantedListPage() {
         </button>
       </form>
 
-      {isPending && <p className="bw-empty">Đang tải…</p>}
+      <div aria-live="polite" aria-atomic="true">
+        {isPending && (
+          <div className="bw-grid" aria-hidden="true">
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="bw-card bw-card--skeleton" />
+            ))}
+          </div>
+        )}
+      </div>
 
       {!isPending && posts.length === 0 && (
         <div className="bw-empty">

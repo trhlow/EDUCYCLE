@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { bookWantedApi, categoriesApi } from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +18,8 @@ export default function BookWantedFormPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
 
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
@@ -63,6 +65,8 @@ export default function BookWantedFormPage() {
 
   useEffect(() => {
     if (!isEdit || !editId) return;
+    if (!user?.id) return;
+
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -71,8 +75,8 @@ export default function BookWantedFormPage() {
         if (cancelled) return;
         const p = res.data;
         const owner = p.requesterUserId != null ? String(p.requesterUserId) : '';
-        if (String(user?.id) !== owner) {
-          toast.error('Bạn không thể sửa tin này.');
+        if (String(user.id) !== owner) {
+          toastRef.current.error('Bạn không thể sửa tin này.');
           navigate(`/book-wanted/${editId}`);
           return;
         }
@@ -81,7 +85,7 @@ export default function BookWantedFormPage() {
         setCategory((p.category || '').trim());
       } catch {
         if (!cancelled) {
-          toast.error('Không tải được tin.');
+          toastRef.current.error('Không tải được tin.');
           navigate('/book-wanted');
         }
       } finally {
@@ -89,7 +93,7 @@ export default function BookWantedFormPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [isEdit, editId, user?.id, navigate, toast]);
+  }, [isEdit, editId, user?.id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -240,3 +240,48 @@ a.bw-card:hover {
 .bw-breadcrumb a:hover {
   text-decoration: underline;
 }
+
+.bw-confirm-bar {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-medium);
+  background: var(--bg-secondary);
+}
+
+.bw-confirm-bar__text {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.bw-confirm-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.bw-mine-skeleton-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@keyframes bw-skeleton-pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bw-card--skeleton {
+  min-height: 6rem;
+  background: var(--neutral-100);
+  border-radius: var(--radius-lg);
+  animation: bw-skeleton-pulse 1.1s ease-in-out infinite alternate;
+}

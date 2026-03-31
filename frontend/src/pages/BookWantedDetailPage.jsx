@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookWantedApi } from '../api/endpoints';
@@ -12,38 +13,41 @@ export default function BookWantedDetailPage() {
   const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const [confirmAction, setConfirmAction] = useState(null);
 
-  const { data: post, isPending, isError } = useQuery({
+  const { data: post, isPending, isError, error } = useQuery({
     queryKey: ['book-wanted', id],
     enabled: Boolean(id),
+    staleTime: 60_000,
     queryFn: async () => {
       const res = await bookWantedApi.getById(id);
       return res.data;
     },
   });
 
+  const statusCode = error?.response?.status;
   const status = post?.status?.toUpperCase() ?? 'OPEN';
   const ownerId = post?.requesterUserId != null ? String(post.requesterUserId) : '';
   const isOwner = isAuthenticated && user?.id && ownerId === String(user.id);
 
-  const handleClose = async () => {
-    if (!window.confirm('Đóng tin này? Người khác sẽ không thấy trong danh sách đang tìm.')) return;
+  const handleConfirmClose = async () => {
     try {
       await bookWantedApi.update(id, { status: 'CLOSED' });
       toast.success('Đã đóng tin.');
       queryClient.invalidateQueries({ queryKey: ['book-wanted'] });
+      setConfirmAction(null);
       navigate('/book-wanted/mine');
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Không đóng được tin.'));
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Xóa vĩnh viễn tin này?')) return;
+  const handleConfirmDelete = async () => {
     try {
       await bookWantedApi.delete(id);
       toast.success('Đã xóa tin.');
       queryClient.invalidateQueries({ queryKey: ['book-wanted'] });
+      setConfirmAction(null);
       navigate('/book-wanted/mine');
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Không xóa được tin.'));
@@ -59,9 +63,15 @@ export default function BookWantedDetailPage() {
   }
 
   if (isError || !post) {
+    const msg =
+      statusCode === 404
+        ? 'Không tìm thấy tin.'
+        : statusCode === 403
+          ? 'Bạn không có quyền xem tin này.'
+          : 'Không tải được tin. Vui lòng thử lại.';
     return (
       <div className="bw-page">
-        <p className="bw-empty">Không tìm thấy tin.</p>
+        <p className="bw-empty">{msg}</p>
         <Link to="/book-wanted" className="bw-btn bw-btn--primary" style={{ marginTop: 'var(--space-4)', display: 'inline-flex' }}>
           Về danh sách
         </Link>
@@ -110,19 +120,47 @@ export default function BookWantedDetailPage() {
           )}
         </p>
 
-        {isOwner && (
+        {isOwner && !confirmAction && (
           <div className="bw-detail__actions">
             <Link to={`/book-wanted/${id}/edit`} className="bw-btn bw-btn--primary">
               Sửa tin
             </Link>
             {status === 'OPEN' && (
-              <button type="button" className="bw-btn bw-btn--ghost" onClick={handleClose}>
+              <button type="button" className="bw-btn bw-btn--ghost" onClick={() => setConfirmAction('close')}>
                 Đóng tin
               </button>
             )}
-            <button type="button" className="bw-btn bw-btn--danger" onClick={handleDelete}>
+            <button type="button" className="bw-btn bw-btn--danger" onClick={() => setConfirmAction('delete')}>
               Xóa tin
             </button>
+          </div>
+        )}
+
+        {isOwner && confirmAction === 'close' && (
+          <div className="bw-confirm-bar" role="alert">
+            <p className="bw-confirm-bar__text">Đóng tin này? Người khác sẽ không thấy trong danh sách đang tìm.</p>
+            <div className="bw-confirm-bar__actions">
+              <button type="button" className="bw-btn bw-btn--primary" onClick={handleConfirmClose}>
+                Xác nhận đóng
+              </button>
+              <button type="button" className="bw-btn bw-btn--ghost" onClick={() => setConfirmAction(null)}>
+                Huỷ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isOwner && confirmAction === 'delete' && (
+          <div className="bw-confirm-bar" role="alert">
+            <p className="bw-confirm-bar__text">Xóa vĩnh viễn tin này? Thao tác không hoàn tác.</p>
+            <div className="bw-confirm-bar__actions">
+              <button type="button" className="bw-btn bw-btn--danger" onClick={handleConfirmDelete}>
+                Xác nhận xóa
+              </button>
+              <button type="button" className="bw-btn bw-btn--ghost" onClick={() => setConfirmAction(null)}>
+                Huỷ
+              </button>
+            </div>
           </div>
         )}
       </article>
