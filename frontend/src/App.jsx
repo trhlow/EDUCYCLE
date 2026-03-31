@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
@@ -27,16 +27,16 @@ const BookWantedMinePage = lazy(() => import('./pages/BookWantedMinePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserPublicProfilePage = lazy(() => import('./pages/UserPublicProfilePage'));
 
-// Redirect /products → trang chủ section #products (giữ query: category, q, …)
+// Redirect /products → trang chủ section #products (giữ query; scroll qua state → HomePage xử lý)
 function ProductsRedirect() {
   const location = useLocation();
-  useEffect(() => {
-    const t = setTimeout(() => {
-      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 200);
-    return () => clearTimeout(t);
-  }, []);
-  return <Navigate to={{ pathname: '/', search: location.search }} replace />;
+  return (
+    <Navigate
+      to={{ pathname: '/', search: location.search }}
+      state={{ scrollTo: 'products' }}
+      replace
+    />
+  );
 }
 
 function SuspenseWrapper({ children }) {
