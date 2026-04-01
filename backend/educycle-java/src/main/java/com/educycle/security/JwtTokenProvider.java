@@ -4,6 +4,7 @@ import com.educycle.config.JwtProperties;
 import com.educycle.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,14 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
+
+    private SecretKey signingKey;
+
+    @PostConstruct
+    void initSigningKey() {
+        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     // ===== Generate Token =====
 
@@ -90,7 +99,6 @@ public class JwtTokenProvider {
     // ===== Private Helpers =====
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 }
