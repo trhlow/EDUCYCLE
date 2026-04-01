@@ -1,6 +1,7 @@
 package com.educycle.controller;
 
 import com.educycle.exception.BadRequestException;
+import com.educycle.util.ProductImageMagic;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -75,12 +76,17 @@ public class FileUploadController {
             throw new BadRequestException("Chỉ chấp nhận jpg, png, gif, webp");
         }
 
+        byte[] fileBytes = file.getBytes();
+        if (!ProductImageMagic.isAllowedImage(fileBytes)) {
+            throw new BadRequestException("File không phải ảnh hợp lệ (nội dung không khớp định dạng ảnh)");
+        }
+
         String stored = UUID.randomUUID() + "." + ext;
         Path target = uploadDir.resolve(stored).normalize();
         if (!target.startsWith(uploadDir)) {
             throw new BadRequestException("Đường dẫn không hợp lệ");
         }
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+        Files.write(target, fileBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         String url = "/api/files/" + stored;
         return ResponseEntity.ok(Map.of("url", url));
