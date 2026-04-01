@@ -1,6 +1,8 @@
 package com.educycle.config;
 
 import com.educycle.util.MessageConstants;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
@@ -17,13 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * IP-based rate limiting (in-memory, no Redis needed for MVP).
  *
- * Auth endpoints (login/register/resend-otp): 5 req / minute
+ * Auth endpoints (login/register/resend-otp): 10 req / minute
  * All other API endpoints:                   60 req / minute
  */
 @Component
@@ -34,34 +35,50 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${educycle.rate-limit.prefer-x-real-ip:false}")
     private boolean preferXRealIp;
 
-    private final Map<String, Bucket> authBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> apiBuckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> authBuckets = Caffeine.newBuilder()
+            .expireAfterAccess(2, TimeUnit.HOURS)
+            .maximumSize(50_000)
+            .build();
+
+    private final Cache<String, Bucket> apiBuckets = Caffeine.newBuilder()
+            .expireAfterAccess(2, TimeUnit.HOURS)
+            .maximumSize(50_000)
+            .build();
+
+    private static Bucket newAuthBucket() {
+        return Bucket.builder()
+                .addLimit(Bandwidth.builder()
+                        .capacity(10)
+                        .refillGreedy(10, Duration.ofMinutes(1))
+                        .build())
+                .build();
+    }
+
+    private static Bucket newApiBucket() {
+        return Bucket.builder()
+                .addLimit(Bandwidth.builder()
+                        .capacity(60)
+                        .refillGreedy(60, Duration.ofMinutes(1))
+                        .build())
+                .build();
+    }
 
     private Bucket getAuthBucket(String ip) {
-        return authBuckets.computeIfAbsent(ip, k ->
-                Bucket.builder()
-                        .addLimit(Bandwidth.builder()
-                                .capacity(10)
-                                .refillGreedy(10, Duration.ofMinutes(1))
-                                .build())
-                        .build()
-        );
+        return authBuckets.get(ip, k -> newAuthBucket());
     }
 
     private Bucket getApiBucket(String ip) {
-        return apiBuckets.computeIfAbsent(ip, k ->
-                Bucket.builder()
-                        .addLimit(Bandwidth.builder()
-                                .capacity(60)
-                                .refillGreedy(60, Duration.ofMinutes(1))
-                                .build())
-                        .build()
-        );
+        return apiBuckets.get(ip, k -> newApiBucket());
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return "OPTIONS".equalsIgnoreCase(request.getMethod());
+        String method = request.getMethod();
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            return true;
+        }
+        String path = request.getRequestURI();
+        return path.startsWith("/actuator/health") || path.startsWith("/actuator/info");
     }
 
     @Override
