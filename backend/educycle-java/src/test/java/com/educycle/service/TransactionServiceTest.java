@@ -13,6 +13,7 @@ import com.educycle.model.Product;
 import com.educycle.model.Transaction;
 import com.educycle.model.User;
 import com.educycle.repository.ProductRepository;
+import com.educycle.config.JwtProperties;
 import com.educycle.repository.TransactionRepository;
 import com.educycle.repository.UserRepository;
 import com.educycle.service.impl.TransactionServiceImpl;
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +48,7 @@ class TransactionServiceTest {
     @Mock private UserRepository        userRepository;
     @Mock private NotificationService   notificationService;
 
-    @InjectMocks
+    private OtpHasher otpHasher;
     private TransactionServiceImpl transactionService;
 
     private User buyer, seller;
@@ -58,6 +59,11 @@ class TransactionServiceTest {
         buyer = buildUser(UUID.randomUUID(), "buyer@test.com");
         seller = buildUser(UUID.randomUUID(), "seller@test.com");
         product = buildProduct(UUID.randomUUID(), seller);
+        JwtProperties jwtProperties = new JwtProperties();
+        jwtProperties.setSecret("test-jwt-secret-at-least-32-characters-long!");
+        otpHasher = new OtpHasher("", jwtProperties);
+        transactionService = new TransactionServiceImpl(
+                transactionRepository, productRepository, userRepository, notificationService, otpHasher);
     }
 
     @Nested
@@ -72,7 +78,9 @@ class TransactionServiceTest {
 
             given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
             given(userRepository.findById(seller.getId())).willReturn(Optional.of(seller));
-            given(productRepository.findByIdWithUser(product.getId())).willReturn(Optional.of(product));
+            given(productRepository.findByIdWithUserForUpdate(product.getId())).willReturn(Optional.of(product));
+            given(transactionRepository.existsByProduct_IdAndStatusIn(eq(product.getId()), any()))
+                    .willReturn(false);
 
             TransactionResponse result = transactionService.create(req, buyer.getId());
 
@@ -94,6 +102,23 @@ class TransactionServiceTest {
                     .isInstanceOf(NotFoundException.class)
                     .hasMessageContaining("Không tìm thấy người mua");
         }
+
+        @Test
+        @DisplayName("should throw when product already has an active transaction")
+        void shouldThrow_whenProductHasActiveTransaction() {
+            CreateTransactionRequest req = new CreateTransactionRequest(
+                    product.getId(), seller.getId(), new BigDecimal("50.00"));
+
+            given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
+            given(userRepository.findById(seller.getId())).willReturn(Optional.of(seller));
+            given(productRepository.findByIdWithUserForUpdate(product.getId())).willReturn(Optional.of(product));
+            given(transactionRepository.existsByProduct_IdAndStatusIn(eq(product.getId()), any()))
+                    .willReturn(true);
+
+            assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessageContaining("đang có giao dịch");
+        }
     }
 
     @Nested
@@ -104,7 +129,7 @@ class TransactionServiceTest {
         @DisplayName("should complete transaction when OTP is valid")
         void shouldComplete_whenOtpValid() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
-            t.setOtpCode(OtpHasher.hash("123456"));
+            t.setOtpCode(otpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -121,7 +146,7 @@ class TransactionServiceTest {
         @DisplayName("should throw BadRequestException when OTP is wrong")
         void shouldThrow_whenOtpWrong() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
-            t.setOtpCode(OtpHasher.hash("123456"));
+            t.setOtpCode(otpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -135,7 +160,7 @@ class TransactionServiceTest {
         @DisplayName("should throw BadRequestException when OTP is expired")
         void shouldThrow_whenOtpExpired() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
-            t.setOtpCode(OtpHasher.hash("123456"));
+            t.setOtpCode(otpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES)); // expired
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -149,7 +174,7 @@ class TransactionServiceTest {
         @DisplayName("should throw ForbiddenException when caller is not seller")
         void shouldThrow_whenNotSeller() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
-            t.setOtpCode(OtpHasher.hash("123456"));
+            t.setOtpCode(otpHasher.hash("123456"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
 
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
@@ -193,7 +218,7 @@ class TransactionServiceTest {
         @DisplayName("should throw BadRequestException when OTP already active and not expired")
         void shouldThrow_whenOtpAlreadyActive() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
-            t.setOtpCode(OtpHasher.hash("111111"));
+            t.setOtpCode(otpHasher.hash("111111"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 

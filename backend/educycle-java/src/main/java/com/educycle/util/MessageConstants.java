@@ -46,6 +46,9 @@ public final class MessageConstants {
     public static final String PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
     public static final String TRANSACTION_NOT_FOUND = "Không tìm thấy giao dịch với id '%s'";
     public static final String PRODUCT_NOT_AVAILABLE_PREFIX = "Sản phẩm hiện không thể giao dịch (trạng thái: ";
+    /** Đã có giao dịch PENDING/ACCEPTED/MEETING/DISPUTED — chống double booking */
+    public static final String PRODUCT_HAS_ACTIVE_TRANSACTION =
+            "Sản phẩm đang có giao dịch đang xử lý. Vui lòng chọn sản phẩm khác hoặc thử lại sau.";
     public static final String INVALID_TRANSACTION_STATUS_PREFIX = "Trạng thái giao dịch không hợp lệ: ";
 
     public static final String CATEGORY_NOT_FOUND = "Không tìm thấy danh mục với id '%s'";

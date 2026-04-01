@@ -21,6 +21,7 @@ import com.educycle.service.NotificationService;
 import com.educycle.service.TransactionService;
 import com.educycle.util.MessageConstants;
 import com.educycle.util.OtpHasher;
+import com.educycle.util.PrivacyHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -43,8 +46,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final ProductRepository     productRepository;
     private final UserRepository        userRepository;
     private final NotificationService   notificationService;
+    private final OtpHasher             otpHasher;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    /** Giao dịch đang giữ sản phẩm — không cho tạo yêu cầu mua thứ hai */
+    private static final Set<TransactionStatus> ACTIVE_TRANSACTION_STATUSES = EnumSet.of(
+            TransactionStatus.PENDING,
+            TransactionStatus.ACCEPTED,
+            TransactionStatus.MEETING,
+            TransactionStatus.DISPUTED);
 
     @Override
     public TransactionResponse create(CreateTransactionRequest request, UUID buyerId) {
@@ -56,12 +67,16 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new NotFoundException(MessageConstants.BUYER_NOT_FOUND));
         User seller = userRepository.findById(request.sellerId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.SELLER_NOT_FOUND));
-        Product product = productRepository.findByIdWithUser(request.productId())
+        Product product = productRepository.findByIdWithUserForUpdate(request.productId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.PRODUCT_NOT_FOUND));
 
         if (product.getStatus() != ProductStatus.APPROVED) {
             throw new BadRequestException(
                     MessageConstants.PRODUCT_NOT_AVAILABLE_PREFIX + product.getStatus() + ")");
+        }
+
+        if (transactionRepository.existsByProduct_IdAndStatusIn(product.getId(), ACTIVE_TRANSACTION_STATUSES)) {
+            throw new BadRequestException(MessageConstants.PRODUCT_HAS_ACTIVE_TRANSACTION);
         }
 
         Transaction transaction = Transaction.builder()
@@ -257,7 +272,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
-        t.setOtpCode(OtpHasher.hash(otp));
+        t.setOtpCode(otpHasher.hash(otp));
         t.setOtpExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
         transactionRepository.save(t);
 
@@ -280,7 +295,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         if (t.getOtpCode() == null
-                || !OtpHasher.verify(otp, t.getOtpCode())
+                || !otpHasher.verify(otp, t.getOtpCode())
                 || t.getOtpExpiresAt() == null
                 || t.getOtpExpiresAt().isBefore(Instant.now())) {
             throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
@@ -428,14 +443,14 @@ public class TransactionServiceImpl implements TransactionService {
                 ? new TransactionResponse.TransactionUserDto(
                         t.getBuyer().getId().toString(),
                         t.getBuyer().getUsername(),
-                        t.getBuyer().getEmail())
+                        PrivacyHelper.maskEmail(t.getBuyer().getEmail()))
                 : null;
 
         TransactionResponse.TransactionUserDto seller = t.getSeller() != null
                 ? new TransactionResponse.TransactionUserDto(
                         t.getSeller().getId().toString(),
                         t.getSeller().getUsername(),
-                        t.getSeller().getEmail())
+                        PrivacyHelper.maskEmail(t.getSeller().getEmail()))
                 : null;
 
         // FIX: include description and category — FE needs both fields
