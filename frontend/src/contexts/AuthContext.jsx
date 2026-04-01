@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import { authApi, usersApi } from '../api/endpoints';
 import { clearAuthStorage, loadAuthSession } from '../utils/safeSession';
 
@@ -38,7 +45,41 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => loadAuthSession());
   const { user, token } = session;
 
-  // Giữ token trong React khớp localStorage sau silent refresh (axios interceptor)
+  const [authReady, setAuthReady] = useState(() => {
+    const s = loadAuthSession();
+    return !s.token;
+  });
+
+  /** Hydrate session: có JWT trong LS thì gọi /users/me trước khi coi phiên hợp lệ */
+  useEffect(() => {
+    const { token: t } = loadAuthSession();
+    if (!t) {
+      setAuthReady(true);
+      return undefined;
+    }
+    let cancelled = false;
+    usersApi
+      .getMe()
+      .then((res) => {
+        if (cancelled) return;
+        const nextUser = mapMeResponse(res.data);
+        const rt = localStorage.getItem('refreshToken');
+        persistSession(nextUser, t, rt);
+        setSession({ user: nextUser, token: t });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearAuthStorage();
+        setSession({ user: null, token: null });
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     const onTokenRefreshed = (e) => {
       const newToken = e.detail?.token;
@@ -53,19 +94,21 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('educycle:token-refreshed', onTokenRefreshed);
   }, []);
 
-  const loading = false;
+  const loading = !authReady;
 
-  const applySession = (nextUser, nextToken, refreshTokenValue = null) => {
+  const applySession = useCallback((nextUser, nextToken, refreshTokenValue = null) => {
     if (!nextUser || !nextToken) {
       clearAuthStorage();
       setSession({ user: null, token: null });
+      setAuthReady(true);
       return;
     }
     persistSession(nextUser, nextToken, refreshTokenValue);
     setSession({ user: nextUser, token: nextToken });
-  };
+    setAuthReady(true);
+  }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     if (!email || !password) throw new Error('Email và mật khẩu là bắt buộc');
     try {
       const res = await authApi.login({ email, password });
@@ -93,9 +136,9 @@ export function AuthProvider({ children }) {
         'Đăng nhập thất bại. Kiểm tra lại email và mật khẩu.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
-  };
+  }, [applySession]);
 
-  const register = async (username, email, password) => {
+  const register = useCallback(async (username, email, password) => {
     if (!username || !email || !password) throw new Error('Tất cả các trường là bắt buộc');
     try {
       const res = await authApi.register({ username, email, password });
@@ -114,9 +157,9 @@ export function AuthProvider({ children }) {
         'Đăng ký thất bại. Vui lòng thử lại.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
-  };
+  }, []);
 
-  const verifyOtp = async (email, otpCode) => {
+  const verifyOtp = useCallback(async (email, otpCode) => {
     if (!email || !otpCode) throw new Error('Email và mã OTP là bắt buộc');
     try {
       const res = await authApi.verifyOtp({ email, otp: otpCode });
@@ -144,22 +187,31 @@ export function AuthProvider({ children }) {
         'Mã OTP không đúng hoặc đã hết hạn.';
       throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
     }
-  };
+  }, [applySession]);
 
-  const resendOtp = async (email) => {
+  const resendOtp = useCallback(async (email) => {
     if (!email) throw new Error('Email là bắt buộc');
     const res = await authApi.resendOtp({ email });
     return res.data;
-  };
+  }, []);
 
-  const verifyPhone = async (phoneNumber) => {
+  const updateProfile = useCallback((updates) => {
+    setSession((s) => {
+      if (!s.user) return s;
+      const updated = { ...s.user, ...updates };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return { ...s, user: updated };
+    });
+  }, []);
+
+  const verifyPhone = useCallback(async (phoneNumber) => {
     if (!phoneNumber) throw new Error('Số điện thoại là bắt buộc');
     const res = await authApi.verifyPhone({ phone: phoneNumber });
     updateProfile({ phone: phoneNumber, phoneVerified: true });
     return res.data;
-  };
+  }, [updateProfile]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
       try {
@@ -170,19 +222,9 @@ export function AuthProvider({ children }) {
     }
     clearAuthStorage();
     setSession({ user: null, token: null });
-  };
+    setAuthReady(true);
+  }, []);
 
-  /** Merge cục bộ (OTP, phone) — dùng functional update tránh stale closure */
-  const updateProfile = (updates) => {
-    setSession((s) => {
-      if (!s.user) return s;
-      const updated = { ...s.user, ...updates };
-      localStorage.setItem('user', JSON.stringify(updated));
-      return { ...s, user: updated };
-    });
-  };
-
-  /** Đồng bộ đầy đủ từ BE sau khi đăng nhập hoặc vào trang hồ sơ */
   const refreshUser = useCallback(async () => {
     const res = await usersApi.getMe();
     const nextUser = mapMeResponse(res.data);
@@ -195,7 +237,6 @@ export function AuthProvider({ children }) {
     return nextUser;
   }, []);
 
-  /** Lưu hồ sơ lên server (PATCH /users/me) */
   const saveProfileToServer = useCallback(async ({ username, bio, avatar }) => {
     const res = await usersApi.patchMe({
       username,
@@ -216,7 +257,6 @@ export function AuthProvider({ children }) {
     await authApi.changePassword({ currentPassword, newPassword });
   }, []);
 
-  /** Sprint 3: PATCH /users/me/notification-preferences */
   const saveNotificationPrefsToServer = useCallback(
     async ({ notifyProductModeration, notifyTransactions, notifyMessages }) => {
       const res = await usersApi.patchNotificationPrefs({
@@ -239,27 +279,47 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const isAuthenticated = !!(token && user?.id);
 
+  const contextValue = useMemo(
+    () => ({
+      user,
+      token,
+      loading,
+      login,
+      register,
+      logout,
+      updateProfile,
+      refreshUser,
+      saveProfileToServer,
+      changePassword,
+      saveNotificationPrefsToServer,
+      verifyOtp,
+      resendOtp,
+      verifyPhone,
+      isAdmin,
+      isAuthenticated,
+    }),
+    [
+      user,
+      token,
+      loading,
+      isAdmin,
+      isAuthenticated,
+      login,
+      register,
+      logout,
+      updateProfile,
+      refreshUser,
+      saveProfileToServer,
+      changePassword,
+      saveNotificationPrefsToServer,
+      verifyOtp,
+      resendOtp,
+      verifyPhone,
+    ],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        login,
-        register,
-        logout,
-        updateProfile,
-        refreshUser,
-        saveProfileToServer,
-        changePassword,
-        saveNotificationPrefsToServer,
-        verifyOtp,
-        resendOtp,
-        verifyPhone,
-        isAdmin,
-        isAuthenticated,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
