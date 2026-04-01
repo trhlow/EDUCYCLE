@@ -5,8 +5,8 @@ import com.educycle.service.AiChatService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -30,11 +31,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 @RestController
 @RequestMapping("/api/ai")
-@RequiredArgsConstructor
 public class AiChatController {
 
     private final AiChatService aiChatService;
     private final AiChatRateLimiter aiChatRateLimiter;
+    private final ExecutorService aiChatSseExecutor;
+
+    public AiChatController(
+            AiChatService aiChatService,
+            AiChatRateLimiter aiChatRateLimiter,
+            @Qualifier("aiChatSseExecutor") ExecutorService aiChatSseExecutor) {
+        this.aiChatService = aiChatService;
+        this.aiChatRateLimiter = aiChatRateLimiter;
+        this.aiChatSseExecutor = aiChatSseExecutor;
+    }
 
     public record MessageDto(
             @NotBlank String role,
@@ -76,7 +86,7 @@ public class AiChatController {
         emitter.onTimeout(() -> clientClosed.set(true));
         emitter.onError(e -> clientClosed.set(true));
 
-        new Thread(() -> {
+        aiChatSseExecutor.submit(() -> {
             try {
                 aiChatService.streamChat(request.messages(), text -> {
                     if (clientClosed.get()) {
@@ -101,7 +111,7 @@ public class AiChatController {
                 }
                 emitter.completeWithError(e);
             }
-        }, "ai-chat-sse").start();
+        });
 
         return emitter;
     }

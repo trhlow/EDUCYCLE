@@ -158,14 +158,13 @@ public class AiChatService {
                 return "Xin lỗi, có lỗi xảy ra khi kết nối AI. Vui lòng thử lại sau.";
             }
 
-            // Parse response: data.content[0].text
-            var responseMap = MAPPER.readValue(response.body(), Map.class);
-            var content = (List<?>) responseMap.get("content");
-            if (content == null || content.isEmpty()) return "Xin lỗi, không nhận được phản hồi.";
-
-            var firstBlock = (Map<?, ?>) content.get(0);
-            String text = (String) firstBlock.get("text");
-            return text != null ? text : "Xin lỗi, không nhận được phản hồi.";
+            JsonNode root = MAPPER.readTree(response.body());
+            JsonNode content = root.path("content");
+            if (!content.isArray() || content.isEmpty()) {
+                return "Xin lỗi, không nhận được phản hồi.";
+            }
+            String text = content.get(0).path("text").asText("");
+            return !text.isEmpty() ? text : "Xin lỗi, không nhận được phản hồi.";
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
