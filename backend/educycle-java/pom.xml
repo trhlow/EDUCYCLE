@@ -121,6 +121,12 @@
             <version>8.10.1</version>
         </dependency>
 
+        <!-- In-memory cache TTL / max size (rate limit maps, AI limiter) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- Redis client — optional AI rate limit (educycle.redis.enabled=true) -->
         <dependency>
             <groupId>redis.clients</groupId>
