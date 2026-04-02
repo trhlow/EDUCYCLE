@@ -1,7 +1,8 @@
 # EduCycle — NOTES
 > **Nội bộ + AI:** trạng thái sprint, roadmap, bugs đã fix, git, FE↔BE mapping, UI rules.  
 > **Công khai / onboarding / clone:** [`README.md`](README.md) + mục lục tài liệu theo mục [`docs/README.md`](docs/README.md) (getting-started / architecture / guides).  
-> Rules IDE: `.cursor/rules/educycle.mdc` · **Kiến trúc + pitfall + đối chiếu audit:** [`ARCHITECTURE.md`](ARCHITECTURE.md) (§10).
+> Rules IDE: `.cursor/rules/educycle.mdc` · **Kiến trúc + pitfall + đối chiếu audit:** [`ARCHITECTURE.md`](ARCHITECTURE.md) (§10).  
+> **Review / UX plan (3 bước + template):** [`references/code-review.md`](references/code-review.md) · [`references/architecture.md`](references/architecture.md)
 
 ---
 
@@ -569,10 +570,19 @@ git push origin dev
 
 ## 8. PROMPT AI
 
+### Review code / security / performance / UX architecture
+
+**Ba hành động (áp dụng mọi lần nhờ AI hoặc người review):**
+
+1. **Chỉ rõ mục tiêu** — File, endpoint hoặc component (vd. `AiChatController`, `ProtectedRoute`), không mơ hồ “review hết”.
+2. **Chỉ rõ ưu tiên** — Một trọng tâm: bảo mật · bug · hiệu năng · UX/a11y · convention repo.
+3. **Dùng template** — Checklist: [`references/code-review.md`](references/code-review.md) · Kế hoạch UI/responsive/CWV: [`references/architecture.md`](references/architecture.md).
+
 ### Bắt đầu session mới
 ```
 Đọc D:\EDUCYCLE\NOTES.md — §1 (trạng thái), §2 (open tasks), §2.5 (chuẩn portfolio 2026 + đối chiếu tài liệu).
 Nếu câu hỏi về clone, env, Docker, CI: đối chiếu README.md (Testing & CI, Running the Application).
+Nếu review / plan UX: §8 (3 bước) + references/code-review.md hoặc references/architecture.md.
 Tóm tắt: đã có gì, còn thiếu gì, việc tiếp theo. Chưa cần code.
 ```
 

@@ -10,6 +10,8 @@
 | [architecture/](architecture/README.md) | Topology, auth, WebSocket — trỏ về `ARCHITECTURE.md` ở root; backlog tái thiết kế giao dịch: [architecture/transaction-redesign-2026.md](architecture/transaction-redesign-2026.md) |
 | [design/educycle/](design/educycle/MASTER.md) | Design system / override theo trang (token → `frontend/src/styles/tokens.css`) |
 | [guides/](guides/ai-chatbot.md) | Hướng dẫn theo tính năng (AI chatbot, [production TLS](guides/production-tls.md), …) |
+| [../references/code-review.md](../references/code-review.md) | Checklist review full-stack + **3 bước** trước khi review |
+| [../references/architecture.md](../references/architecture.md) | Kế hoạch UX/responsive/design system + **3 bước** trước khi plan |
 | [02-backend/](02-backend/README.md) | Ghi chú legacy / so sánh migration — **bản chính API:** [`backend/educycle-java/README.md`](../backend/educycle-java/README.md) |
 | [03-frontend/](03-frontend/README.md) | Tổng quan FE — **bản chính:** [`frontend/README.md`](../frontend/README.md) |
 
@@ -19,7 +21,7 @@
 |------|----------|
 | [README.md](../README.md) | Chạy app, cấu hình, API tóm tắt |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | Kiến trúc runtime, audit |
-| [NOTES.md](../NOTES.md) | Sprint, changelog, quy tắc nội bộ, FE↔BE |
+| [NOTES.md](../NOTES.md) | Sprint, changelog, quy tắc nội bộ, FE↔BE, §8 review/UX 3 bước |
 | [PROJECT-COMPLETION.md](PROJECT-COMPLETION.md) | Tổng hợp đã làm vs nợ prod (TLS, S3, GDPR, …) |
 | [SETUP_CHATBOT.md](../SETUP_CHATBOT.md) | AI chat — entry ngắn, chi tiết trong `guides/` |
 
