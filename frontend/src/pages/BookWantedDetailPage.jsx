@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookWantedApi } from '../api/endpoints';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
@@ -25,6 +25,43 @@ export default function BookWantedDetailPage() {
     },
   });
 
+  const statusForInquiries = post?.status?.toUpperCase() ?? '';
+  const ownerForInquiries =
+    isAuthenticated && user?.id && post?.requesterUserId != null
+      && String(post.requesterUserId) === String(user.id);
+
+  const { data: postInquiries = [] } = useQuery({
+    queryKey: ['book-wanted', id, 'inquiries'],
+    enabled: Boolean(id && ownerForInquiries && statusForInquiries === 'OPEN'),
+    queryFn: async () => {
+      const res = await bookWantedApi.listPostInquiries(id);
+      return Array.isArray(res.data) ? res.data : [];
+    },
+  });
+
+  const startInquiryMutation = useMutation({
+    mutationFn: async () => {
+      const res = await bookWantedApi.startInquiry(id);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      const iid = data?.id;
+      if (iid) navigate(`/book-wanted/inquiry/${iid}`);
+      else toast.error('Không lấy được mã cuộc trao đổi.');
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'Không bắt đầu được liên hệ.'));
+    },
+  });
+
+  const handleStartContact = () => {
+    if (!isAuthenticated) {
+      navigate('/auth', { state: { from: `/book-wanted/${id}` } });
+      return;
+    }
+    startInquiryMutation.mutate();
+  };
+
   const statusCode = error?.response?.status;
   const status = post?.status?.toUpperCase() ?? 'OPEN';
   const ownerId = post?.requesterUserId != null ? String(post.requesterUserId) : '';
@@ -35,6 +72,7 @@ export default function BookWantedDetailPage() {
       await bookWantedApi.update(id, { status: 'CLOSED' });
       toast.success('Đã đóng tin.');
       queryClient.invalidateQueries({ queryKey: ['book-wanted'] });
+      queryClient.invalidateQueries({ queryKey: ['book-wanted', id, 'inquiries'] });
       setConfirmAction(null);
       navigate('/book-wanted/mine');
     } catch (err) {
@@ -119,6 +157,51 @@ export default function BookWantedDetailPage() {
             </>
           )}
         </p>
+
+        {!isOwner && status === 'OPEN' && (
+          <div style={{ marginTop: 'var(--space-6)' }}>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>
+              Bạn có đúng sách hoặc tài liệu người này đang tìm? Hãy mở cuộc trao đổi để nhắn tin trực tiếp (tương tự trao đổi khi mua sách).
+            </p>
+            <button
+              type="button"
+              className="bw-btn bw-btn--primary"
+              onClick={handleStartContact}
+              disabled={startInquiryMutation.isPending}
+              aria-label="Báo có sách và mở nhắn tin với người đăng tin"
+            >
+              {startInquiryMutation.isPending ? 'Đang mở…' : 'Báo có sách — nhắn tin'}
+            </button>
+          </div>
+        )}
+
+        {isOwner && status === 'OPEN' && postInquiries.length > 0 && (
+          <section style={{ marginTop: 'var(--space-8)' }} aria-labelledby="bw-inquiries-heading">
+            <h2 id="bw-inquiries-heading" className="bw-page__title" style={{ fontSize: 'var(--text-lg)' }}>
+              Người đã liên hệ
+            </h2>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+              Các tài khoản báo có thể giúp bạn tìm sách. Vào chat để trao đổi chi tiết.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {postInquiries.map((row) => (
+                <li key={row.inquiryId} className="bw-inquiry-row">
+                  <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                    <strong>{row.responderMaskedUsername || 'Ẩn danh'}</strong>
+                    {row.createdAt && (
+                      <span style={{ color: 'var(--text-tertiary)', marginLeft: 'var(--space-2)' }}>
+                        · {new Date(row.createdAt).toLocaleString('vi-VN')}
+                      </span>
+                    )}
+                  </span>
+                  <Link to={`/book-wanted/inquiry/${row.inquiryId}`} className="bw-btn bw-btn--primary">
+                    Mở chat
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {isOwner && !confirmAction && (
           <div className="bw-detail__actions">

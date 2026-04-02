@@ -48,6 +48,12 @@ export const bookWantedApi = {
   create:   (data)   => api.post('/book-wanted', data),
   update:   (id, data) => api.patch(`/book-wanted/${id}`, data),
   delete:   (id)     => api.delete(`/book-wanted/${id}`),
+  /** Người có sách bắt đầu / mở lại cuộc trao đổi với chủ tin */
+  startInquiry: (postId) => api.post(`/book-wanted/${postId}/inquiries`),
+  listPostInquiries: (postId) => api.get(`/book-wanted/${postId}/inquiries`),
+  getInquiry: (inquiryId) => api.get(`/book-wanted/inquiries/${inquiryId}`),
+  getInquiryMessages: (inquiryId) => api.get(`/book-wanted/inquiries/${inquiryId}/messages`),
+  sendInquiryMessage: (inquiryId, data) => api.post(`/book-wanted/inquiries/${inquiryId}/messages`, data),
 };
 
 // ─── Categories ──────────────────────────────────────
@@ -103,6 +109,9 @@ export const notificationsApi = {
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
   getUsers: () => api.get('/admin/users'),
+  getUser: (id) => api.get(`/admin/users/${id}`),
+  createUser: (data) => api.post('/admin/users', data),
+  updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
   getDisputedTransactions: () => api.get('/admin/transactions/disputed'),
   resolveDisputedTransaction: (id, data) => api.patch(`/admin/transactions/${id}/resolve`, data),
 };

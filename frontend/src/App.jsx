@@ -24,6 +24,7 @@ const BookWantedListPage = lazy(() => import('./pages/BookWantedListPage'));
 const BookWantedDetailPage = lazy(() => import('./pages/BookWantedDetailPage'));
 const BookWantedFormPage = lazy(() => import('./pages/BookWantedFormPage'));
 const BookWantedMinePage = lazy(() => import('./pages/BookWantedMinePage'));
+const BookWantedInquiryChatPage = lazy(() => import('./pages/BookWantedInquiryChatPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserPublicProfilePage = lazy(() => import('./pages/UserPublicProfilePage'));
 
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="products/:id" element={<SuspenseWrapper><ProductDetailPage /></SuspenseWrapper>} />
         <Route path="book-wanted/mine" element={<SuspenseWrapper><ProtectedRoute><BookWantedMinePage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="book-wanted/new" element={<SuspenseWrapper><ProtectedRoute><BookWantedFormPage /></ProtectedRoute></SuspenseWrapper>} />
+        <Route path="book-wanted/inquiry/:inquiryId" element={<SuspenseWrapper><ProtectedRoute><BookWantedInquiryChatPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="book-wanted/:id/edit" element={<SuspenseWrapper><ProtectedRoute><BookWantedFormPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="book-wanted/:id" element={<SuspenseWrapper><BookWantedDetailPage /></SuspenseWrapper>} />
         <Route path="book-wanted" element={<SuspenseWrapper><BookWantedListPage /></SuspenseWrapper>} />
