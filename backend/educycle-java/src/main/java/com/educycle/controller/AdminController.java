@@ -1,6 +1,9 @@
 package com.educycle.controller;
 
+import com.educycle.dto.admin.AdminCreateUserRequest;
 import com.educycle.dto.admin.AdminResolveTransactionRequest;
+import com.educycle.dto.admin.AdminUpdateUserRequest;
+import com.educycle.dto.admin.AdminUserDetailResponse;
 import com.educycle.dto.admin.AdminUserSummaryResponse;
 import com.educycle.dto.admin.DashboardStatsResponse;
 import com.educycle.dto.transaction.TransactionResponse;
@@ -10,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +40,24 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserSummaryResponse>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<AdminUserDetailResponse> getUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(adminService.getUserById(id));
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<AdminUserDetailResponse> createUser(@Valid @RequestBody AdminCreateUserRequest request) {
+        return ResponseEntity.ok(adminService.createUser(request));
+    }
+
+    @PatchMapping("/users/{id}")
+    public ResponseEntity<AdminUserDetailResponse> updateUser(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String adminUserId,
+            @Valid @RequestBody AdminUpdateUserRequest request) {
+        return ResponseEntity.ok(adminService.updateUser(id, request, UUID.fromString(adminUserId)));
     }
 
     @GetMapping("/transactions/disputed")

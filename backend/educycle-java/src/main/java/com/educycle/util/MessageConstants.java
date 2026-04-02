@@ -116,4 +116,8 @@ public final class MessageConstants {
     public static final String BOOK_WANTED_INQUIRY_NOT_FOUND = "Không tìm thấy cuộc trao đổi tìm sách.";
     public static final String BOOK_WANTED_INQUIRY_NOT_PARTICIPANT =
             "Chỉ người đăng tin hoặc người liên hệ mới xem được tin nhắn này.";
+
+    public static final String ADMIN_CANNOT_DEMOTE_SELF =
+            "Không thể tự bỏ quyền quản trị của chính mình.";
+    public static final String ADMIN_USERNAME_TAKEN = "Tên người dùng đã được sử dụng.";
 }
