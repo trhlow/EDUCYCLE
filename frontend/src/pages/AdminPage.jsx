@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { formatPrice, formatDate } from '../utils/format';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import EduCycleLogo from '../components/branding/EduCycleLogo';
 import { useToast } from '../components/Toast';
 import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api/endpoints';
-import { maskEmail } from '../utils/maskUsername'; // Issue #7
+import { getApiErrorMessage } from '../utils/apiError';
 import './AdminPage.css';
 
 /** Sprint 3: từ chối tin kèm lý do (notify seller từ BE) */
@@ -366,22 +366,203 @@ function AdminOverview({ onNavigate }) {
   );
 }
 
-/* ═══ AdminUsers — Issue #7: mask email ═══ */
-function AdminUsers() {
-  const [users,   setUsers]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
+/** Form thêm / sửa user — chỉ admin; email .edu.vn theo quy tắc đăng ký */
+function AdminUserFormModal({ open, mode, userId, onClose, onSaved }) {
+  const toast = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  const [loadDetail, setLoadDetail] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('USER');
+  const [emailVerified, setEmailVerified] = useState(true);
+  const [tradingAllowed, setTradingAllowed] = useState(true);
 
   useEffect(() => {
-    adminApi.getUsers()
-      .then(res => setUsers(Array.isArray(res.data) ? res.data : []))
-      .catch(() => setUsers([]))
-      .finally(() => setLoading(false));
-  }, []);
+    if (!open) return;
+    setPassword('');
+    if (mode === 'create') {
+      setUsername('');
+      setEmail('');
+      setRole('USER');
+      setEmailVerified(true);
+      setTradingAllowed(true);
+      return;
+    }
+    setLoadDetail(true);
+    adminApi.getUser(userId)
+      .then((res) => {
+        const d = res.data;
+        setUsername(d.username || '');
+        setEmail(d.email || '');
+        setRole((d.role || 'USER').toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER');
+        setEmailVerified(!!d.emailVerified);
+        setTradingAllowed(d.tradingAllowed !== false);
+      })
+      .catch(() => toast.error('Không tải được người dùng.'))
+      .finally(() => setLoadDetail(false));
+  }, [open, mode, userId, toast]);
 
-  const filtered = users.filter(u => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (username.trim().length < 3) {
+      toast.error('Tên người dùng ít nhất 3 ký tự.');
+      return;
+    }
+    if (mode === 'create' && password.length < 8) {
+      toast.error('Mật khẩu tạo mới cần ít nhất 8 ký tự.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      if (mode === 'create') {
+        await adminApi.createUser({
+          username: username.trim(),
+          email: email.trim(),
+          password,
+          role,
+          emailVerified,
+        });
+        toast.success('Đã tạo tài khoản.');
+      } else {
+        const body = {
+          username: username.trim(),
+          email: email.trim(),
+          role,
+          emailVerified,
+          tradingAllowed,
+        };
+        if (password.trim().length >= 8) body.password = password.trim();
+        await adminApi.updateUser(userId, body);
+        toast.success('Đã cập nhật tài khoản.');
+      }
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Thao tác thất bại.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 9999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
+      }}
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        style={{
+          background: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', maxWidth: 480, width: '100%',
+          padding: 'var(--space-6)', boxShadow: 'var(--shadow-xl)', maxHeight: '90vh', overflowY: 'auto',
+        }}
+        onClick={(ev) => ev.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-user-modal-title"
+      >
+        <h3 id="admin-user-modal-title" style={{ marginTop: 0 }}>
+          {mode === 'create' ? 'Thêm người dùng' : 'Sửa người dùng'}
+        </h3>
+        {mode === 'edit' && loadDetail ? (
+          <p style={{ color: 'var(--text-secondary)' }}>Đang tải…</p>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-1)' }}>Tên người dùng</label>
+            <input
+              className="admin-search"
+              style={{ width: '100%', marginBottom: 'var(--space-3)', boxSizing: 'border-box' }}
+              value={username}
+              onChange={(ev) => setUsername(ev.target.value)}
+              required
+              minLength={3}
+              maxLength={50}
+              autoComplete="username"
+            />
+            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-1)' }}>Email (.edu.vn)</label>
+            <input
+              className="admin-search"
+              type="email"
+              style={{ width: '100%', marginBottom: 'var(--space-3)', boxSizing: 'border-box' }}
+              value={email}
+              onChange={(ev) => setEmail(ev.target.value)}
+              required
+              autoComplete="email"
+            />
+            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-1)' }}>
+              {mode === 'create' ? 'Mật khẩu' : 'Mật khẩu mới (để trống nếu giữ nguyên)'}
+            </label>
+            <input
+              className="admin-search"
+              type="password"
+              style={{ width: '100%', marginBottom: 'var(--space-3)', boxSizing: 'border-box' }}
+              value={password}
+              onChange={(ev) => setPassword(ev.target.value)}
+              required={mode === 'create'}
+              minLength={mode === 'create' ? 8 : 0}
+              autoComplete={mode === 'create' ? 'new-password' : 'new-password'}
+            />
+            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 'var(--space-1)' }}>Vai trò</label>
+            <select
+              className="admin-search"
+              style={{ width: '100%', marginBottom: 'var(--space-3)', boxSizing: 'border-box' }}
+              value={role}
+              onChange={(ev) => setRole(ev.target.value)}
+              aria-label="Vai trò"
+            >
+              <option value="USER">Người dùng</option>
+              <option value="ADMIN">Quản trị</option>
+            </select>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={emailVerified} onChange={(ev) => setEmailVerified(ev.target.checked)} />
+              Email đã xác thực (cho phép đăng nhập ngay)
+            </label>
+            {mode === 'edit' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={tradingAllowed} onChange={(ev) => setTradingAllowed(ev.target.checked)} />
+                Được phép giao dịch mua/bán trên sàn
+              </label>
+            )}
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
+              <button type="button" className="admin-btn" onClick={onClose} disabled={submitting}>Hủy</button>
+              <button type="submit" className="admin-btn" style={{ background: 'var(--primary-500)', color: 'var(--neutral-0)' }} disabled={submitting}>
+                {submitting ? 'Đang lưu…' : 'Lưu'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdminUsers() {
+  const toast = useToast();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [userModal, setUserModal] = useState(null);
+
+  const fetchUsers = useCallback(() => {
+    setLoading(true);
+    adminApi.getUsers()
+      .then((res) => setUsers(Array.isArray(res.data) ? res.data : []))
+      .catch(() => {
+        setUsers([]);
+        toast.error('Không tải được danh sách người dùng.');
+      })
+      .finally(() => setLoading(false));
+  }, [toast]);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const filtered = users.filter((u) => {
     const q = search.toLowerCase();
-    // search on username only — not email (privacy)
     return !q || (u.username || '').toLowerCase().includes(q);
   });
 
@@ -390,44 +571,61 @@ function AdminUsers() {
       <h1 className="admin-page-title">Quản Lý Người Dùng</h1>
       <div className="admin-section">
         <div className="admin-section-header">
-          <div className="admin-section-actions">
-            <input className="admin-search" type="text" placeholder="Tìm theo tên người dùng..." value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="admin-section-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', alignItems: 'center' }}>
+            <input className="admin-search" type="text" placeholder="Tìm theo tên người dùng..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <button type="button" className="admin-btn" style={{ background: 'var(--primary-500)', color: 'var(--neutral-0)' }} onClick={() => setUserModal({ mode: 'create' })}>
+              Thêm người dùng
+            </button>
           </div>
         </div>
-        {/* Issue #7: note about email masking */}
-        <p style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)', padding:'0 0 var(--space-3) 0' }}>
-          Email được mã hoá để bảo vệ quyền riêng tư. Tìm kiếm chỉ theo tên người dùng.
+        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', padding: '0 0 var(--space-3) 0' }}>
+          Danh sách hiển thị email đã ẩn một phần. Khi sửa, bạn xem email đầy đủ trong form.
         </p>
+        <AdminUserFormModal
+          open={!!userModal}
+          mode={userModal?.mode || 'create'}
+          userId={userModal?.userId}
+          onClose={() => setUserModal(null)}
+          onSaved={fetchUsers}
+        />
         {loading ? (
-          <div style={{ textAlign:'center', padding:'2rem' }}>Đang tải…</div>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải…</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'2rem', color:'var(--text-muted)' }}>Không có người dùng nào</div>
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Không có người dùng nào</div>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Tên người dùng</th>
-                {/* Issue #7: show masked email, not full email */}
                 <th>Email (ẩn)</th>
-                <th>Vai Trò</th>
+                <th>Vai trò</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(u => (
+              {filtered.map((u) => (
                 <tr key={u.id || u.userId}>
-                  <td style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)' }}>
+                  <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
                     {String(u.id || u.userId).substring(0, 8)}...
                   </td>
-                  <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{u.username}</td>
-                  {/* Issue #7: masked email */}
-                  <td style={{ color:'var(--text-secondary)', fontFamily:'var(--font-mono)', fontSize:'var(--text-xs)' }}>
-                    {maskEmail(u.email)}
+                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{u.username}</td>
+                  <td style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+                    {u.email}
                   </td>
                   <td>
                     <span className={`admin-status ${u.role?.toUpperCase() === 'ADMIN' ? 'admin-status-active' : 'admin-status-pending'}`}>
                       {u.role?.toUpperCase() === 'ADMIN' ? 'Quản trị' : 'Người dùng'}
                     </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="admin-btn"
+                      onClick={() => setUserModal({ mode: 'edit', userId: u.id || u.userId })}
+                    >
+                      Sửa
+                    </button>
                   </td>
                 </tr>
               ))}
