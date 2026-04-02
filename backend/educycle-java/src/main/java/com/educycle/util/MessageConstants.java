@@ -109,4 +109,11 @@ public final class MessageConstants {
     /** Lý do hệ thống khi job định kỳ hủy ACCEPTED/MEETING quá hạn */
     public static final String TRANSACTION_EXPIRED_ACCEPTED_SYSTEM =
             "Hết hạn tự động: giao dịch chưa hoàn tất (OTP) trong thời gian cho phép.";
+
+    public static final String BOOK_WANTED_CANNOT_CONTACT_SELF =
+            "Bạn không thể tự liên hệ với chính tin tìm sách của mình.";
+    public static final String BOOK_WANTED_POST_NOT_OPEN = "Tin tìm sách không còn mở để liên hệ.";
+    public static final String BOOK_WANTED_INQUIRY_NOT_FOUND = "Không tìm thấy cuộc trao đổi tìm sách.";
+    public static final String BOOK_WANTED_INQUIRY_NOT_PARTICIPANT =
+            "Chỉ người đăng tin hoặc người liên hệ mới xem được tin nhắn này.";
 }

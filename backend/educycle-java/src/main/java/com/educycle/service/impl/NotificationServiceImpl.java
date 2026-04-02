@@ -62,7 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return switch (type) {
             case "PRODUCT_APPROVED", "PRODUCT_REJECTED" -> user.isNotifyProductModeration();
-            case "NEW_MESSAGE" -> user.isNotifyMessages();
+            case "NEW_MESSAGE", "BOOK_WANTED_INQUIRY" -> user.isNotifyMessages();
             default -> user.isNotifyTransactions();
         };
     }
