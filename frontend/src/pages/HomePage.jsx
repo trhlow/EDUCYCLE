@@ -7,7 +7,23 @@ import { productsApi } from '../api/endpoints';
 import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
-import { IconHeart, IconHeartFilled, IconX } from '../components/icons/Icons';
+import {
+  IconHeart,
+  IconHeartFilled,
+  IconX,
+  IconBookOpen,
+  IconArrowsLeftRight,
+  IconShieldCheck,
+  IconUsers,
+  IconUpload,
+  IconSearch,
+  IconHandshake,
+  IconArrowRight,
+  IconSealCheck,
+  IconGraduationCap,
+  IconTag,
+  IconGift,
+} from '../components/icons/Icons';
 import './HomePage.css';
 
 /* ── Scroll-reveal ── */
@@ -52,6 +68,40 @@ const priceLine = (p) => {
   return `${Number(p.price).toLocaleString('vi-VN')}đ`;
 };
 
+/* ── Animated counter ── */
+function AnimatedCounter({ target, suffix = '', duration = 1800 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && !started.current) {
+          started.current = true;
+          const steps = 60;
+          const increment = target / steps;
+          let current = 0;
+          const interval = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              setCount(target);
+              clearInterval(interval);
+            } else {
+              setCount(Math.floor(current));
+            }
+          }, duration / steps);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [target, duration]);
+
+  return <span ref={ref}>{count.toLocaleString('vi-VN')}{suffix}</span>;
+}
+
 export default function HomePage() {
   const productsRef = useRef(null);
   const location = useLocation();
@@ -88,12 +138,7 @@ export default function HomePage() {
   const { data: heroPage, isPending: heroSpotlightLoading } = useQuery({
     queryKey: ['products', 'hero-spotlight'],
     queryFn: async () => {
-      const res = await productsApi.getAll({
-        page: 0,
-        size: 12,
-        direction: 'desc',
-        sort: 'newest',
-      });
+      const res = await productsApi.getAll({ page: 0, size: 12, direction: 'desc', sort: 'newest' });
       return extractPage(res);
     },
     staleTime: 60_000,
@@ -101,18 +146,14 @@ export default function HomePage() {
 
   const heroSpotlights = useMemo(() => {
     const raw = heroPage?.content ?? [];
-    const cards = raw.map(mapApiProductToCard);
-    return cards.slice(0, HERO_SPOTLIGHT_COUNT);
+    return raw.map(mapApiProductToCard).slice(0, HERO_SPOTLIGHT_COUNT);
   }, [heroPage]);
 
   const handleCategoryChipClick = (val) => {
     setSelectedCat(val);
     const next = new URLSearchParams(searchParams);
-    if (val === 'all') {
-      next.delete('category');
-    } else {
-      next.set('category', val);
-    }
+    if (val === 'all') next.delete('category');
+    else next.set('category', val);
     setSearchParams(next, { replace: true });
   };
 
@@ -122,10 +163,8 @@ export default function HomePage() {
     if (t) params.q = t;
     if (selectedCat !== 'all') params.category = selectedCat;
     if (priceRange === 'under50k') params.priceMax = 49999.99;
-    else if (priceRange === '50kto100k') {
-      params.priceMin = 50000;
-      params.priceMax = 99999.99;
-    } else if (priceRange === 'over100k') params.priceMin = 100000;
+    else if (priceRange === '50kto100k') { params.priceMin = 50000; params.priceMax = 99999.99; }
+    else if (priceRange === 'over100k') params.priceMin = 100000;
     return params;
   }, [searchQuery, selectedCat, priceRange, sortBy]);
 
@@ -172,6 +211,7 @@ export default function HomePage() {
   return (
     <div className="hp">
 
+      {/* ══ HERO ════════════════════════════════════════ */}
       <section className="hp-hero" aria-labelledby="hp-hero-title">
         <div className="hp-hero__shapes">
           <div className="hp-hero__blob hp-hero__blob--a" />
@@ -180,25 +220,32 @@ export default function HomePage() {
 
         <div className="hp-hero__body">
           <div className="hp-hero__left">
+            <div className="hp-hero__badge">
+              <IconSealCheck size={14} />
+              Nền tảng trao đổi tài liệu sinh viên
+            </div>
             <h1 id="hp-hero-title" className="hp-hero__h1">
               Sách &amp; tài liệu
               <br />
-              giữa sinh viên
+              <span className="hp-hero__h1-accent">giữa sinh viên</span>
             </h1>
             <p className="hp-hero__sub">
               Mua bán trực tiếp, xác nhận OTP tại chỗ. Không phí nền tảng.
             </p>
             <div className="hp-hero__cta">
               <button type="button" className="hp-btn hp-btn--solid" onClick={scrollToProducts}>
-                Tìm sách
+                Tìm sách ngay
+                <IconArrowRight size={16} />
               </button>
               <Link to="/auth" className="hp-btn hp-btn--ghost">
                 Bắt đầu bán
               </Link>
             </div>
-            <p className="hp-hero__trust">
-              OTP tại chỗ · Uy tín sau giao dịch · Danh mục đa dạng
-            </p>
+            <div className="hp-hero__trust-chips">
+              <span className="hp-trust-chip"><IconShieldCheck size={13} /> OTP tại chỗ</span>
+              <span className="hp-trust-chip"><IconUsers size={13} /> Sinh viên xác thực</span>
+              <span className="hp-trust-chip"><IconTag size={13} /> Không phí nền tảng</span>
+            </div>
           </div>
 
           <div className="hp-hero__right">
@@ -216,8 +263,7 @@ export default function HomePage() {
                       </Link>
                     </div>
                     )
-                  : (
-                    heroSpotlights.map((p, i) => (
+                  : heroSpotlights.map((p, i) => (
                       <Link
                         key={p.id}
                         to={`/products/${p.id}`}
@@ -226,15 +272,7 @@ export default function HomePage() {
                       >
                         <div className="hp-spotlight__media">
                           {p.imageUrl ? (
-                            <img
-                              src={p.imageUrl}
-                              alt=""
-                              className="hp-spotlight__img"
-                              loading="lazy"
-                              decoding="async"
-                              width={200}
-                              height={150}
-                            />
+                            <img src={p.imageUrl} alt="" className="hp-spotlight__img" loading="lazy" decoding="async" width={200} height={150} />
                           ) : (
                             <div className="hp-spotlight__placeholder">Chưa có ảnh</div>
                           )}
@@ -245,13 +283,167 @@ export default function HomePage() {
                         </div>
                       </Link>
                     ))
-                    )}
+              }
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ PRODUCT LISTING ══════════════════════════ */}
+      {/* ══ STATS BAR ════════════════════════════════════ */}
+      <section className="hp-stats" aria-label="Thống kê nền tảng">
+        <div className="hp-stats__inner">
+          <div className="hp-stat-item">
+            <span className="hp-stat-num">
+              <AnimatedCounter target={totalElements > 0 ? totalElements : 1200} suffix="+" />
+            </span>
+            <span className="hp-stat-label">Tài liệu đăng bán</span>
+          </div>
+          <div className="hp-stat-divider" aria-hidden="true" />
+          <div className="hp-stat-item">
+            <span className="hp-stat-num"><AnimatedCounter target={850} suffix="+" /></span>
+            <span className="hp-stat-label">Sinh viên tham gia</span>
+          </div>
+          <div className="hp-stat-divider" aria-hidden="true" />
+          <div className="hp-stat-item">
+            <span className="hp-stat-num"><AnimatedCounter target={430} suffix="+" /></span>
+            <span className="hp-stat-label">Giao dịch thành công</span>
+          </div>
+          <div className="hp-stat-divider" aria-hidden="true" />
+          <div className="hp-stat-item">
+            <span className="hp-stat-num"><AnimatedCounter target={0} suffix="đ" /></span>
+            <span className="hp-stat-label">Phí nền tảng</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ HOW IT WORKS ═════════════════════════════════ */}
+      <section className="hp-how" aria-labelledby="hp-how-title">
+        <div className="hp-how__inner">
+          <Reveal>
+            <div className="hp-section-header">
+              <span className="hp-section-badge">Đơn giản & nhanh chóng</span>
+              <h2 id="hp-how-title" className="hp-section-h2">Cách hoạt động</h2>
+              <p className="hp-section-sub">Ba bước để bắt đầu trao đổi tài liệu với sinh viên khác</p>
+            </div>
+          </Reveal>
+
+          <div className="hp-how__steps">
+            <Reveal delay={0}>
+              <div className="hp-how-step">
+                <div className="hp-how-step__icon-wrap hp-how-step__icon-wrap--blue">
+                  <IconUpload size={28} />
+                </div>
+                <div className="hp-how-step__num">01</div>
+                <h3 className="hp-how-step__title">Đăng tài liệu</h3>
+                <p className="hp-how-step__desc">
+                  Chụp ảnh và đăng sách, giáo trình, tài liệu bạn không còn dùng. Miễn phí hoàn toàn.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="hp-how__connector" aria-hidden="true">
+              <div className="hp-how__connector-line" />
+              <IconArrowRight size={18} />
+            </div>
+
+            <Reveal delay={120}>
+              <div className="hp-how-step">
+                <div className="hp-how-step__icon-wrap hp-how-step__icon-wrap--green">
+                  <IconSearch size={28} />
+                </div>
+                <div className="hp-how-step__num">02</div>
+                <h3 className="hp-how-step__title">Tìm & liên hệ</h3>
+                <p className="hp-how-step__desc">
+                  Tìm tài liệu cần thiết, lọc theo danh mục và giá, rồi nhắn tin trực tiếp với người bán.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="hp-how__connector" aria-hidden="true">
+              <div className="hp-how__connector-line" />
+              <IconArrowRight size={18} />
+            </div>
+
+            <Reveal delay={240}>
+              <div className="hp-how-step">
+                <div className="hp-how-step__icon-wrap hp-how-step__icon-wrap--orange">
+                  <IconHandshake size={28} />
+                </div>
+                <div className="hp-how-step__num">03</div>
+                <h3 className="hp-how-step__title">Giao dịch OTP</h3>
+                <p className="hp-how-step__desc">
+                  Gặp mặt trao đổi, xác nhận OTP tại chỗ để đảm bảo giao dịch an toàn cho cả hai bên.
+                </p>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ WHY EDUCYCLE ══════════════════════════════════ */}
+      <section className="hp-why" aria-labelledby="hp-why-title">
+        <div className="hp-why__inner">
+          <Reveal>
+            <div className="hp-section-header">
+              <span className="hp-section-badge">Lợi ích</span>
+              <h2 id="hp-why-title" className="hp-section-h2">Tại sao chọn EduCycle?</h2>
+            </div>
+          </Reveal>
+
+          <div className="hp-why__grid">
+            {[
+              {
+                icon: <IconBookOpen size={24} />,
+                color: 'blue',
+                title: 'Tài liệu đa dạng',
+                desc: 'Sách giáo trình, đề cương, tài liệu tham khảo đủ mọi ngành học từ sinh viên các trường.',
+              },
+              {
+                icon: <IconArrowsLeftRight size={24} />,
+                color: 'green',
+                title: 'Bán, mua & tặng',
+                desc: 'Linh hoạt: bán lại, trao đổi ngang giá, hoặc tặng miễn phí cho sinh viên khó khăn.',
+              },
+              {
+                icon: <IconShieldCheck size={24} />,
+                color: 'blue',
+                title: 'Giao dịch an toàn',
+                desc: 'Xác minh OTP tại điểm giao dịch. Không lo bị lừa, không mất tiền oan.',
+              },
+              {
+                icon: <IconGraduationCap size={24} />,
+                color: 'orange',
+                title: 'Dành cho sinh viên',
+                desc: 'Được xây dựng bởi sinh viên, dành cho sinh viên. Hiểu rõ nhu cầu và thực tế học tập.',
+              },
+              {
+                icon: <IconTag size={24} />,
+                color: 'green',
+                title: 'Tiết kiệm chi phí',
+                desc: 'Mua tài liệu cũ giá hợp lý, giảm gánh nặng học phí. Cả người mua lẫn người bán đều lợi.',
+              },
+              {
+                icon: <IconGift size={24} />,
+                color: 'orange',
+                title: 'Không phí nền tảng',
+                desc: 'Đăng và giao dịch hoàn toàn miễn phí. Tiền về tay bạn, không qua trung gian.',
+              },
+            ].map((item, i) => (
+              <Reveal key={item.title} delay={i * 60}>
+                <article className={`hp-why-card hp-why-card--${item.color}`}>
+                  <div className={`hp-why-card__icon hp-why-card__icon--${item.color}`}>
+                    {item.icon}
+                  </div>
+                  <h3 className="hp-why-card__title">{item.title}</h3>
+                  <p className="hp-why-card__desc">{item.desc}</p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ PRODUCT LISTING ══════════════════════════════ */}
       <section className="hp-products-section" ref={productsRef} id="products">
         <div className="hp-products-header">
           <Reveal>
@@ -296,13 +488,7 @@ export default function HomePage() {
                   onChange={e => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="hp-search-clear"
-                    type="button"
-                    aria-label="Xóa từ khóa tìm kiếm"
-                    title="Xóa từ khóa"
-                  >
+                  <button onClick={() => setSearchQuery('')} className="hp-search-clear" type="button" aria-label="Xóa từ khóa tìm kiếm" title="Xóa từ khóa">
                     <IconX size={18} />
                   </button>
                 )}
@@ -353,23 +539,20 @@ export default function HomePage() {
               <Reveal key={product.id} delay={Math.min(i % 6 * 40, 180)}>
                 <Link to={`/products/${product.id}`} className="hp-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="hp-product-card__img">
-                    {product.imageUrl
-                      ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          loading="lazy"
-                          decoding="async"
-                          width={400}
-                          height={300}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        )
-                      : null
-                    }
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        loading="lazy"
+                        decoding="async"
+                        width={400}
+                        height={300}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
                     <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>Chưa có ảnh</div>
                     <div className="hp-product-card__cat">{product.category}</div>
                     <button
@@ -387,7 +570,7 @@ export default function HomePage() {
                     <p className="hp-product-card__desc">{product.description}</p>
                     <div className="hp-product-card__footer">
                       <div className="hp-product-card__price">{formatPrice(product.price, product.priceType)}</div>
-                      {product.rating > 0 && <div className="hp-product-card__rating">{product.rating}/5</div>}
+                      {product.rating > 0 && <div className="hp-product-card__rating">⭐ {product.rating}/5</div>}
                     </div>
                     <div className="hp-product-card__seller">bởi {product.seller}</div>
                   </div>
@@ -396,6 +579,7 @@ export default function HomePage() {
             ))}
           </div>
         )}
+
         {!loading && !last && products.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-8)' }}>
             <button
@@ -408,6 +592,27 @@ export default function HomePage() {
             </button>
           </div>
         )}
+      </section>
+
+      {/* ══ BOTTOM CTA ════════════════════════════════════ */}
+      <section className="hp-cta-section" aria-labelledby="hp-cta-title">
+        <div className="hp-cta__inner">
+          <Reveal>
+            <div className="hp-cta__blob" aria-hidden="true" />
+            <h2 id="hp-cta-title" className="hp-cta__title">Sẵn sàng bắt đầu?</h2>
+            <p className="hp-cta__sub">
+              Đăng tài liệu để kiếm thêm thu nhập, hoặc tìm sách giá tốt từ sinh viên khác.
+            </p>
+            <div className="hp-cta__actions">
+              <Link to="/auth" className="hp-btn hp-btn--solid hp-btn--lg">
+                Tạo tài khoản miễn phí
+              </Link>
+              <button type="button" className="hp-btn hp-btn--ghost hp-btn--lg" onClick={scrollToProducts}>
+                Xem tài liệu
+              </button>
+            </div>
+          </Reveal>
+        </div>
       </section>
 
     </div>
