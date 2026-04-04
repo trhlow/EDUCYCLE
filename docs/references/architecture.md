@@ -46,4 +46,4 @@ Dùng khi: responsive strategy, design system, làm màn mới, CWV, a11y pass, 
 |------|----------|
 | `NOTES.md` §9 | UI design rules chi tiết |
 | `ARCHITECTURE.md` | Runtime, auth, WS |
-| `references/code-review.md` | Review có cấu trúc |
+| [`references/code-review.md`](code-review.md) | Review có cấu trúc |

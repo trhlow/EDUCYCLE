@@ -55,4 +55,4 @@ Dùng khi: PR review, audit bảo mật/hiệu năng, hoặc nhờ AI phân tíc
 | Auth FE | `frontend/src/context/AuthContext.jsx`, `frontend/src/utils/safeSession.js` |
 | API client | `frontend/src/api/` |
 | Design tokens | `frontend/src/styles/tokens.css` |
-| Kiến trúc tổng | `ARCHITECTURE.md` (root) |
+| Kiến trúc tổng | [`ARCHITECTURE.md`](../ARCHITECTURE.md) |

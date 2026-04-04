@@ -1,6 +1,6 @@
 # EduCycle — Hoàn thành & phạm vi (tổng hợp)
 
-Tài liệu này bổ sung [`NOTES.md`](../NOTES.md): **đã làm trong code** vs **còn nợ khi triển khai production thật** (TLS, GDPR, S3, v.v.).
+Tài liệu này bổ sung [`NOTES.md`](NOTES.md): **đã làm trong code** vs **còn nợ khi triển khai production thật** (TLS, GDPR, S3, v.v.).
 
 ## Đã có trong repo (snapshot)
 

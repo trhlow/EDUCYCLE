@@ -1,6 +1,6 @@
 # EduCycle — NOTES
 > **Nội bộ + AI:** trạng thái sprint, roadmap, bugs đã fix, git, FE↔BE mapping, UI rules.  
-> **Công khai / onboarding / clone:** [`README.md`](README.md) + mục lục tài liệu theo mục [`docs/README.md`](docs/README.md) (getting-started / architecture / guides).  
+> **Công khai / onboarding / clone:** [`README.md`](../README.md) + mục lục tài liệu theo mục [`docs/README.md`](README.md) (getting-started / architecture / guides).  
 > Rules IDE: `.cursor/rules/educycle.mdc` · **Kiến trúc + pitfall + đối chiếu audit:** [`ARCHITECTURE.md`](ARCHITECTURE.md) (§10).  
 > **Review / UX plan (3 bước + template):** [`references/code-review.md`](references/code-review.md) · [`references/architecture.md`](references/architecture.md)
 
@@ -47,7 +47,7 @@
 | SMTP email thật (tuỳ chọn) | ✅ | — | Profile **`smtp`** + `application-smtp.yml`, biến `MAIL_*`, README + `.env.example`; không bật = `MailService` log console |
 | AI chat rate limit | ✅ | — | 30/user/giờ — **`RedisAiChatRateLimiter`** khi `EDUCYCLE_REDIS_ENABLED=true` (compose có `redis`); không thì **in-memory** |
 | AI chat **RAG** (tuỳ chọn) | ✅ | — | Flyway **V15** `ai_knowledge_chunk`; **`OPENAI_API_KEY`** → embedding; bootstrap `rag/educycle-knowledge.md`; `RagRetrievalService` bổ sung ngữ cảnh theo tin nhắn user trước Claude |
-| README + CI (công khai) | — | — | [`README.md`](README.md): Quick Start, Configuration, **Testing & CI** — đồng bộ với mục chạy dưới đây |
+| README + CI (công khai) | — | — | [`README.md`](../README.md): Quick Start, Configuration, **Testing & CI** — đồng bộ với mục chạy dưới đây |
 | Audit 2026 — hardening nhanh | ✅ | ✅ | `GET /api/transactions` chỉ ADMIN; register `.edu.vn` + MK ≥8; `POSTGRES_PASSWORD` compose; nginx CSP/XFO/…; profile `production` tắt Swagger; Flyway **V10** index `status`/`user_id`; Dependabot + `npm audit` (critical) |
 | Audit 2026 — batch 2 | ✅ | ✅ | Lọc/tìm `GET /api/products` server-side; refresh **family** (V11); rate limit **X-Real-IP** (không spoof X-Forwarded-For); CI **e2e-api** (jar+Postgres+Playwright, golden path register→verify-otp); Testcontainers IT khi `CI=true`; Prometheus + OTel dependency; coverage Vitest; docker-compose gợi ý object storage |
 
@@ -73,7 +73,7 @@ Hiện **không** có mục đỏ đang mở. *(Trước đây NOTES còn ghi th
 
 ### Chạy local / CI (đồng bộ README)
 
-Giống [README — Testing & CI](README.md#testing--ci) và [Running the Application](README.md#running-the-application):
+Giống [README — Testing & CI](../README.md#testing--ci) và [Running the Application](../README.md#running-the-application):
 
 ```powershell
 cd D:\EDUCYCLE\backend\educycle-java
@@ -85,7 +85,7 @@ npm test
 npm run build
 ```
 
-**Dev nhanh:** [README — Option 2](README.md#option-2-local-development-recommended-for-coding): Postgres `backend/educycle-java/docker-compose` → BE profile **docker** (8081) → `VITE_DEV_PROXY_TARGET=http://localhost:8081` → `npm run dev`.
+**Dev nhanh:** [README — Option 2](../README.md#option-2-local-development-recommended-for-coding): Postgres `backend/educycle-java/docker-compose` → BE profile **docker** (8081) → `VITE_DEV_PROXY_TARGET=http://localhost:8081` → `npm run dev`.
 
 **Đăng nhập thử:** `admin@educycle.com` / `admin@1`
 
@@ -97,7 +97,7 @@ npm run build
 
 | Nhu cầu | File |
 |---------|------|
-| Clone, env, Docker vs dev, API tóm tắt, Contributing | [**README.md**](README.md) |
+| Clone, env, Docker vs dev, API tóm tắt, Contributing | [**README.md**](../README.md) |
 | Sơ đồ runtime, pitfall proxy/DB, audit template vs code | [**ARCHITECTURE.md**](ARCHITECTURE.md) §2, §7–§**10** |
 | Sprint, changelog, mapping, UI rules, prompt AI | **NOTES.md** |
 | AI / Docker env | [**SETUP_CHATBOT.md**](SETUP_CHATBOT.md) |
@@ -177,7 +177,7 @@ npm run build
 | **S‑26** | Compose không giới hạn CPU/RAM | **Sai:** `docker-compose.yml` có **`deploy.resources.limits`** trên `db` và `api`. |
 | **S‑27** | Không healthcheck backend | **Sai:** service **`api`** có **`healthcheck`** (`wget` → `/actuator/health`); `db` / `redis` cũng có. |
 
-**Backlog vẫn khớp hướng review (làm khi target prod thật):** **TLS + HSTS** (xem [ARCHITECTURE.md §11](ARCHITECTURE.md) + [docs/guides/production-tls.md](docs/guides/production-tls.md)); thu hẹp **`/ws/**`** (handshake JWT / STOMP interceptor); `logback-spring.xml` JSON; bật OTEL + OTLP; JaCoCo **`check`** + nâng ngưỡng Vitest; S3/MinIO thay volume upload; ~~CORS qua biến môi trường~~ **đã có** `CORS_ALLOWED_ORIGINS`; SBOM; E2E golden path mở rộng; Zod (hoặc tương đương) cho response API; v.v.
+**Backlog vẫn khớp hướng review (làm khi target prod thật):** **TLS + HSTS** (xem [ARCHITECTURE.md §11](ARCHITECTURE.md) + [guides/production-tls.md](guides/production-tls.md)); thu hẹp **`/ws/**`** (handshake JWT / STOMP interceptor); `logback-spring.xml` JSON; bật OTEL + OTLP; JaCoCo **`check`** + nâng ngưỡng Vitest; S3/MinIO thay volume upload; ~~CORS qua biến môi trường~~ **đã có** `CORS_ALLOWED_ORIGINS`; SBOM; E2E golden path mở rộng; Zod (hoặc tương đương) cho response API; v.v.
 
 **Production thật:** SMTP (hoặc provider khác), GDPR/xóa TK nếu cần, backup, secret rotation; **Redis** cho AI khi multi-instance; **HTTP rate limit** scale ngang cần thiết kế thêm — xem README + ARCHITECTURE.
 
@@ -206,7 +206,7 @@ Tóm tắt thay đổi lớn đã có trong repo:
 
 | Mức | Vấn đề | Ghi chú |
 |-----|--------|---------|
-| 🔴 Critical | Không TLS trên mặt trận công khai | Token qua HTTP — unblock bằng Caddy/nginx/tunnel: [docs/guides/production-tls.md](docs/guides/production-tls.md) |
+| 🔴 Critical | Không TLS trên mặt trận công khai | Token qua HTTP — unblock bằng Caddy/nginx/tunnel: [guides/production-tls.md](guides/production-tls.md) |
 | 🟠 High | Coverage FE ~28%; policy gate tùy team | JaCoCo đã có `check` tối thiểu BE — có thể siết thêm |
 | 🟠 High | E2E UI vs BE đầy đủ | `e2e-api` golden path đã có; job `e2e` smoke tách — có thể mở rộng UI |
 | 🟠 High | OTEL mặc định tắt | Bật khi có collector OTLP |
@@ -215,7 +215,7 @@ Tóm tắt thay đổi lớn đã có trong repo:
 | 🟢 Low | `POSTGRES_PASSWORD` mẫu trên dev | Chỉ chấp nhận local; prod bắt `.env` mạnh |
 | 🟢 Low | `DELETE /api/users/me` | GDPR — khi có spec |
 
-**TLS:** hướng dẫn snippet Compose + Caddy/nginx — [docs/guides/production-tls.md](docs/guides/production-tls.md); tóm tắt kiến trúc — [ARCHITECTURE.md §11](ARCHITECTURE.md).
+**TLS:** hướng dẫn snippet Compose + Caddy/nginx — [guides/production-tls.md](guides/production-tls.md); tóm tắt kiến trúc — [ARCHITECTURE.md §11](ARCHITECTURE.md).
 
 ### Page scorecard (UX ước lượng — 2026-03)
 
@@ -316,7 +316,7 @@ git log -1 --oneline
 feature/be-<n>  feature/fe-<n>  fix/<n>  docs/<n>
 ```
 
-### Release (đồng bộ [README — Testing & CI](README.md#testing--ci))
+### Release (đồng bộ [README — Testing & CI](../README.md#testing--ci))
 ```powershell
 cd backend\educycle-java && mvn -q clean verify
 cd frontend && npm ci && npm test && npm run build
@@ -340,7 +340,7 @@ cd D:\EDUCYCLE
 git checkout dev && git pull origin dev
 
 git add frontend/src/pages/TransactionGuidePage.jsx
-git add NOTES.md
+git add docs/NOTES.md
 
 git commit -m "feat(fe): rewrite TransactionGuidePage v2 — 7 steps, DISPUTED flow, nội quy v2
 
@@ -484,7 +484,7 @@ git push origin dev
 
 **Changed**
 - `index.html` → `/src/main.tsx`; xóa `main.jsx`
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml): bước **TypeScript** trước test; [README](README.md#testing--ci) + `frontend/README.md` đồng bộ
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml): bước **TypeScript** trước test; [README](../README.md#testing--ci) + `frontend/README.md` đồng bộ
 
 ### [0.6.5] — 2026-03-24 — Admin users DTO + NOTES sprint 5–7
 
@@ -497,7 +497,7 @@ git push origin dev
 ### [0.6.4] — 2026-03-24 — NOTES đồng bộ README + chuẩn portfolio 2026
 
 **Changed (docs — không đổi yêu cầu code)**
-- `NOTES.md`: README là nguồn onboarding công khai; **§2** open tasks theo P0–P3 (E2E+CI, wishlist `localStorage`, Redis, GDPR…); **lệnh chạy** = `mvn clean verify` + `npm test`/`build` như [README](README.md#testing--ci); **§2.5** = bản đồ tài liệu + phase TS/TanStack/RHF/Redis/Java 21 + bảng đối chiếu audit cũ (thay block EXTERNAL REVIEW dài); **§4 Release** + **§6 ROADMAP** (v0.7.0 done sprint 3–4, v0.8.0 phase 2026)
+- `NOTES.md`: README là nguồn onboarding công khai; **§2** open tasks theo P0–P3 (E2E+CI, wishlist `localStorage`, Redis, GDPR…); **lệnh chạy** = `mvn clean verify` + `npm test`/`build` như [README](../README.md#testing--ci); **§2.5** = bản đồ tài liệu + phase TS/TanStack/RHF/Redis/Java 21 + bảng đối chiếu audit cũ (thay block EXTERNAL REVIEW dài); **§4 Release** + **§6 ROADMAP** (v0.7.0 done sprint 3–4, v0.8.0 phase 2026)
 - Giữ: Postgres/pgAdmin compose, Vite **8081**, Flyway tiếp **V9**, route `/users/:id`
 
 ### [0.6.3] — 2026-03-21 — Sprint 2 (missing features)
@@ -580,7 +580,7 @@ git push origin dev
 
 ### Bắt đầu session mới
 ```
-Đọc D:\EDUCYCLE\NOTES.md — §1 (trạng thái), §2 (open tasks), §2.5 (chuẩn portfolio 2026 + đối chiếu tài liệu).
+Đọc `docs/NOTES.md` — §1 (trạng thái), §2 (open tasks), §2.5 (chuẩn portfolio 2026 + đối chiếu tài liệu).
 Nếu câu hỏi về clone, env, Docker, CI: đối chiếu README.md (Testing & CI, Running the Application).
 Nếu review / plan UX: §8 (3 bước) + references/code-review.md hoặc references/architecture.md.
 Tóm tắt: đã có gì, còn thiếu gì, việc tiếp theo. Chưa cần code.
@@ -588,27 +588,27 @@ Tóm tắt: đã có gì, còn thiếu gì, việc tiếp theo. Chưa cần code
 
 ### Fix bug / Implement feature
 ```
-Đọc D:\EDUCYCLE\NOTES.md phần 1, 5 (rules + field mapping), 9 (design nếu liên quan UI).
+Đọc `docs/NOTES.md` phần 1, 5 (rules + field mapping), 9 (design nếu liên quan UI).
 Task: [mô tả]
 Yêu cầu: code đầy đủ, không placeholder, file SỬA chỉ ra cũ→mới, file MỚI viết toàn bộ.
 ```
 
 ### Implement UI từ Figma / thiết kế mới
 ```
-Đọc D:\EDUCYCLE\NOTES.md phần 9 (UI Design Rules) trước khi viết bất kỳ CSS hay JSX nào.
+Đọc `docs/NOTES.md` phần 9 (UI Design Rules) trước khi viết bất kỳ CSS hay JSX nào.
 Task: [mô tả screen/component]
 ```
 
 ### Commit và push
 ```
-Đọc D:\EDUCYCLE\NOTES.md phần 4 (git workflow).
+Đọc `docs/NOTES.md` phần 4 (git workflow).
 Tôi vừa sửa: [liệt kê files]
 Tạo commit message đúng convention, stage đúng files, push lên dev.
 ```
 
 ### Debug FE↔BE mismatch
 ```
-Đọc D:\EDUCYCLE\NOTES.md phần 5 (FE↔BE field mapping table).
+Đọc `docs/NOTES.md` phần 5 (FE↔BE field mapping table).
 Lỗi: [paste lỗi 400/500] — Endpoint: [POST/GET /api/...]
 Kiểm tra xem FE đang gửi đúng field name theo BE DTO record chưa.
 ```

@@ -1,7 +1,7 @@
 # EduCycle
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.x-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vite.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -13,7 +13,7 @@
 Full-stack cá nhân: **Trần Hoàng Long**.
 
 > **Note**  
-> Hai cách chạy (**Docker một lệnh** vs **dev hybrid** Postgres + `mvn` + Vite) là **cố ý thiết kế** — không merge thành một flow duy nhất để vừa demo gần prod, vừa sửa code nhanh. Chi tiết pitfall: [ARCHITECTURE.md](ARCHITECTURE.md).
+> Hai cách chạy (**Docker một lệnh** vs **dev hybrid** Postgres + `mvn` + Vite) là **cố ý thiết kế** — không merge thành một flow duy nhất để vừa demo gần prod, vừa sửa code nhanh. Chi tiết pitfall: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 **Repository:** [github.com/trhlow/EDUCYCLE](https://github.com/trhlow/EDUCYCLE)
 
@@ -50,9 +50,9 @@ Full-stack cá nhân: **Trần Hoàng Long**.
 |----------|---------|
 | **README.md** | *(this file)* — clone, configure, run, API summary |
 | [docs/README.md](docs/README.md) | **Hub tài liệu** — mục lục `getting-started`, `architecture`, `guides` (cấu trúc gợi ý theo [deer-flow](https://github.com/bytedance/deer-flow) `docs/`) |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime topology, auth/WebSocket, onboarding checklist, **audit reconciliation (§10)** |
-| [NOTES.md](NOTES.md) | Sprint status, changelog, FE↔BE field mapping, internal rules |
-| [SETUP_CHATBOT.md](SETUP_CHATBOT.md) | AI chat — entry ngắn; chi tiết: [docs/guides/ai-chatbot.md](docs/guides/ai-chatbot.md) |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Runtime topology, auth/WebSocket, onboarding checklist, **audit reconciliation (§10)** |
+| [docs/NOTES.md](docs/NOTES.md) | Sprint status, changelog, FE↔BE field mapping, internal rules |
+| [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md) | AI chat — entry ngắn; chi tiết: [docs/guides/ai-chatbot.md](docs/guides/ai-chatbot.md) |
 | [scripts/README.md](scripts/README.md) | Script `verify.ps1` / `verify.sh` (kiểm tra local trước push) |
 | [.env.example](.env.example) | Template for root `docker-compose` (`JWT_SECRET`, optional SMTP, …) |
 
@@ -100,7 +100,7 @@ Complete **[Configuration](#configuration)** before local dev if you use OAuth, 
 | `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD`, … | `.env` + profile `smtp` | Real email — see [Email (SMTP)](#email-smtp) |
 | `VITE_DEV_PROXY_TARGET` | `frontend/.env.local` | **8081** when BE uses Spring profile **`docker`** |
 
-**OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [NOTES.md](NOTES.md) (FE↔BE mapping).
+**OAuth:** redirect URIs and client IDs must match Google Cloud / Azure app registration — see [docs/NOTES.md](docs/NOTES.md) (FE↔BE mapping).
 
 **Security:** Never put Anthropic (or any LLM) **secret keys** in frontend bundles; the SPA calls the backend proxy only.
 
@@ -219,7 +219,7 @@ VITE_DEV_PROXY_TARGET=http://localhost:8080
 
 Migrations **V1–V8** are in the repo; the next file must be **`V9__....sql`**. Never edit migrations that have already been applied to a shared database.
 
-More detail: [ARCHITECTURE.md](ARCHITECTURE.md) §8–§10.
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §8–§10.
 
 ---
 
@@ -239,7 +239,7 @@ The stack is intentionally **boring and hireable**: Spring Boot, PostgreSQL, Fly
 - **Realtime:** STOMP/SockJS chat per transaction; notifications (DB + push over WS where configured).
 - **Trust:** Public seller profile **`/users/:id`** backed by `GET /api/public/users/{userId}`.
 - **Profile:** PATCH profile and **notification preferences** persisted on the server.
-- **AI (optional):** Server-side Claude proxy — [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
+- **AI (optional):** Server-side Claude proxy — [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md).
 
 ---
 
@@ -291,7 +291,7 @@ For real delivery:
 ## AI Chatbot
 
 Configure **`ANTHROPIC_API_KEY`** on the **API** process (Docker or local). The browser talks only to **`POST /api/ai/chat`**.  
-Full steps: [SETUP_CHATBOT.md](SETUP_CHATBOT.md).
+Full steps: [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md).
 
 ---
 
@@ -323,21 +323,20 @@ Hoặc thủ công: `mvn -f backend/educycle-java/pom.xml clean verify` rồi `n
 
 ---
 
-## Project Layout
+## Project Layout (SaaS-style monorepo)
+
+Root chỉ giữ **mã chạy**, **compose**, **README cửa ngõ** và **version** — mọi tài liệu dài nằm trong **`docs/`**.
 
 ```
 EDUCYCLE/
-├── backend/educycle-java/        # Spring Boot API, Flyway
-├── frontend/                     # Vite + React (+ TS entry)
-├── docs/                         # Hub tài liệu (getting-started, architecture, guides, design/educycle, …)
-├── scripts/                      # verify, optional continuous-dev / release bash
-├── VERSION                       # Semantic version (continuous-dev pipeline)
-├── docker-compose.yml            # db + api + nginx (production-style)
-├── .github/workflows/ci.yml
+├── backend/educycle-java/   # API service (Spring Boot, Flyway)
+├── frontend/                # Web app (Vite + React)
+├── docs/                    # Toàn bộ tài liệu: ARCHITECTURE, NOTES, guides, design, …
+├── scripts/                 # verify.sh / verify.ps1, release helpers
+├── VERSION
+├── docker-compose.yml
+├── .github/workflows/
 ├── .env.example
-├── ARCHITECTURE.md
-├── NOTES.md
-├── SETUP_CHATBOT.md
 └── README.md
 ```
 
@@ -361,7 +360,7 @@ EDUCYCLE/
 ## Contributing
 
 - Primary branch: **`dev`**; releases merge to **`main`**.  
-- Use [Conventional Commits](https://www.conventionalcommits.org/) — see [NOTES.md](NOTES.md) §4 (format + **một commit = một lĩnh vực**, không gộp nhiều domain không liên quan).  
+- Use [Conventional Commits](https://www.conventionalcommits.org/) — see [docs/NOTES.md](docs/NOTES.md) §4 (format + **một commit = một lĩnh vực**, không gộp nhiều domain không liên quan).  
 - Prefer **`git add <file>`** over `git add .`.
 
 ---
@@ -374,6 +373,6 @@ Educational / personal project — not for commercial use without separate agree
 
 ## Acknowledgments
 
-Built with **Spring Boot**, **React**, **PostgreSQL**, and the broader open-source ecosystem. AI chat (optional) is documented in [SETUP_CHATBOT.md](SETUP_CHATBOT.md) and [NOTES.md](NOTES.md).
+Built with **Spring Boot**, **React**, **PostgreSQL**, and the broader open-source ecosystem. AI chat (optional) is documented in [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md) and [docs/NOTES.md](docs/NOTES.md).
 
 **Author:** Trần Hoàng Long
