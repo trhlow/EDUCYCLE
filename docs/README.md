@@ -1,6 +1,6 @@
 # EduCycle — Documentation
 
-> **Monorepo kiểu SaaS:** code chạy ở `backend/` (API) và `frontend/` (web); **mọi file Markdown dài** (kiến trúc, sprint, checklist) nằm trong **`docs/`** — root repo chỉ còn `README.md` cửa ngõ.
+> **Monorepo kiểu SaaS:** code chạy ở `backend/` (API) và `frontend/` (web); **mọi file Markdown dài** (kiến trúc, sprint, checklist) nằm trong **`docs/`** — root có **`README.md`** (tiếng Anh, GitHub mặc định) và **`README.vi.md`** (tiếng Việt).
 
 ## Bản đồ nhanh
 
@@ -23,7 +23,8 @@
 
 | File | Mục đích |
 |------|----------|
-| [README.md](../README.md) | Clone, cấu hình, chạy nhanh, API tóm tắt |
+| [README.md](../README.md) | English — clone, cấu hình, chạy nhanh, API tóm tắt |
+| [README.vi.md](../README.vi.md) | Tiếng Việt — cùng nội dung, liên kết chéo với `README.md` |
 
 ## Đường dẫn vận hành
 
