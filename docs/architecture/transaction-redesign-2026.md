@@ -144,8 +144,8 @@ Nội dung đầy đủ: giữ/không giữ tính năng, đơn giản hóa MEETI
 
 ## Tài liệu liên quan
 
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) — runtime, audit
-- [NOTES.md](../../NOTES.md) — FE↔BE mapping, quy tắc status **UPPERCASE**
+- [ARCHITECTURE.md](../ARCHITECTURE.md) — runtime, audit
+- [NOTES.md](../NOTES.md) — FE↔BE mapping, quy tắc status **UPPERCASE**
 
 ---
 

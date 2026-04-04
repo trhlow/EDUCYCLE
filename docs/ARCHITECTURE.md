@@ -1,6 +1,6 @@
 # EduCycle — Kiến trúc & Onboarding
 
-Tài liệu này bổ sung [`README.md`](README.md) (cách chạy, tính năng) và [`NOTES.md`](NOTES.md) (trạng thái, backlog, quy tắc nội bộ).  
+Tài liệu này bổ sung [`README.md`](../README.md) (cách chạy, tính năng) và [`NOTES.md`](NOTES.md) (trạng thái, backlog, quy tắc nội bộ).  
 Mục tiêu: **hiểu hệ thống trong 10 phút** và **onboarding người mới / chính bạn sau vài tháng**.
 
 ---

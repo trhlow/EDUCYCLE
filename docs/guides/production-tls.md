@@ -130,4 +130,4 @@ Không mở cổng 443 trên router: dùng **Cloudflare Tunnel**, **ngrok**, v.v
 - Đăng nhập → request có `Authorization` qua HTTPS.
 - WebSocket: nếu FE dùng `wss://`, đảm bảo proxy chuyển tiếp **Upgrade** (snippet nginx phía trên).
 
-Xem thêm: [ARCHITECTURE.md §11](../../ARCHITECTURE.md) (tóm tắt trong repo).
+Xem thêm: [ARCHITECTURE.md §11](../ARCHITECTURE.md) (tóm tắt trong repo).
