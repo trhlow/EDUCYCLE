@@ -62,6 +62,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/categories/{id}").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/media/unsplash/curated").permitAll()
                     // ── Tin tìm sách (book wanted) — đọc công khai; /mine cần đăng nhập
                     .requestMatchers(HttpMethod.GET, "/api/book-wanted/mine").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/book-wanted").permitAll()

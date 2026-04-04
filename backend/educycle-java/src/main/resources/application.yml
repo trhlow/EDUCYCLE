@@ -66,6 +66,12 @@ openai:
   api-key: ${OPENAI_API_KEY:}
   embedding-model: text-embedding-3-small
 
+# ── Unsplash (hero visuals via backend proxy; keep key server-side)
+unsplash:
+  access-key: ${UNSPLASH_ACCESS_KEY:}
+  api-base-url: ${UNSPLASH_API_BASE_URL:https://api.unsplash.com}
+  cache-ttl-seconds: ${UNSPLASH_CACHE_TTL_SECONDS:21600}
+
 # ── EduCycle ── rate limit API (Bucket4j filter), Redis (AI rate limit đa instance)
 educycle:
   # OTP giao dịch: HMAC-SHA256; để trống → dùng jwt.secret (dev). Production: EDUCYCLE_OTP_HMAC_SECRET riêng.

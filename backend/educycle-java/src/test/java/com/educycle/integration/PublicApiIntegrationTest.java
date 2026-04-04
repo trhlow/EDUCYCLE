@@ -54,4 +54,13 @@ class PublicApiIntegrationTest {
         mockMvc.perform(get("/api/transactions"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void getUnsplashCurated_isPublic() throws Exception {
+        mockMvc.perform(get("/api/media/unsplash/curated")
+                        .param("topic", "study")
+                        .param("orientation", "landscape")
+                        .param("count", "3"))
+                .andExpect(status().isOk());
+    }
 }
