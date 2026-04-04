@@ -1,0 +1,24 @@
+# Profile production — bật qua SPRING_PROFILES_ACTIVE=production (Docker Compose gốc).
+# Tắt OpenAPI/Swagger công khai (Principal Engineer audit §10.5).
+#
+# OpenTelemetry: mặc định tắt qua OTEL_SDK_DISABLED=true trong application.yml gốc.
+# Bật trace/metric prod: đặt OTEL_SDK_DISABLED=false và OTLP endpoint (vd. OTEL_EXPORTER_OTLP_ENDPOINT).
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+educycle:
+  rate-limit:
+    prefer-x-real-ip: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never

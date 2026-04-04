@@ -1,0 +1,97 @@
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { vi, test, expect } from 'vitest';
+import AuthPage from './AuthPage';
+import { AuthProvider } from '../contexts/AuthContext';
+import { authApi } from '../api/endpoints';
+
+const mockToast = {
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  warning: vi.fn(),
+  addToast: vi.fn(),
+  removeToast: vi.fn(),
+};
+
+vi.mock('../components/Toast', () => ({
+  useToast: () => mockToast,
+  ToastProvider: ({ children }) => children,
+}));
+
+vi.mock('../api/endpoints', () => ({
+  authApi: {
+    login: vi.fn(),
+    register: vi.fn(),
+    verifyOtp: vi.fn(),
+    resendOtp: vi.fn(),
+  },
+  usersApi: {
+    getMe: vi.fn(),
+  },
+}));
+
+test('shows error on failed login', async () => {
+  authApi.login.mockRejectedValueOnce({
+    response: { data: { message: 'Sai mật khẩu' } },
+  });
+
+  const { container } = render(
+    <MemoryRouter>
+      <AuthProvider>
+        <AuthPage />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+
+  const emailInput = container.querySelector('#login-email');
+  const passwordInput = container.querySelector('#login-password');
+  const submitButton = container.querySelector('button[type="submit"]');
+
+  fireEvent.change(emailInput, { target: { value: 'user@student.edu.vn' } });
+  fireEvent.change(passwordInput, { target: { value: 'wrongpass' } });
+
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(mockToast.error).toHaveBeenCalledWith('Sai mật khẩu');
+  });
+});
+
+test('login form accepts non-edu.vn email and calls API (admin / staff)', async () => {
+  authApi.login.mockResolvedValueOnce({
+    data: {
+      userId: '00000000-0000-0000-0000-000000000001',
+      username: 'admin',
+      email: 'admin@educycle.com',
+      token: 'a'.repeat(32),
+      role: 'ADMIN',
+      emailVerified: true,
+      message: null,
+      refreshToken: 'b'.repeat(64),
+    },
+  });
+
+  const { container } = render(
+    <MemoryRouter>
+      <AuthProvider>
+        <AuthPage />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+
+  const emailInput = container.querySelector('#login-email');
+  const passwordInput = container.querySelector('#login-password');
+  const submitButton = container.querySelector('button[type="submit"]');
+
+  fireEvent.change(emailInput, { target: { value: 'admin@educycle.com' } });
+  fireEvent.change(passwordInput, { target: { value: 'admin@1' } });
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(authApi.login).toHaveBeenCalledWith({
+      email: 'admin@educycle.com',
+      password: 'admin@1',
+    });
+  });
+});

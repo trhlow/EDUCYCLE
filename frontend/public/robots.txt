@@ -1,0 +1,5 @@
+# EduCycle — cho phép crawler index trang marketing; SPA routes do crawler quyết định
+User-agent: *
+Allow: /
+
+Sitemap: /sitemap.xml

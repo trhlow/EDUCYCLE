@@ -1,0 +1,131 @@
+.upp-wrap {
+  max-width: min(100%, 45rem);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.upp-breadcrumb {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.upp-breadcrumb a {
+  color: var(--primary-600);
+  text-decoration: none;
+}
+
+.upp-breadcrumb span {
+  margin: 0 var(--space-1);
+}
+
+.upp-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.upp-loading {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.upp-header {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.upp-avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--primary-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--primary-700);
+  flex-shrink: 0;
+}
+
+.upp-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upp-head-text h1 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-2xl);
+  font-family: var(--font-display);
+}
+
+.upp-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.upp-stars {
+  color: var(--accent-500);
+  font-weight: var(--weight-semibold);
+}
+
+.upp-muted {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.upp-bio {
+  margin: var(--space-2) 0 0;
+  line-height: var(--leading-relaxed);
+}
+
+.upp-section-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.upp-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.upp-review-item {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.upp-review-item:last-child {
+  border-bottom: none;
+}
+
+.upp-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.upp-review-content {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.upp-back {
+  display: inline-block;
+  margin-top: var(--space-3);
+  color: var(--primary-600);
+}

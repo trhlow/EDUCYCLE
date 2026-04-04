@@ -1,0 +1,94 @@
+# EduCycle — full stack production-style (Sprint 4)
+# Chạy từ thư mục gốc repo:  docker compose up --build
+#
+# Sau khi lên: http://localhost  (nginx → SPA + proxy /api, /ws)
+# Đặt JWT_SECRET mạnh trong .env hoặc shell trước khi chạy.
+# Bắt buộc: copy .env.example → .env và đặt POSTGRES_PASSWORD (và JWT_SECRET). Không dùng mật khẩu mặc định trên môi trường thật.
+
+services:
+  redis:
+    image: redis:7-alpine
+    expose:
+      - '6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  db:
+    image: postgres:16-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    environment:
+      POSTGRES_DB: educycledb
+      POSTGRES_USER: educycle
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env — xem .env.example}
+    volumes:
+      - educycle_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U educycle -d educycledb']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend/educycle-java
+      dockerfile: Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
+      SPRING_DATASOURCE_USERNAME: educycle
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env}
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
+      APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
+      APP_UPLOAD_DIR: /app/data/uploads
+      # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
+      # AI chatbot (tuỳ chọn) — xem SETUP_CHATBOT.md
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      EDUCYCLE_REDIS_ENABLED: ${EDUCYCLE_REDIS_ENABLED:-true}
+      EDUCYCLE_REDIS_HOST: redis
+      EDUCYCLE_REDIS_PORT: 6379
+    volumes:
+      - educycle_uploads:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    expose:
+      - '8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/actuator/health']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+# Multi-replica / production: thay volume upload bằng S3/R2/MinIO (presigned URL) — xem docs backend.
+volumes:
+  educycle_pg_data:
+  educycle_uploads:

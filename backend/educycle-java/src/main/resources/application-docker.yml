@@ -1,0 +1,9 @@
+# Profile "docker": Postgres qua Docker (5433). Port 8081 để tránh xung đột Apache/XAMPP thường chiếm 8080.
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/educycledb}
+    username: ${SPRING_DATASOURCE_USERNAME:educycle}
+    password: ${SPRING_DATASOURCE_PASSWORD:educycle123}

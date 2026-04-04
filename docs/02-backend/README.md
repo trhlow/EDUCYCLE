@@ -1,4 +1,6 @@
-📍 Vị trí trong monorepo: `source/backend/`
+📍 Vị trí trong monorepo: `backend/educycle-java/`
+
+> **Bản chính (cập nhật):** [backend/educycle-java/README.md](../../backend/educycle-java/README.md). File này giữ phần so sánh migration / lịch sử.
 
 # EduCycle API — Java Spring Boot 3.x
 
@@ -29,7 +31,7 @@
 
 ```bash
 git clone https://github.com/trhlow/EDUCYCLE.git
-cd source/backend/EduCycle.Api
+cd EDUCYCLE/backend/educycle-java
 ```
 
 ### Prerequisites
@@ -137,9 +139,9 @@ src/test/java/com/educycle/service/
 ### Auth
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/auth/register` | Public | Register new user |
-| POST | `/api/auth/login` | Public | Login, returns JWT |
-| POST | `/api/auth/social-login` | Public | Google/Facebook/Microsoft |
+| POST | `/api/auth/register` | Public | Đăng ký .edu.vn — gửi OTP email, chưa JWT |
+| POST | `/api/auth/login` | Public | Đăng nhập (sau khi đã verify OTP), trả JWT |
+| POST | `/api/auth/verify-otp` | Public | Xác thực OTP — trả JWT + refresh |
 | POST | `/api/auth/verify-phone` | 🔒 User | Set phone number |
 
 ### Products

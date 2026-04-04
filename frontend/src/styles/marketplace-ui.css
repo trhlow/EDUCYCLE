@@ -1,0 +1,32 @@
+/**
+ * EduCycle — pattern marketplace (UI UX Pro Max MASTER + tokens.css).
+ * Không dùng hex/px tại đây; spacing/shadow từ token.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-hero__blob,
+  .hp-spotlight,
+  .reveal {
+    animation: none !important;
+  }
+}
+
+.ec-layout-container {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.ec-section-block {
+  padding-block: var(--space-12);
+  padding-inline: var(--space-6);
+}
+
+@media (min-width: 64rem) {
+  .ec-section-block {
+    padding-block: var(--space-16);
+  }
+}

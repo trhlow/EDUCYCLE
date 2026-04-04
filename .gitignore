@@ -17,6 +17,7 @@ build/
 *.env
 .env.*
 !.env.example
+!.env.development
 
 # === IDE ===
 .idea/
@@ -25,10 +26,20 @@ build/
 *.swp
 *.swo
 
+# === Cursor — commit rules, ignore user-specific settings ===
+.cursor/mcp.json
+.cursor/settings.json
+.cursor/chat/
+# .cursor/rules/ is intentionally committed and shared with the team
+.cursor/skills/
+
 # === OS ===
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# === Local uploads (dev) ===
+backend/educycle-java/data/
 
 # === Misc ===
 *.log
