@@ -162,6 +162,11 @@
    * Breakpoints — dùng cùng giá trị rem trong @media (var() không dùng được trong điều kiện media).
    * sm 40rem · md 48rem · lg 64rem · xl 80rem · 2xl 90rem
    */
+  --bp-mobile-min: 20rem;   /* 320px */
+  --bp-mobile-wide: 30rem;  /* 480px */
+  --bp-tablet: 48rem;       /* 768px */
+  --bp-desktop: 64rem;      /* 1024px */
+  --bp-large: 90rem;        /* 1440px */
   --bp-sm: 40rem;
   --bp-md: 48rem;
   --bp-lg: 64rem;
@@ -202,10 +207,18 @@
   --ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-/*
- * Dark mode theo OS đã tắt: nhiều người dùng thấy toàn site quá tối / chữ trùng nền.
- * Sau này có thể bật lại bằng [data-theme="dark"] trên <html> + palette riêng.
- */
+[data-theme='dark'] {
+  /* Prepared token map for rollout; default app remains light mode. */
+  --bg-primary: #0f1720;
+  --bg-secondary: #0b1118;
+  --bg-tertiary: #16212f;
+  --bg-elevated: #111a25;
+  --text-primary: #f8fafc;
+  --text-secondary: #d7e1ea;
+  --text-tertiary: #a9bac9;
+  --border-light: #2a3a49;
+  --border-medium: #3b4e60;
+}
 
 /* Keyboard focus — audit accessibility (production readiness) */
 :focus-visible {

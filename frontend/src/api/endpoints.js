@@ -133,6 +133,11 @@ export const aiApi = {
   chat: (data) => api.post('/ai/chat', data),
 };
 
+/** Unsplash media proxy (public GET; key stays on backend). */
+export const mediaApi = {
+  getUnsplashCurated: (params) => api.get('/media/unsplash/curated', { params }),
+};
+
 /**
  * Multipart upload — bypass default JSON Content-Type on axios instance.
  * Returns `{ url: "/api/files/<uuid>.ext" }` (relative; use as img src on same origin).

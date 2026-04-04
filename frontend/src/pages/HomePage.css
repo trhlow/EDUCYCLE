@@ -56,6 +56,10 @@
   min-width: var(--btn-min-width-prominent);
 }
 
+.hp-btn:active {
+  transform: translateY(0);
+}
+
 /* ══ HERO ═══════════════════════════════════════════ */
 .hp-hero {
   position: relative;
@@ -77,6 +81,31 @@
     var(--bg-primary) 0%,
     color-mix(in srgb, var(--primary-50) 65%, var(--bg-primary)) 45%,
     color-mix(in srgb, var(--secondary-50) 50%, var(--bg-primary)) 100%
+  );
+}
+
+.hp-hero__photo-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hp-hero__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hp-hero__photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--bg-primary) 90%, transparent) 0%,
+    color-mix(in srgb, var(--bg-primary) 75%, transparent) 45%,
+    color-mix(in srgb, var(--bg-primary) 92%, transparent) 100%
   );
 }
 
@@ -169,6 +198,17 @@
   letter-spacing: 0.02em;
 }
 
+.hp-hero__credit {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.hp-hero__credit a {
+  color: var(--primary-700);
+  text-underline-offset: 2px;
+}
+
 /* Spotlight — ảnh sản phẩm thật */
 .hp-hero__right {
   position: relative;
@@ -207,6 +247,7 @@
   display: flex;
   flex-direction: column;
   animation: spotlightFloat 7s ease-in-out infinite;
+  contain: layout paint style;
 }
 
 .hp-spotlight--pos-0 { top: 4%; left: 4%; animation-delay: 0s; z-index: 3; }
@@ -222,6 +263,11 @@
   animation: none;
   transform: translateY(calc(var(--space-1) * -1)) scale(1.02);
   box-shadow: var(--shadow-lg);
+}
+
+.hp-spotlight:focus-visible {
+  outline: var(--space-1) solid var(--border-focus);
+  outline-offset: var(--space-1);
 }
 
 .hp-spotlight__media {
@@ -308,6 +354,16 @@
   color: var(--text-secondary);
 }
 
+.hp-spotlight-empty__img {
+  width: 100%;
+  max-width: 16rem;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border-light);
+}
+
 .hp-spotlight-empty__link {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -317,6 +373,12 @@
 .hp-spotlight-empty__link:hover {
   text-decoration: underline;
   color: var(--primary-700);
+}
+
+.hp-spotlight-empty__link:focus-visible {
+  outline: var(--space-1) solid var(--border-focus);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
 }
 
 /* Mobile: hàng ngang cuộn thay vì lớp tuyệt đối */
@@ -503,6 +565,7 @@
   transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
   display: flex;
   flex-direction: column;
+  contain: layout paint style;
 }
 .hp-product-card:hover {
   transform: translateY(calc(var(--space-1) * -1.25));
@@ -581,4 +644,37 @@
   .hp-select { flex: 1; }
   .hp-cat-pills { gap: var(--space-2); }
   .hp-cat-pill { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+}
+
+@media (min-width: 30rem) {
+  .hp-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .hp-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .hp-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 90rem) {
+  .hp-products-section {
+    padding-inline: var(--space-10);
+  }
+}
+
+@media (pointer: coarse) {
+  .hp-btn,
+  .hp-cat-pill,
+  .hp-select,
+  .hp-product-card__wish {
+    min-height: 44px;
+  }
 }

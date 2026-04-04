@@ -6,6 +6,7 @@ import { useToast } from '../components/Toast';
 import { productsApi } from '../api/endpoints';
 import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
 import { extractPage } from '../utils/pageApi';
+import { useUnsplashCurated } from '../hooks/useUnsplashCurated';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import {
   IconHeart,
@@ -62,6 +63,7 @@ function mapApiProductToCard(p) {
 }
 
 const HERO_SPOTLIGHT_COUNT = 3;
+const ENABLE_UNSPLASH_HERO = String(import.meta.env.VITE_ENABLE_UNSPLASH_HERO ?? 'true').toLowerCase() !== 'false';
 
 const priceLine = (p) => {
   if (p.priceType === 'contact' || p.price === 0) return 'Giá liên hệ';
@@ -149,6 +151,16 @@ export default function HomePage() {
     return raw.map(mapApiProductToCard).slice(0, HERO_SPOTLIGHT_COUNT);
   }, [heroPage]);
 
+  const { data: heroMediaData } = useUnsplashCurated({
+    topic: 'study',
+    orientation: 'landscape',
+    count: 4,
+    enabled: ENABLE_UNSPLASH_HERO,
+  });
+
+  const heroVisual = heroMediaData?.items?.[0] ?? null;
+  const heroEmptyVisual = heroMediaData?.items?.[1] ?? heroVisual;
+
   const handleCategoryChipClick = (val) => {
     setSelectedCat(val);
     const next = new URLSearchParams(searchParams);
@@ -208,11 +220,35 @@ export default function HomePage() {
     return <>{Number(p).toLocaleString('vi-VN')}đ</>;
   };
 
+  const buildUnsplashSrcSet = (img) => {
+    if (!img?.urls) return undefined;
+    return [
+      img.urls.thumb ? `${img.urls.thumb} 320w` : null,
+      img.urls.small ? `${img.urls.small} 640w` : null,
+      img.urls.regular ? `${img.urls.regular} 1080w` : null,
+    ].filter(Boolean).join(', ');
+  };
+
   return (
     <div className="hp">
 
       {/* ══ HERO ════════════════════════════════════════ */}
       <section className="hp-hero" aria-labelledby="hp-hero-title">
+        {ENABLE_UNSPLASH_HERO && heroVisual && (
+          <div className="hp-hero__photo-wrap" aria-hidden="true">
+            <img
+              className="hp-hero__photo"
+              src={heroVisual.urls?.regular || heroVisual.urls?.small || heroVisual.urls?.thumb}
+              srcSet={buildUnsplashSrcSet(heroVisual)}
+              sizes="(max-width: 64rem) 100vw, 55vw"
+              alt=""
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+            <div className="hp-hero__photo-overlay" />
+          </div>
+        )}
         <div className="hp-hero__shapes">
           <div className="hp-hero__blob hp-hero__blob--a" />
           <div className="hp-hero__blob hp-hero__blob--b" />
@@ -246,6 +282,20 @@ export default function HomePage() {
               <span className="hp-trust-chip"><IconUsers size={13} /> Sinh viên xác thực</span>
               <span className="hp-trust-chip"><IconTag size={13} /> Không phí nền tảng</span>
             </div>
+            {ENABLE_UNSPLASH_HERO && heroVisual?.author?.name && (
+              <p className="hp-hero__credit">
+                Ảnh:{' '}
+                <a
+                  href={heroVisual.author.profileUrl || heroVisual.links?.html || 'https://unsplash.com'}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {heroVisual.author.name}
+                </a>
+                {' '}trên{' '}
+                <a href="https://unsplash.com" target="_blank" rel="noreferrer">Unsplash</a>
+              </p>
+            )}
           </div>
 
           <div className="hp-hero__right">
@@ -257,6 +307,17 @@ export default function HomePage() {
                 : heroSpotlights.length === 0
                   ? (
                     <div className="hp-spotlight-empty">
+                      {heroEmptyVisual?.urls?.small && (
+                        <img
+                          src={heroEmptyVisual.urls.small}
+                          srcSet={buildUnsplashSrcSet(heroEmptyVisual)}
+                          sizes="(max-width: 64rem) 100vw, 22rem"
+                          alt=""
+                          className="hp-spotlight-empty__img"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
                       <p>Chưa có sản phẩm hiển thị.</p>
                       <Link to="/products/new" className="hp-spotlight-empty__link">
                         Đăng bán đầu tiên
