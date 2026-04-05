@@ -17,7 +17,7 @@ services:
       retries: 10
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     deploy:
       resources:
         limits:

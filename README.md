@@ -4,13 +4,13 @@
 
 A **peer-to-peer marketplace** for students to exchange books and study materials ‚Äî with moderated listings, transaction states, **OTP at handoff**, realtime chat, and optional AI.
 
-**Stack:** Java 17 ¬∑ Spring Boot 3.4.x ¬∑ PostgreSQL ¬∑ React 19 ¬∑ Vite 7 ¬∑ Docker
+**Stack:** Java 26 ∑ Spring Boot 4.0.5 ∑ PostgreSQL ∑ React 19 ∑ Vite 8 ∑ Docker
 
-[![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.x-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-26-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vite.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vite.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Educational%2Fpersonal-9B59B6)](#license)
 
@@ -160,7 +160,7 @@ npm run dev
 
 ### Prerequisites
 
-JDK **17+**, Node **18+** (CI uses Node **20**), Maven **3.9+**, Docker Desktop (optional but recommended).
+JDK **26+**, Node **24+** (CI uses Node **24**), Maven **3.9+**, Docker Desktop (optional but recommended).
 
 ### Environment variables (summary)
 
@@ -318,12 +318,12 @@ EDUCYCLE/
 
 | Layer | Technologies |
 |-------|----------------|
-| API | Java 17, Spring Boot 3.4.x, Spring Security, JPA, Flyway |
+| API | Java 26, Spring Boot 4.0.5, Spring Security, JPA, Flyway |
 | Auth | JWT (JJWT), refresh token (SecureRandom), `.edu.vn` + email OTP |
-| DB | PostgreSQL 16 |
+| DB | PostgreSQL 18 |
 | Realtime | STOMP + SockJS |
 | Rate limiting | Bucket4j; separate limiter for AI chat |
-| SPA | React 19, Vite 7, React Router 7, Axios, TanStack Query |
+| SPA | React 19, Vite 8, React Router 7, Axios, TanStack Query |
 | Build | Maven, npm |
 | Deploy | Docker multi-stage + Compose |
 
@@ -346,3 +346,5 @@ Educational / personal project ‚Äî not for commercial use without separate agree
 ## üôè Acknowledgments
 
 Built with **Spring Boot**, **React**, **PostgreSQL**, and the open-source ecosystem. Optional AI: [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md) and [docs/NOTES.md](docs/NOTES.md).
+
+

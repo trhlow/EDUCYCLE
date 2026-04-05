@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react&logoColor=white" alt="React 19" />
-  <img src="https://img.shields.io/badge/Vite-7.3-646cff?style=flat-square&logo=vite&logoColor=white" alt="Vite 7" />
+  <img src="https://img.shields.io/badge/Vite-8.0-646cff?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
   <img src="https://img.shields.io/badge/Router-v7-ca4245?style=flat-square&logo=reactrouter&logoColor=white" alt="React Router" />
   <img src="https://img.shields.io/badge/Axios-JWT_Auth-5a29e4?style=flat-square&logo=axios&logoColor=white" alt="Axios" />
   <img src="https://img.shields.io/badge/CSS-Design_Tokens-1572b6?style=flat-square&logo=css3&logoColor=white" alt="CSS Tokens" />
@@ -44,14 +44,14 @@
 
 | Layer | Stack |
 |-------|-------|
-| **Framework** | React 19.2 + Vite 7 |
+| **Framework** | React 19.2.4 + Vite 8 |
 | **Language** | JavaScript (JSX) |
-| **Routing** | React Router v7.13 |
+| **Routing** | React Router v7.14 |
 | **State** | React Context API (Auth, Cart, Wishlist) |
-| **HTTP Client** | Axios 1.13 |
+| **HTTP Client** | Axios 1.14 |
 | **Styling** | Pure CSS + CSS Variables (Design Tokens) |
 | **Code Splitting** | React.lazy + Suspense — mỗi page 1 chunk |
-| **Backend** | Java 17 + Spring Boot 3.2.5 + PostgreSQL + JWT |
+| **Backend** | Java 26 + Spring Boot 4.0.5 + PostgreSQL 18 + JWT |
 | **Proxy** | Vite dev: `/api` + `/ws` → `VITE_DEV_PROXY_TARGET` (mặc định **8081**, đồng bộ Spring profile `docker`) |
 
 ---
@@ -147,7 +147,7 @@ MessageResponse  → { id, transactionId, senderId, senderName, content, created
 
 ### Yêu cầu
 
-- **Node.js** ≥ 18
+- **Node.js** >= 24
 - **npm** ≥ 9
 - **Backend** khuyến nghị: profile **`docker`** tại `http://localhost:8081` (+ `docker compose` Postgres **5433**). Hoặc default **8080** nếu chỉ `mvn spring-boot:run` — khi đó chỉnh `VITE_DEV_PROXY_TARGET` như trên.
 
@@ -171,7 +171,7 @@ Truy cập → **[http://localhost:5173](http://localhost:5173)** — Tự độ
 
 **Production (Docker):** từ thư mục gốc monorepo chạy `docker compose up --build` — image FE build bằng `Dockerfile` + `nginx.conf` (proxy `/api`, `/ws`). Chi tiết: `README.md` ở root repo.
 
-> **Yêu cầu**: Node.js ≥ 18 · Backend chạy tại cổng trùng `VITE_DEV_PROXY_TARGET` (mặc định **8081** / profile `docker`)
+> **Y�u c?u**: Node.js >= 24 � Backend ch?y t?i c?ng tr�ng `VITE_DEV_PROXY_TARGET` (m?c d?nh **8081** / profile `docker`)
 
 ---
 
@@ -228,7 +228,7 @@ Truy cập → **[http://localhost:5173](http://localhost:5173)** — Tự độ
 ```
 educycle-frontend/
 ├── index.html                  # SPA entry + CSP headers
-├── vite.config.js              # Vite 7 + API proxy
+├── vite.config.js              # Vite 8 + API proxy
 ├── package.json                # Dependencies & scripts
 │
 ├── src/
@@ -335,10 +335,10 @@ EduCycle sử dụng quy trình giao dịch **5 bước** đảm bảo minh bạ
 
 | Layer | Technology | Version |
 |---|---|---|
-| **Core** | React | 19.2 |
-| **Build** | Vite | 7.3 |
-| **Routing** | React Router | 7.13 |
-| **HTTP Client** | Axios | 1.13 |
+| **Core** | React | 19.2.4 |
+| **Build** | Vite | 8.0.3 |
+| **Routing** | React Router | 7.14.0 |
+| **HTTP Client** | Axios | 1.14.0 |
 | **State** | Context API | 3 providers (Auth, Cart, Wishlist) |
 | **Design System** | CSS Custom Properties | 169 tokens |
 | **Typography** | Plus Jakarta Sans ([Google Fonts](https://fonts.google.com/specimen/Plus+Jakarta+Sans)) | Google Fonts |
@@ -348,8 +348,8 @@ EduCycle sử dụng quy trình giao dịch **5 bước** đảm bảo minh bạ
 
 | Layer | Technology |
 |---|---|
-| **Framework** | Java 17 + Spring Boot 3.2.5 |
-| **Database** | PostgreSQL + Flyway migrations |
+| **Framework** | Java 26 + Spring Boot 4.0.5 |
+| **Database** | PostgreSQL 18 + Flyway migrations |
 | **ORM** | Spring Data JPA + Hibernate |
 | **Auth** | JWT (JJWT) + Refresh Token + BCrypt |
 | **WebSocket** | STOMP/SockJS (real-time chat + notifications) |
@@ -499,3 +499,4 @@ Dự án thuộc về **EduCycle Team**. Không sử dụng cho mục đích th�
   <strong>🎓 EduCycle</strong> — Trao đổi sách thông minh, kết nối sinh viên bền vững<br/><br/>
   <em>Built with ❤️ by <strong>EduCycle Team</strong> · Trà Vinh, Việt Nam</em>
 </p>
+

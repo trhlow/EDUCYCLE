@@ -1,6 +1,6 @@
-# EduCycle API — Java Spring Boot 3.x
+# EduCycle API � Java Spring Boot 4.0.5
 
-> Migrated from **ASP.NET Core 10 + EF Core** → **Spring Boot 3.4.x + JPA/Hibernate + Flyway**
+> Migrated from **ASP.NET Core 10 + EF Core** → **Spring Boot 4.0.5 + JPA/Hibernate + Flyway**
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Layer | C# (Original) | Java (Migration) |
 |---|---|---|
-| Framework | ASP.NET Core 10 | Spring Boot 3.4.x |
+| Framework | ASP.NET Core 10 | Spring Boot 4.0.5 |
 | ORM | Entity Framework Core | Spring Data JPA + Hibernate |
 | DB Migration | EF Core Migrations | Flyway |
 | Auth | JWT Bearer | JJWT 0.12.x + Spring Security |
@@ -24,9 +24,9 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Java 21+
+- Java 26+
 - Maven 3.9+
-- PostgreSQL 15+
+- PostgreSQL 18+
 
 ### 1. Database (chọn một)
 
@@ -274,3 +274,5 @@ jjwt-api + jjwt-impl + jjwt-jackson     <!-- JWT generation/validation -->
 springdoc-openapi-starter-webmvc-ui      <!-- Swagger UI -->
 spring-boot-starter-test           <!-- JUnit 5 + Mockito -->
 ```
+
+
