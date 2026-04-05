@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
         'zod',
         '@phosphor-icons/react',
       ],
-      esbuildOptions: {
+      rolldownOptions: {
         define: {
           global: 'globalThis',
         },
@@ -55,11 +55,20 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 500,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'query-vendor': ['@tanstack/react-query'],
-            'stomp-vendor': ['@stomp/stompjs', 'sockjs-client'],
-            'icons-vendor': ['@phosphor-icons/react'],
+          manualChunks(id) {
+            if (id.includes('node_modules/react') || id.includes('react-router-dom')) {
+              return 'react-vendor'
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'query-vendor'
+            }
+            if (id.includes('@stomp/stompjs') || id.includes('sockjs-client')) {
+              return 'stomp-vendor'
+            }
+            if (id.includes('@phosphor-icons/react')) {
+              return 'icons-vendor'
+            }
+            return undefined
           },
         },
       },

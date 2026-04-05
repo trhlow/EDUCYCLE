@@ -17,6 +17,7 @@ export default defineConfig([
     },
     rules: {
       ...reactRefresh.configs.vite.rules,
+      'react-hooks/set-state-in-effect': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -34,7 +35,13 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.js', 'vitest.config.js', 'eslint.config.js'],
+    files: [
+      'vite.config.js',
+      'vitest.config.js',
+      'eslint.config.js',
+      '*.config.mjs',
+      'e2e/**/*.{js,jsx,ts,tsx,mjs}',
+    ],
     languageOptions: {
       globals: globals.node,
     },
