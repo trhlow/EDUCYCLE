@@ -4,7 +4,7 @@
 
 A **peer-to-peer marketplace** for students to exchange books and study materials â€” with moderated listings, transaction states, **OTP at handoff**, realtime chat, and optional AI.
 
-**Stack:** Java 26 · Spring Boot 4.0.5 · PostgreSQL · React 19 · Vite 8 · Docker
+**Stack:** Java 26 Â· Spring Boot 4.0.5 Â· PostgreSQL Â· React 19 Â· Vite 8 Â· Docker
 
 [![Java](https://img.shields.io/badge/Java-26-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -346,5 +346,3 @@ Educational / personal project â€” not for commercial use without separate agree
 ## ğŸ™ Acknowledgments
 
 Built with **Spring Boot**, **React**, **PostgreSQL**, and the open-source ecosystem. Optional AI: [docs/SETUP_CHATBOT.md](docs/SETUP_CHATBOT.md) and [docs/NOTES.md](docs/NOTES.md).
-
-

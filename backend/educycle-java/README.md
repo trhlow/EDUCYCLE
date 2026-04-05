@@ -1,4 +1,4 @@
-# EduCycle API � Java Spring Boot 4.0.5
+# EduCycle API — Java Spring Boot 4.0.5
 
 > Migrated from **ASP.NET Core 10 + EF Core** → **Spring Boot 4.0.5 + JPA/Hibernate + Flyway**
 
@@ -274,5 +274,3 @@ jjwt-api + jjwt-impl + jjwt-jackson     <!-- JWT generation/validation -->
 springdoc-openapi-starter-webmvc-ui      <!-- Swagger UI -->
 spring-boot-starter-test           <!-- JUnit 5 + Mockito -->
 ```
-
-
