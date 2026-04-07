@@ -32,3 +32,9 @@
 - Frontend: `frontend/`
 - CI: `.github/workflows/ci.yml`
 - Docker: `docker-compose.yml` (root)
+
+## CI/CD
+
+- CI: `.github/workflows/ci.yml`
+- CD: `.github/workflows/cd.yml`
+- Huong dan deploy tu dong: [guides/cicd-auto-deploy.md](guides/cicd-auto-deploy.md)
