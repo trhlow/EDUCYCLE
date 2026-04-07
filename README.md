@@ -4,9 +4,9 @@
 
 A **peer-to-peer marketplace** for students to exchange books and study materials — with moderated listings, transaction states, **OTP at handoff**, realtime chat, and optional AI.
 
-**Stack:** Java 26 · Spring Boot 4.0.5 · PostgreSQL · React 19 · Vite 8 · Docker
+**Stack:** Java 25 · Spring Boot 4.0.5 · PostgreSQL · React 19 · Vite 8 · Docker
 
-[![Java](https://img.shields.io/badge/Java-26-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vite.dev/)
@@ -37,6 +37,7 @@ A **peer-to-peer marketplace** for students to exchange books and study material
 - [Email (SMTP)](#email-smtp)
 - [AI chatbot](#ai-chatbot)
 - [Testing & CI](#testing-ci)
+- [CI/CD auto deploy](#cicd-auto-deploy)
 - [Project layout](#project-layout)
 - [Tech stack](#tech-stack)
 - [Contributing](#contributing)
@@ -160,7 +161,7 @@ npm run dev
 
 ### Prerequisites
 
-JDK **26+**, Node **24+** (CI uses Node **24**), Maven **3.9+**, Docker Desktop (optional but recommended).
+JDK **25+**, Node **24+** (CI uses Node **24**), Maven **3.9+**, Docker Desktop (optional but recommended).
 
 ### Environment variables (summary)
 
@@ -258,7 +259,20 @@ PENDING → ACCEPTED → MEETING → COMPLETED
 <a id="email-smtp"></a>
 ## ✉️ Email (SMTP)
 
-Without profile **`smtp`**, `MailService` **logs** email bodies (fine for local demos — OTP visible in API logs). For real mail: activate **`smtp`**, set `MAIL_*` (see `application-smtp.yml`), use Gmail App Passwords if applicable, and in Docker set `SPRING_PROFILES_ACTIVE=production,smtp`. Do **not** set empty `MAIL_HOST` if you are not using SMTP.
+Without profile **`smtp`**, `MailService` falls back to logs.
+For real OTP/password-reset email delivery in Docker, set:
+
+```env
+APP_MAIL_REQUIRE_DELIVERY=true
+SPRING_PROFILES_ACTIVE=production,smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-student-mail@your-university.edu.vn
+MAIL_PASSWORD=your_app_password
+APP_MAIL_FROM=EduCycle <your-student-mail@your-university.edu.vn>
+```
+
+When `APP_MAIL_REQUIRE_DELIVERY=true`, OTP flows fail fast if SMTP is not configured or cannot send.
 
 ---
 
@@ -293,6 +307,60 @@ bash scripts/verify.sh
 
 ---
 
+<a id="cicd-auto-deploy"></a>
+## 🚀 CI/CD auto deploy
+
+This repo now includes a dedicated CD workflow:
+
+- **CI workflow:** `.github/workflows/ci.yml`
+- **CD workflow:** `.github/workflows/cd.yml`
+- **Deploy compose:** `deploy/docker-compose.deploy.yml`
+
+### Trigger policy
+
+- Push to `dev` -> CI pass -> build/push images -> deploy **staging**
+- Push to `main` -> CI pass -> build/push images -> deploy **production**
+- Manual deploy is available via `workflow_dispatch` in `EduCycle CD`
+
+### One-time GitHub setup
+
+Create two GitHub Environments: `staging`, `production`.
+Add environment-level secrets (same key names for both):
+
+- `DEPLOY_HOST` (server IP/domain)
+- `DEPLOY_USER` (SSH user)
+- `DEPLOY_SSH_KEY` (private key, PEM text)
+- `DEPLOY_PATH` (example: `/opt/educycle`)
+- `GHCR_USERNAME` (GitHub username with package pull access)
+- `GHCR_TOKEN` (PAT with `read:packages`)
+
+### One-time server bootstrap
+
+On each target server:
+
+```bash
+mkdir -p /opt/educycle
+cd /opt/educycle
+# create runtime env used by docker compose deploy
+cp /path/to/your-template.env .env
+```
+
+Required values in server `.env`:
+
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+- `APP_FRONTEND_BASE_URL`
+- `SPRING_PROFILES_ACTIVE` (set `production,smtp` for real email)
+- `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `APP_MAIL_FROM` (for SMTP)
+
+After this bootstrap, CD workflow handles:
+
+1. Build and push `educycle-api` + `educycle-web` images to GHCR
+2. Upload `docker-compose.deploy.yml` to server
+3. `docker compose pull && docker compose up -d --remove-orphans`
+
+---
+
 <a id="project-layout"></a>
 ## 📁 Project layout
 
@@ -318,7 +386,7 @@ EDUCYCLE/
 
 | Layer | Technologies |
 |-------|----------------|
-| API | Java 26, Spring Boot 4.0.5, Spring Security, JPA, Flyway |
+| API | Java 25, Spring Boot 4.0.5, Spring Security, JPA, Flyway |
 | Auth | JWT (JJWT), refresh token (SecureRandom), `.edu.vn` + email OTP |
 | DB | PostgreSQL 18 |
 | Realtime | STOMP + SockJS |
