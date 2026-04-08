@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
 import { IconHeart, IconHeartFilled, IconTrash } from '../components/icons/Icons';
+import { StatusBadge } from '../components/ui';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -189,16 +190,8 @@ export default function ProductDetailPage() {
           <span className="pdp-category-badge">{product.category}</span>
 
           {/* Issue #3: Status badge */}
-          {isReserved && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', background:'var(--warning-light)', color:'#e65100', borderRadius:'var(--radius-md)', padding:'var(--space-2) var(--space-3)', fontSize:'var(--text-sm)', fontWeight:500, marginBottom:'var(--space-3)' }}>
-              Đang có người đặt mua
-            </div>
-          )}
-          {isPending && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:'var(--space-2)', background:'var(--info-light)', color:'#1565c0', borderRadius:'var(--radius-md)', padding:'var(--space-2) var(--space-3)', fontSize:'var(--text-sm)', fontWeight:500, marginBottom:'var(--space-3)' }}>
-              Đang chờ kiểm duyệt
-            </div>
-          )}
+          {isReserved && <StatusBadge label="Đang có người đặt mua" tone="warning" className="pdp-inline-status" />}
+          {isPending && <StatusBadge label="Đang chờ kiểm duyệt" tone="info" className="pdp-inline-status" />}
           {isRejected && (
             <div style={{ background:'var(--error-light)', border:'1px solid #fecaca', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#991b1b', marginBottom:'var(--space-3)' }}>
               <strong>Tin bị từ chối</strong>

@@ -9,6 +9,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
+import { EmptyState, PageHeader } from '../components/ui';
 import './ProductListingPage.css';
 
 const FALLBACK_CATEGORIES = ['all', ...NAV_CATALOG.map((n) => n.category)];
@@ -116,15 +117,13 @@ export default function ProductListingPage() {
   };
 
   return (
-    <div>
-      <section className="plp-hero">
-        <h1 className="plp-hero-title">Tìm Sách &amp; Tài Liệu Học Tập</h1>
-        <p className="plp-hero-subtitle">
-          Trao đổi sách giáo trình, tài liệu và dụng cụ học tập giữa sinh viên
-        </p>
-      </section>
-
-      <div className="plp-container">
+    <div className="plp-page edu-page">
+      <div className="plp-container edu-container">
+        <PageHeader
+          eyebrow="Marketplace học thuật"
+          title="Tìm sách và tài liệu học tập"
+          subtitle="Lọc theo danh mục, mức giá và đánh giá để tìm đúng giáo trình, tài liệu ôn thi hoặc dụng cụ học tập bạn cần."
+        />
         <div className="plp-content-grid">
           <aside className={`plp-sidebar ${sidebarOpen ? 'open' : ''}`}>
             <div className="plp-filter-section">
@@ -252,15 +251,15 @@ export default function ProductListingPage() {
             {loading ? (
               <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
-              <div className="plp-empty">
-                <h3 className="plp-empty-title">Chưa có sản phẩm nào</h3>
-                <p className="plp-empty-text">
-                  Hãy là người đầu tiên đăng bán tài liệu trên EduCycle!
-                </p>
-                <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
-                  Đăng bán ngay
-                </Link>
-              </div>
+              <EmptyState
+                title="Chưa có sản phẩm nào"
+                description="Hãy là người đầu tiên đăng bán giáo trình, sách tham khảo hoặc tài liệu ôn thi trên EduCycle."
+                actions={
+                  <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
+                    Đăng bán ngay
+                  </Link>
+                }
+              />
             ) : filteredProducts.length > 0 ? (
               <>
                 <div className={viewMode === 'grid' ? 'plp-product-grid' : 'plp-product-list'}>
@@ -316,13 +315,15 @@ export default function ProductListingPage() {
                 )}
               </>
             ) : (
-              <div className="plp-empty">
-                <h3 className="plp-empty-title">Không có mục đạt đánh giá tối thiểu</h3>
-                <p className="plp-empty-text">Thử hạ mức sao hoặc tải thêm sản phẩm.</p>
-                <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>
-                  Bỏ lọc đánh giá
-                </button>
-              </div>
+              <EmptyState
+                title="Không có mục đạt đánh giá tối thiểu"
+                description="Thử hạ mức sao hoặc tải thêm sản phẩm để xem thêm kết quả."
+                actions={
+                  <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>
+                    Bỏ lọc đánh giá
+                  </button>
+                }
+              />
             )}
           </main>
         </div>

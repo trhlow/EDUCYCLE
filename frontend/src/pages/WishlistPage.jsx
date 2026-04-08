@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../components/Toast';
 import { IconTrash } from '../components/icons/Icons';
+import { EmptyState, PageHeader, SurfaceCard } from '../components/ui';
 import './WishlistPage.css';
 
 export default function WishlistPage() {
@@ -21,73 +22,77 @@ export default function WishlistPage() {
   const handleClear = async () => {
     try {
       await clearWishlist();
-      toast.info('Đã xóa tất cả khỏi danh sách yêu thích');
+      toast.info('Đã xóa tất cả mục yêu thích');
     } catch {
       toast.error('Không xóa hết được. Thử lại.');
     }
   };
 
-  if (wishlistedProducts.length === 0) {
-    return (
-      <div className="wishlist-page">
-        <div className="wishlist-empty">
-          <h2>Danh sách yêu thích trống</h2>
-          <p>Bạn chưa lưu sách hoặc tài liệu nào.</p>
-          <Link to="/products" className="wishlist-browse-btn">
-            Khám phá tài liệu
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="wishlist-page">
-      <div className="wishlist-header">
-        <div>
-          <h1>Danh Sách Yêu Thích</h1>
-          <p>{wishlistedProducts.length} tài liệu đã lưu</p>
-        </div>
-        <button type="button" className="wishlist-clear-btn" onClick={handleClear}>
-          Xóa tất cả
-        </button>
-      </div>
-
-      <div className="wishlist-grid">
-        {wishlistedProducts.map((product) => (
-          <div key={product.id} className="wishlist-card">
-            <div className="wishlist-card-img">
-              <img src={product.imageUrl} alt={product.name} />
-              <button
-                type="button"
-                className="wishlist-remove-btn"
-                onClick={() => handleRemove(product.id, product.name)}
-                title="Xóa khỏi yêu thích"
-                aria-label="Xóa khỏi yêu thích"
-              >
-                <IconTrash size={18} />
+    <div className="wishlist-page edu-page">
+      <div className="edu-container">
+        <PageHeader
+          eyebrow="Sưu tập cá nhân"
+          title="Danh sách yêu thích"
+          subtitle="Lưu nhanh giáo trình, tài liệu ôn thi và đồ dùng học tập để xem lại khi cần."
+          actions={
+            wishlistedProducts.length > 0 ? (
+              <button type="button" className="wishlist-clear-btn" onClick={handleClear}>
+                Xóa tất cả
               </button>
-            </div>
-            <div className="wishlist-card-body">
-              <Link to={`/products/${product.id}`} className="wishlist-card-title">
-                {product.name}
+            ) : null
+          }
+        />
+
+        {wishlistedProducts.length === 0 ? (
+          <EmptyState
+            title="Danh sách yêu thích đang trống"
+            description="Bạn chưa lưu tài liệu nào. Hãy khám phá marketplace để chọn mục phù hợp cho kỳ học này."
+            actions={
+              <Link to="/products" className="wishlist-browse-btn">
+                Khám phá tài liệu
               </Link>
-              <p className="wishlist-card-instructor">Người bán: {product.seller || '—'}</p>
-              <div className="wishlist-card-rating">
-                <span className="wishlist-stars">
-                  {(product.rating != null ? Number(product.rating).toFixed(1) : '—')}/5
-                </span>
-                <span className="wishlist-students">({(product.reviews || 0).toLocaleString()} đánh giá)</span>
-              </div>
-              <div className="wishlist-card-price">
-                <span className="wishlist-price-current">{formatPrice(product.price)}</span>
-              </div>
-              <Link to={`/products/${product.id}`} className="wishlist-add-cart-btn wishlist-request-link">
-                Xem chi tiết &amp; gửi yêu cầu mua
-              </Link>
-            </div>
+            }
+          />
+        ) : (
+          <div className="wishlist-grid">
+            {wishlistedProducts.map((product) => (
+              <SurfaceCard key={product.id} className="wishlist-card" interactive padded={false}>
+                <div className="wishlist-card-img">
+                  <img src={product.imageUrl} alt={product.name} loading="lazy" decoding="async" />
+                  <button
+                    type="button"
+                    className="wishlist-remove-btn"
+                    onClick={() => handleRemove(product.id, product.name)}
+                    title="Xóa khỏi yêu thích"
+                    aria-label="Xóa khỏi yêu thích"
+                  >
+                    <IconTrash size={16} />
+                  </button>
+                </div>
+
+                <div className="wishlist-card-body">
+                  <Link to={`/products/${product.id}`} className="wishlist-card-title">
+                    {product.name}
+                  </Link>
+                  <p className="wishlist-card-seller">Người bán: {product.seller || 'Không rõ'}</p>
+                  <div className="wishlist-card-meta">
+                    <span className="wishlist-stars">
+                      {(product.rating != null ? Number(product.rating).toFixed(1) : '—')}/5
+                    </span>
+                    <span className="wishlist-reviews">
+                      ({(product.reviews || 0).toLocaleString()} đánh giá)
+                    </span>
+                  </div>
+                  <div className="wishlist-card-price">{formatPrice(product.price)}</div>
+                  <Link to={`/products/${product.id}`} className="wishlist-open-btn">
+                    Xem chi tiết và gửi yêu cầu
+                  </Link>
+                </div>
+              </SurfaceCard>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
