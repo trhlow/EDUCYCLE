@@ -1,96 +1,121 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi, messagesApi, reviewsApi } from '../api/endpoints';
+import { transactionsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
 import { createChatClient, sendChatMessage } from '../api/websocket';
+import OtpCodeInput from '../components/inputs/OtpCodeInput';
+import { queryKeys } from '../lib/query/queryKeys';
+import { useTransaction } from '../features/transactions/hooks/useTransaction';
+import { useTransactionMessages, upsertMessage } from '../features/transactions/hooks/useTransactionMessages';
+import { useSendTransactionMessage } from '../features/transactions/hooks/useSendTransactionMessage';
+import { useGenerateTransactionOtp, useVerifyTransactionOtp } from '../features/transactions/hooks/useTransactionOtp';
 import './TransactionDetailPage.css';
 
 const STATUS_CONFIG = {
-  PENDING:       { label: 'Chờ xác nhận',       color: 'warning', step: 1 },
-  ACCEPTED:      { label: 'Đã chấp nhận',        color: 'info',    step: 3 },
-  MEETING:       { label: 'Đang gặp mặt',        color: 'primary', step: 3 },
-  COMPLETED:     { label: 'Hoàn thành',          color: 'success', step: 4 },
-  AUTOCOMPLETED: { label: 'Tự động hoàn thành',  color: 'success', step: 4 },
-  REJECTED:      { label: 'Từ chối',             color: 'error',   step: -1 },
-  CANCELLED:     { label: 'Đã hủy',              color: 'neutral', step: -1 },
-  DISPUTED:      { label: 'Tranh chấp',          color: 'error',   step: -1 },
+  PENDING: { label: 'Cho xac nhan', color: 'warning', step: 1 },
+  ACCEPTED: { label: 'Da chap nhan', color: 'info', step: 3 },
+  MEETING: { label: 'Dang gap mat', color: 'primary', step: 3 },
+  COMPLETED: { label: 'Hoan thanh', color: 'success', step: 4 },
+  AUTOCOMPLETED: { label: 'Tu dong hoan thanh', color: 'success', step: 4 },
+  REJECTED: { label: 'Tu choi', color: 'error', step: -1 },
+  CANCELLED: { label: 'Da huy', color: 'neutral', step: -1 },
+  DISPUTED: { label: 'Tranh chap', color: 'error', step: -1 },
 };
 
 const STEPS = [
-  { step: 1, label: 'Gửi yêu cầu' },
-  { step: 2, label: 'Chấp nhận' },
-  { step: 3, label: 'OTP & hoàn tất' },
-  { step: 4, label: 'Hoàn thành' },
+  { step: 1, label: 'Gui yeu cau' },
+  { step: 2, label: 'Chap nhan' },
+  { step: 3, label: 'OTP va hoan tat' },
+  { step: 4, label: 'Hoan thanh' },
 ];
 
-export default function TransactionDetailPage() {
-  const { id } = useParams();
-  const { user }  = useAuth();
-  const toast = useToast();
+const formatDate = (value) =>
+  new Date(value).toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-  const [transaction,  setTransaction]  = useState(null);
-  const [messages,     setMessages]     = useState([]);
-  const [newMessage,   setNewMessage]   = useState('');
-  const [loading,      setLoading]      = useState(true);
-  const [otpCode,      setOtpCode]      = useState('');   // buyer's generated OTP (shown on buyer screen)
-  const [otpInput,     setOtpInput]     = useState('');   // seller's input field
+const formatTime = (value) =>
+  new Date(value).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+const formatPrice = (price) =>
+  new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(price ?? 0);
+
+export default function TransactionDetailPage() {
+  const { id = '' } = useParams();
+  const { user } = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [newMessage, setNewMessage] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpInput, setOtpInput] = useState('');
   const [otpGenerated, setOtpGenerated] = useState(false);
-  const [reviewForm,   setReviewForm]   = useState({ rating: 5, comment: '' });
-  const [hasReviewed,  setHasReviewed]  = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [hasReviewed, setHasReviewed] = useState(false);
   const [activeSection, setActiveSection] = useState('chat');
   const [disputeReasonInput, setDisputeReasonInput] = useState('');
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
   const [cancelReasonInput, setCancelReasonInput] = useState('');
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
-  const chatEndRef       = useRef(null);
-  const chatContainerRef = useRef(null);
-  const stompClientRef   = useRef(null);
+  const chatEndRef = useRef(null);
+  const stompClientRef = useRef(null);
 
-  /** silent=true: không full-screen loading, không xóa transaction khi lỗi mạng/429 */
-  const fetchTransaction = useCallback(
-    async (silent = false) => {
-      if (!silent) setLoading(true);
-      try {
-        const res = await transactionsApi.getById(id);
-        setTransaction(res.data);
-      } catch (e) {
-        const msg = e?.response?.data?.message || e?.response?.data?.error;
-        setTransaction((prev) => {
-          if (silent && prev) return prev;
-          return null;
-        });
-        if (!silent) {
-          toast.error(typeof msg === 'string' ? msg : 'Không tải được giao dịch.');
-        }
-      } finally {
-        if (!silent) setLoading(false);
-      }
-    },
-    [id, toast],
-  );
+  const transactionQuery = useTransaction(id);
+  const transaction = transactionQuery.data ?? null;
+  const loading = transactionQuery.isPending;
 
-  /** preserveOnError: không xóa chat khi một lần poll thất bại (429, mạng) */
-  const fetchMessages = useCallback(
-    async (preserveOnError = false) => {
-      try {
-        const res = await messagesApi.getByTransaction(id);
-        setMessages(Array.isArray(res.data) ? res.data : []);
-      } catch {
-        if (!preserveOnError) setMessages([]);
-      }
-    },
-    [id],
-  );
+  const statusKey = transaction?.status?.toUpperCase() || 'PENDING';
+  const canChat = ['ACCEPTED', 'MEETING'].includes(statusKey);
+  const canOtp = ['ACCEPTED', 'MEETING'].includes(statusKey);
+
+  const messagesQuery = useTransactionMessages(id, {
+    enabled: activeSection === 'chat' && Boolean(transaction),
+    refetchInterval: canChat && !wsConnected ? 8000 : false,
+  });
+  const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
+
+  const sendMessageMutation = useSendTransactionMessage(id);
+  const generateOtpMutation = useGenerateTransactionOtp(id);
+  const verifyOtpMutation = useVerifyTransactionOtp(id);
+
+  const role =
+    String(transaction?.buyer?.id ?? '') === String(user?.id ?? '')
+      ? 'buyer'
+      : String(transaction?.seller?.id ?? '') === String(user?.id ?? '')
+        ? 'seller'
+        : 'unknown';
+
+  const otherUser = role === 'buyer' ? transaction?.seller : transaction?.buyer;
+  const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.PENDING;
+
+  const isTerminal = ['COMPLETED', 'AUTOCOMPLETED', 'REJECTED', 'CANCELLED', 'DISPUTED'].includes(statusKey);
+  const canReview = ['COMPLETED', 'AUTOCOMPLETED'].includes(statusKey) && !hasReviewed;
+  const canDispute = role === 'buyer' && ['ACCEPTED', 'MEETING'].includes(statusKey);
+  const canCancelAccepted = ['ACCEPTED', 'MEETING'].includes(statusKey) && !isTerminal;
 
   useEffect(() => {
-    fetchTransaction(false);
-    fetchMessages(false);
-  }, [id, fetchTransaction, fetchMessages]);
+    if (!transactionQuery.error) return;
+    const msg =
+      transactionQuery.error?.response?.data?.message ||
+      transactionQuery.error?.response?.data?.error;
+    toast.error(typeof msg === 'string' ? msg : 'Khong tai duoc giao dich.');
+  }, [transactionQuery.error, toast]);
 
-  // Làm mới WebSocket khi JWT được refresh (axios interceptor)
   const [wsEpoch, setWsEpoch] = useState(0);
   useEffect(() => {
     const bump = () => setWsEpoch((n) => n + 1);
@@ -98,35 +123,34 @@ export default function TransactionDetailPage() {
     return () => window.removeEventListener('educycle:token-refreshed', bump);
   }, []);
 
-  // WebSocket chat
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token || !id) return;
-    const client = createChatClient(token, id, (newMsg) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMsg.id)) return prev;
-        return [...prev, newMsg];
-      });
-    });
+
+    const client = createChatClient(
+      token,
+      id,
+      (incoming) => {
+        queryClient.setQueryData(queryKeys.transactions.messages(id), (prev) =>
+          upsertMessage(prev, incoming),
+        );
+      },
+      {
+        onConnect: () => setWsConnected(true),
+        onDisconnect: () => setWsConnected(false),
+        onError: () => setWsConnected(false),
+      },
+    );
+
     client.activate();
     stompClientRef.current = client;
+
     return () => {
+      setWsConnected(false);
       client.deactivate();
       stompClientRef.current = null;
     };
-  }, [id, wsEpoch]);
-
-  // Polling dự phòng — 8s để tránh chạm 60 req/phút (trước đây 1s dễ 429 → mất tin nhắn)
-  useEffect(() => {
-    let interval;
-    if (activeSection === 'chat' && transaction) {
-      const st = transaction.status?.toUpperCase() ?? '';
-      if (['ACCEPTED', 'MEETING'].includes(st)) {
-        interval = setInterval(() => fetchMessages(true), 8000);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [activeSection, transaction, fetchMessages]);
+  }, [id, wsEpoch, queryClient]);
 
   useEffect(() => {
     if (transaction?.status?.toUpperCase() === 'MEETING') {
@@ -134,196 +158,213 @@ export default function TransactionDetailPage() {
     }
   }, [transaction?.status]);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const role      = transaction?.buyer?.id  === user?.id ? 'buyer'
-                  : transaction?.seller?.id === user?.id ? 'seller' : 'unknown';
-  const otherUser = role === 'buyer' ? transaction?.seller : transaction?.buyer;
-  const statusKey = transaction?.status?.toUpperCase() || 'PENDING';
-  const config    = STATUS_CONFIG[statusKey] || STATUS_CONFIG.PENDING;
+  const refetchTransaction = useCallback(async () => {
+    await transactionQuery.refetch();
+  }, [transactionQuery]);
 
-  // ─── Actions ──────────────────────────────────────────────
-  // Issue #2 FIX: use UPPERCASE status, auto-navigate to OTP on MEETING
   const handleStatusUpdate = async (newStatus) => {
     try {
       await transactionsApi.updateStatus(id, { status: newStatus });
-      toast.success(
-        newStatus === 'ACCEPTED'  ? 'Đã chấp nhận yêu cầu mua!' :
-        newStatus === 'REJECTED'  ? 'Đã từ chối yêu cầu.'        :
-        'Cập nhật thành công!'
-      );
-      await fetchTransaction(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Không cập nhật được trạng thái. Kiểm tra kết nối hoặc quyền.');
+      toast.success(newStatus === 'ACCEPTED' ? 'Da chap nhan yeu cau mua.' : 'Cap nhat thanh cong.');
+      await refetchTransaction();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Khong cap nhat duoc trang thai.');
     }
   };
 
   const handleCancelTransaction = async () => {
-    if (!window.confirm('Hủy giao dịch này? Hai bên sẽ không thể tiếp tục.')) return;
+    if (!window.confirm('Huy giao dich nay?')) return;
     setCancelSubmitting(true);
     try {
       const body = cancelReasonInput.trim() ? { reason: cancelReasonInput.trim() } : {};
       await transactionsApi.cancel(id, body);
-      toast.success('Đã hủy giao dịch.');
+      toast.success('Da huy giao dich.');
       setCancelReasonInput('');
-      await fetchTransaction(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Không hủy được giao dịch.');
+      await refetchTransaction();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Khong huy duoc giao dich.');
     } finally {
       setCancelSubmitting(false);
     }
   };
 
-  const handleSendMessage = useCallback(async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    const content = newMessage.trim();
-    setNewMessage('');
-    if (stompClientRef.current?.connected) {
-      sendChatMessage(stompClientRef.current, id, content);
-    } else {
-      try {
-        await messagesApi.send(id, { content });
-        fetchMessages(true);
-      } catch {
-        setMessages(prev => [...prev, { id: Date.now(), senderId: user?.id, senderName: user?.username, content, createdAt: new Date().toISOString() }]);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newMessage, id, user]);
+  const handleSendMessage = useCallback(
+    async (event) => {
+      event.preventDefault();
+      const content = newMessage.trim();
+      if (!content) return;
 
-  // Issue #2 OTP FIX:
-  //   Người MUA tạo OTP → hiện mã trên màn hình buyer → buyer đọc cho seller
-  //   Người BÁN nhập mã vào app → giao dịch hoàn thành
+      setNewMessage('');
+
+      if (stompClientRef.current?.connected) {
+        sendChatMessage(stompClientRef.current, id, content);
+        queryClient.setQueryData(queryKeys.transactions.messages(id), (prev) =>
+          upsertMessage(prev, {
+            id: `local-${Date.now()}`,
+            senderId: user?.id,
+            senderName: user?.username,
+            content,
+            createdAt: new Date().toISOString(),
+          }),
+        );
+        return;
+      }
+
+      try {
+        await sendMessageMutation.mutateAsync({
+          content,
+          senderId: user?.id,
+          senderName: user?.username,
+        });
+      } catch {
+        toast.error('Gui tin nhan that bai. Vui long thu lai.');
+      }
+    },
+    [newMessage, id, queryClient, sendMessageMutation, toast, user?.id, user?.username],
+  );
+
   const handleGenerateOtp = async () => {
     try {
-      const res = await transactionsApi.generateOtp(id);
-      const otp = res.data?.otp || '------';
-      setOtpCode(otp);
+      const otp = await generateOtpMutation.mutateAsync();
+      setOtpCode(otp || '------');
       setOtpGenerated(true);
-      toast.success('Mã OTP đã được tạo. Đọc mã cho người bán.');
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Không tạo được mã OTP. Chỉ người mua được tạo mã.');
+      toast.success('OTP da duoc tao. Doc ma cho nguoi ban.');
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Khong tao duoc OTP.');
     }
   };
 
   const handleVerifyOtp = async () => {
     if (!otpInput || otpInput.length < 4) {
-      toast.error('Vui lòng nhập mã OTP hợp lệ!');
+      toast.error('Vui long nhap OTP hop le.');
       return;
     }
     try {
-      await transactionsApi.verifyOtp(id, { otp: otpInput });
-      toast.success('Xác nhận OTP thành công. Giao dịch hoàn thành.');
-      await fetchTransaction(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Mã OTP không đúng, hết hạn, hoặc bạn không phải người bán.');
+      await verifyOtpMutation.mutateAsync({ otp: otpInput });
+      toast.success('Xac nhan OTP thanh cong.');
+      setOtpInput('');
+      await refetchTransaction();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Ma OTP khong dung hoac da het han.');
     }
-    setOtpInput('');
   };
 
   const handleConfirmReceipt = async () => {
     try {
       await transactionsApi.confirmReceipt(id);
-      toast.success('Đã xác nhận nhận hàng!');
-      await fetchTransaction(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Không xác nhận được. Thử lại.');
+      toast.success('Da xac nhan nhan hang.');
+      await refetchTransaction();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Khong xac nhan duoc.');
     }
   };
 
   const handleOpenDispute = async () => {
-    if (!window.confirm('Báo tranh chấp cho admin? Hai bên sẽ chờ admin xử lý trước khi tiếp tục.')) return;
+    if (!window.confirm('Bao tranh chap cho admin?')) return;
     setDisputeSubmitting(true);
     try {
       const body = disputeReasonInput.trim() ? { reason: disputeReasonInput.trim() } : {};
       await transactionsApi.openDispute(id, body);
-      toast.success('Đã gửi báo tranh chấp. Admin sẽ xem xét.');
+      toast.success('Da gui bao tranh chap.');
       setDisputeReasonInput('');
-      await fetchTransaction(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Không gửi được báo tranh chấp.');
+      await refetchTransaction();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Khong gui duoc tranh chap.');
     } finally {
       setDisputeSubmitting(false);
     }
   };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    if (!reviewForm.comment.trim()) { toast.error('Vui lòng viết nhận xét!'); return; }
-    const targetUserId = otherUser?.id || otherUser?.Id;
+  const handleSubmitReview = async (event) => {
+    event.preventDefault();
+    if (!reviewForm.comment.trim()) {
+      toast.error('Vui long nhap nhan xet.');
+      return;
+    }
+
+    const targetUserId = otherUser?.id;
     try {
       await reviewsApi.create({
-          targetUserId,
-          transactionId: id,
-          rating: reviewForm.rating,
-          content: reviewForm.comment,
-        });
-      toast.success('Đã gửi đánh giá!');
+        targetUserId,
+        transactionId: id,
+        rating: reviewForm.rating,
+        content: reviewForm.comment,
+      });
       setHasReviewed(true);
-    } catch (e) {
-      const msg = e?.response?.data?.message || e?.response?.data?.error;
-      toast.error(typeof msg === 'string' ? msg : 'Gửi đánh giá thất bại. Thử lại.');
+      toast.success('Da gui danh gia.');
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.error;
+      toast.error(typeof msg === 'string' ? msg : 'Gui danh gia that bai.');
     }
   };
 
-  const formatDate = d => new Date(d).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  const formatTime = d => new Date(d).toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
-  const formatPrice = p => new Intl.NumberFormat('vi-VN', { style:'currency', currency:'VND' }).format(p);
+  if (loading) {
+    return (
+      <div className="txd-page">
+        <div className="txd-container">
+          <div className="txd-loading">
+            <div className="loading-spinner" />
+            <p>Dang tai giao dich...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  if (loading) return (
-    <div className="txd-page"><div className="txd-container"><div className="txd-loading">
-      <div className="loading-spinner" /><p>Đang tải giao dịch...</p>
-    </div></div></div>
-  );
-
-  if (!transaction) return (
-    <div className="txd-page"><div className="txd-container" style={{ textAlign:'center', padding:'4rem' }}>
-      <h2>Không tìm thấy giao dịch</h2>
-      <Link to="/transactions">Quay lại danh sách</Link>
-    </div></div>
-  );
-
-  const isTerminal = ['COMPLETED','AUTOCOMPLETED','REJECTED','CANCELLED','DISPUTED'].includes(statusKey);
-  const canChat   = ['ACCEPTED','MEETING'].includes(statusKey);
-  const canOtp    = ['ACCEPTED','MEETING'].includes(statusKey);
-  const canReview = ['COMPLETED','AUTOCOMPLETED'].includes(statusKey) && !hasReviewed;
-  const canDispute = role === 'buyer' && ['ACCEPTED','MEETING'].includes(statusKey);
-  const canCancelAccepted = ['ACCEPTED','MEETING'].includes(statusKey) && !isTerminal;
+  if (!transaction) {
+    return (
+      <div className="txd-page">
+        <div className="txd-container" style={{ textAlign: 'center', padding: '4rem' }}>
+          <h2>Khong tim thay giao dich</h2>
+          <div style={{ display: 'inline-flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <button type="button" className="txd-btn txd-btn-meeting" onClick={() => void transactionQuery.refetch()}>
+              Thu tai lai
+            </button>
+            <Link to="/transactions">Quay lai danh sach</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="txd-page">
       <div className="txd-container">
         <div className="txd-breadcrumb">
-          <Link to="/transactions">Giao dịch của tôi</Link>
+          <Link to="/transactions">Giao dich cua toi</Link>
           <span>/</span>
           <span>#{transaction.id}</span>
         </div>
 
-        {/* Progress */}
         <div className="txd-progress">
-          {STEPS.map(s => {
-            const cur      = config.step;
-            const isActive = s.step === cur;
-            const isDone   = cur > 0 && s.step < cur;
-            const isFailed = cur < 0;
+          {STEPS.map((stepInfo) => {
+            const current = config.step;
+            const isActive = stepInfo.step === current;
+            const isDone = current > 0 && stepInfo.step < current;
+            const isFailed = current < 0;
             return (
-              <div key={s.step} className={`txd-step ${isActive?'txd-step-active':''} ${isDone?'txd-step-done':''} ${isFailed?'txd-step-failed':''}`}>
-                <div className="txd-step-circle">{s.step}</div>
-                <span className="txd-step-label">{s.label}</span>
+              <div
+                key={stepInfo.step}
+                className={`txd-step ${isActive ? 'txd-step-active' : ''} ${isDone ? 'txd-step-done' : ''} ${isFailed ? 'txd-step-failed' : ''}`}
+              >
+                <div className="txd-step-circle">{stepInfo.step}</div>
+                <span className="txd-step-label">{stepInfo.label}</span>
               </div>
             );
           })}
         </div>
 
         <div className="txd-layout">
-          {/* ─── Left ─── */}
           <div className="txd-left">
             <div className="txd-product-card">
               <div className="txd-product-image">
@@ -338,284 +379,223 @@ export default function TransactionDetailPage() {
             </div>
 
             <div className="txd-info-card">
-              <h3 className="txd-info-title">Thông tin giao dịch</h3>
+              <h3 className="txd-info-title">Thong tin giao dich</h3>
               <div className="txd-info-grid">
-                {[
-                  ['Mã giao dịch', `#${transaction.id}`],
-                  ['Trạng thái', <span className={`tx-status-badge tx-status-${config.color}`}>{config.label}</span>],
-                  ['Vai trò của bạn', <span className={`tx-role-badge tx-role-${role}`}>{role==='buyer'?'Người mua':'Người bán'}</span>],
-                  ['Đối tác', `@${maskUsername(otherUser?.username)}`],
-                  ['Tạo lúc', formatDate(transaction.createdAt)],
-                  ['Cập nhật', formatDate(transaction.updatedAt)],
-                  ...(statusKey === 'CANCELLED' && transaction.cancelReason
-                    ? [['Lý do hủy', transaction.cancelReason]]
-                    : []),
-                  ...(statusKey === 'CANCELLED' && transaction.cancelledAt
-                    ? [['Hủy lúc', formatDate(transaction.cancelledAt)]]
-                    : []),
-                ].map(([label, value], i) => (
-                  <div key={i} className="txd-info-row">
-                    <span className="txd-info-label">{label}</span>
-                    <span className="txd-info-value">{value}</span>
-                  </div>
-                ))}
+                <div className="txd-info-row"><span className="txd-info-label">Ma giao dich</span><span className="txd-info-value">#{transaction.id}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Trang thai</span><span className={`tx-status-badge tx-status-${config.color}`}>{config.label}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Vai tro cua ban</span><span className={`tx-role-badge tx-role-${role}`}>{role === 'buyer' ? 'Nguoi mua' : 'Nguoi ban'}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Doi tac</span><span className="txd-info-value">@{maskUsername(otherUser?.username)}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Tao luc</span><span className="txd-info-value">{formatDate(transaction.createdAt)}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Cap nhat</span><span className="txd-info-value">{formatDate(transaction.updatedAt)}</span></div>
               </div>
             </div>
 
             <div className="txd-actions-card">
               {role === 'seller' && statusKey === 'PENDING' && (
                 <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Bạn có yêu cầu mua mới từ @{maskUsername(transaction.buyer?.username)}</p>
+                  <p className="txd-actions-hint">Ban co yeu cau mua moi tu @{maskUsername(transaction.buyer?.username)}</p>
                   <div className="txd-actions-btns">
-                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('ACCEPTED')}>Chấp nhận</button>
-                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('REJECTED')}>Từ chối</button>
+                    <button className="txd-btn txd-btn-accept" onClick={() => handleStatusUpdate('ACCEPTED')}>Chap nhan</button>
+                    <button className="txd-btn txd-btn-reject" onClick={() => handleStatusUpdate('REJECTED')}>Tu choi</button>
                   </div>
                 </div>
               )}
-              {role === 'buyer' && statusKey === 'PENDING' && (
-                <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Đang chờ người bán xác nhận...</p>
-                  <button type="button" className="txd-btn txd-btn-cancel" disabled={cancelSubmitting} onClick={handleCancelTransaction}>Hủy yêu cầu</button>
-                </div>
-              )}
+
               {canCancelAccepted && (
                 <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Nhắn tin để hẹn địa điểm; khi gặp trực tiếp, người mua tạo mã OTP ở tab OTP. Hai bên đều có thể hủy giao dịch (kèm lý do tuỳ chọn).</p>
                   <textarea
                     className="auth-input"
                     style={{ width: '100%', minHeight: 72, marginBottom: 'var(--space-2)', resize: 'vertical' }}
-                    placeholder="Lý do hủy (tuỳ chọn)..."
+                    placeholder="Ly do huy (tuy chon)..."
                     value={cancelReasonInput}
-                    onChange={(e) => setCancelReasonInput(e.target.value)}
+                    onChange={(event) => setCancelReasonInput(event.target.value)}
                     maxLength={2000}
-                    aria-label="Lý do hủy giao dịch"
+                    aria-label="Ly do huy giao dich"
                   />
                   <button type="button" className="txd-btn txd-btn-cancel" disabled={cancelSubmitting} onClick={handleCancelTransaction}>
-                    {cancelSubmitting ? 'Đang xử lý...' : 'Hủy giao dịch'}
+                    {cancelSubmitting ? 'Dang xu ly...' : 'Huy giao dich'}
                   </button>
                 </div>
               )}
+
               {canDispute && (
                 <div className="txd-actions-group" style={{ border: '1px solid var(--error-light, #ffcdd2)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-                  <p className="txd-actions-hint">Có vấn đề sau khi đã chấp nhận? Chỉ <strong>người mua</strong> có thể báo tranh chấp để admin hỗ trợ.</p>
                   <textarea
                     className="auth-input"
                     style={{ width: '100%', minHeight: 72, marginBottom: 'var(--space-2)', resize: 'vertical' }}
-                    placeholder="Mô tả ngắn (không bắt buộc)..."
+                    placeholder="Mo ta ngan (khong bat buoc)..."
                     value={disputeReasonInput}
-                    onChange={(e) => setDisputeReasonInput(e.target.value)}
+                    onChange={(event) => setDisputeReasonInput(event.target.value)}
                     maxLength={2000}
                   />
                   <button type="button" className="txd-btn txd-btn-cancel" disabled={disputeSubmitting} onClick={handleOpenDispute}>
-                    {disputeSubmitting ? 'Đang gửi...' : 'Báo tranh chấp'}
+                    {disputeSubmitting ? 'Dang gui...' : 'Bao tranh chap'}
                   </button>
-                </div>
-              )}
-              {statusKey === 'DISPUTED' && (
-                <div className="txd-actions-group" style={{ background: 'var(--error-light, #ffebee)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
-                  <p className="txd-actions-hint" style={{ fontWeight: 600 }}>Giao dịch đang tranh chấp — chờ admin xử lý</p>
-                  {transaction.disputeReason && (
-                    <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-2)' }}><strong>Lý do:</strong> {transaction.disputeReason}</p>
-                  )}
-                  {transaction.disputedAt && (
-                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>Báo lúc: {formatDate(transaction.disputedAt)}</p>
-                  )}
-                </div>
-              )}
-              {canReview && (
-                <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Giao dịch hoàn thành! Hãy đánh giá đối tác.</p>
-                  <button className="txd-btn txd-btn-review" onClick={() => setActiveSection('review')}>Viết đánh giá</button>
-                </div>
-              )}
-              {hasReviewed && (
-                <div className="txd-actions-group">
-                  <p className="txd-actions-hint txd-hint-success">Bạn đã gửi đánh giá. Cảm ơn bạn.</p>
-                </div>
-              )}
-              {isTerminal && !canReview && !hasReviewed && statusKey !== 'DISPUTED' && (
-                <div className="txd-actions-group">
-                  <p className="txd-actions-hint">Giao dịch đã kết thúc: <strong>{config.label}</strong></p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* ─── Right ─── */}
           <div className="txd-right">
             <div className="txd-section-tabs">
-              <button className={`txd-section-tab ${activeSection==='chat'?'active':''}`} onClick={() => setActiveSection('chat')}>
-                Chat {canChat && <span className="txd-tab-live">trực tuyến</span>}
+              <button className={`txd-section-tab ${activeSection === 'chat' ? 'active' : ''}`} onClick={() => setActiveSection('chat')}>
+                Chat {canChat && <span className="txd-tab-live">truc tuyen</span>}
               </button>
-              <button type="button" className={`txd-section-tab ${activeSection==='otp'?'active':''}`} onClick={() => setActiveSection('otp')} disabled={!canOtp && !['COMPLETED','AUTOCOMPLETED'].includes(statusKey)}>
+              <button type="button" className={`txd-section-tab ${activeSection === 'otp' ? 'active' : ''}`} onClick={() => setActiveSection('otp')} disabled={!canOtp && !['COMPLETED', 'AUTOCOMPLETED'].includes(statusKey)}>
                 OTP
               </button>
-              <button className={`txd-section-tab ${activeSection==='review'?'active':''}`} onClick={() => setActiveSection('review')} disabled={!canReview && !hasReviewed}>
-                Đánh giá
+              <button className={`txd-section-tab ${activeSection === 'review' ? 'active' : ''}`} onClick={() => setActiveSection('review')} disabled={!canReview && !hasReviewed}>
+                Danh gia
               </button>
             </div>
 
-            {/* CHAT */}
             {activeSection === 'chat' && (
               <div className="txd-chat-section">
                 <div className="txd-chat-header">
                   <div className="txd-chat-avatar">{otherUser?.username?.charAt(0)?.toUpperCase() || '?'}</div>
                   <div>
                     <div className="txd-chat-name">@{otherUser?.username}</div>
-                    <div className="txd-chat-status-text">{canChat ? 'Đang trực tuyến' : 'Trò chuyện đã kết thúc'}</div>
+                    <div className="txd-chat-status-text">{wsConnected ? 'WebSocket dang ket noi' : 'Dang fallback HTTP polling'}</div>
                   </div>
+                  {!wsConnected && (
+                    <button type="button" className="txd-chat-retry" onClick={() => setWsEpoch((x) => x + 1)}>
+                      Thu ket noi lai
+                    </button>
+                  )}
                 </div>
-                <div className="txd-chat-messages" ref={chatContainerRef}>
+
+                <div className="txd-chat-messages" aria-live="polite">
                   {messages.length === 0 ? (
                     <div className="txd-chat-empty">
-                      <p>Chưa có tin nhắn nào.</p>
-                      {canChat && <p>Hãy bắt đầu cuộc trò chuyện!</p>}
+                      <p>Chua co tin nhan nao.</p>
                     </div>
-                  ) : messages.map(msg => {
-                    const isMe = msg.senderId === user?.id;
-                    return (
-                      <div key={msg.id} className={`txd-msg ${isMe ? 'txd-msg-me' : 'txd-msg-other'}`}>
-                        {!isMe && <div className="txd-msg-avatar">{msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div>}
-                        <div className="txd-msg-bubble">
-                          <div className="txd-msg-content">{msg.content}</div>
-                          <div className="txd-msg-time">{formatTime(msg.createdAt)}</div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isMe = String(msg.senderId ?? '') === String(user?.id ?? '');
+                      return (
+                        <div key={msg.id} className={`txd-msg ${isMe ? 'txd-msg-me' : 'txd-msg-other'}`}>
+                          {!isMe && <div className="txd-msg-avatar">{msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div>}
+                          <div className="txd-msg-bubble">
+                            <div className="txd-msg-content">{msg.content}</div>
+                            <div className="txd-msg-time">{formatTime(msg.createdAt)}</div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                   <div ref={chatEndRef} />
                 </div>
+
                 {canChat ? (
                   <form className="txd-chat-input-area" onSubmit={handleSendMessage}>
-                    <input type="text" className="txd-chat-input" placeholder="Nhập tin nhắn..." value={newMessage} onChange={e => setNewMessage(e.target.value)} autoFocus />
-                    <button type="submit" className="txd-chat-send" disabled={!newMessage.trim()}>Gửi</button>
+                    <input
+                      type="text"
+                      className="txd-chat-input"
+                      placeholder="Nhap tin nhan..."
+                      value={newMessage}
+                      onChange={(event) => setNewMessage(event.target.value)}
+                    />
+                    <button type="submit" className="txd-chat-send" disabled={!newMessage.trim() || sendMessageMutation.isPending}>
+                      {sendMessageMutation.isPending ? 'Dang gui...' : 'Gui'}
+                    </button>
                   </form>
                 ) : (
                   <div className="txd-chat-disabled">
-                    {statusKey === 'PENDING' ? 'Chat sẽ mở khi người bán chấp nhận yêu cầu' : 'Trò chuyện đã đóng'}
+                    Chat se mo khi giao dich duoc chap nhan.
                   </div>
                 )}
               </div>
             )}
 
-            {/* OTP — Issue #2 FIX: buyer generates → shows OTP → seller inputs */}
             {activeSection === 'otp' && (
               <div className="txd-otp-section">
                 <div className="txd-otp-header">
-                  <h3>Xác nhận giao dịch bằng OTP</h3>
-                  <p>Khi hai bên đã gặp và giao sách tại điểm hẹn</p>
-                </div>
-
-                <div className="txd-otp-guide">
-                  <div className="txd-otp-guide-title">Quy trình</div>
-                  <ol className="txd-otp-steps">
-                    <li>Người <strong>mua</strong> nhấn "Tạo mã OTP"</li>
-                    <li>Mã 6 số hiện trên màn hình người <strong>mua</strong></li>
-                    <li>Người <strong>mua</strong> đọc mã cho người <strong>bán</strong></li>
-                    <li>Người <strong>bán</strong> nhập mã: giao dịch hoàn thành</li>
-                  </ol>
-                </div>
-
-                <div className="txd-otp-status">
-                  <div className={`txd-confirm-item ${transaction.buyerConfirmed ? 'confirmed' : ''}`}>
-                    <span className="txd-confirm-icon">{transaction.buyerConfirmed ? 'Rồi' : 'Chưa'}</span>
-                    <span>Người mua xác nhận</span>
-                  </div>
-                  <div className={`txd-confirm-item ${transaction.sellerConfirmed ? 'confirmed' : ''}`}>
-                    <span className="txd-confirm-icon">{transaction.sellerConfirmed ? 'Rồi' : 'Chưa'}</span>
-                    <span>Người bán xác nhận</span>
-                  </div>
+                  <h3>Xac nhan giao dich bang OTP</h3>
+                  <p>Khi hai ben da gap va giao sach tai diem hen.</p>
                 </div>
 
                 {canOtp && (
                   <div className="txd-otp-actions">
-                    {/* BUYER: generates OTP */}
                     {role === 'buyer' && !otpGenerated && (
-                      <button className="txd-btn txd-btn-otp" onClick={handleGenerateOtp}>
-                        Tạo mã OTP
+                      <button className="txd-btn txd-btn-otp" onClick={handleGenerateOtp} disabled={generateOtpMutation.isPending}>
+                        {generateOtpMutation.isPending ? 'Dang tao...' : 'Tao ma OTP'}
                       </button>
                     )}
+
                     {role === 'buyer' && otpGenerated && (
-                      <div className="txd-otp-display">
-                        <div className="txd-otp-label">Mã OTP của bạn — đọc cho người bán:</div>
-                        <div className="txd-otp-code" style={{ letterSpacing: '0.3em', fontSize: '2.5rem' }}>{otpCode}</div>
-                        <p className="txd-otp-hint">Mã có hiệu lực 30 phút · Không chia sẻ qua chat</p>
+                      <div className="txd-otp-display" aria-live="polite">
+                        <div className="txd-otp-label">OTP cua ban - doc cho nguoi ban:</div>
+                        <div className="txd-otp-code">{otpCode}</div>
+                        <p className="txd-otp-hint">Ma co hieu luc 30 phut. Khong chia se trong chat.</p>
                       </div>
                     )}
 
-                    {/* SELLER: inputs OTP received from buyer */}
                     {role === 'seller' && (
                       <div className="txd-otp-verify">
-                        <label className="txd-otp-label">Nhập mã OTP từ người mua:</label>
-                        <div className="txd-otp-input-group">
-                          <input
-                            type="text"
-                            className="txd-otp-input"
-                            placeholder="6 chữ số..."
+                        <label className="txd-otp-label">Nhap OTP tu nguoi mua:</label>
+                        <div className="txd-otp-input-group txd-otp-input-group--slots">
+                          <OtpCodeInput
                             value={otpInput}
-                            onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                            maxLength={6}
+                            onChange={setOtpInput}
                             autoFocus
+                            ariaLabel="Nhap ma OTP"
                           />
-                          <button className="txd-btn txd-btn-verify" onClick={handleVerifyOtp}>
-                            Xác nhận
+                          <button className="txd-btn txd-btn-verify" onClick={handleVerifyOtp} disabled={verifyOtpMutation.isPending}>
+                            {verifyOtpMutation.isPending ? 'Dang xac nhan...' : 'Xac nhan'}
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Buyer confirm receipt */}
                     {role === 'buyer' && !transaction.buyerConfirmed && (
                       <button className="txd-btn txd-btn-confirm" onClick={handleConfirmReceipt}>
-                        Xác nhận đã nhận hàng
+                        Xac nhan da nhan hang
                       </button>
                     )}
-                  </div>
-                )}
-
-                {['COMPLETED','AUTOCOMPLETED'].includes(statusKey) && (
-                  <div className="txd-otp-complete">
-                    <h4>Giao dịch đã hoàn thành!</h4>
-                    <p>Cả hai bên đã xác nhận thành công.</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* REVIEW */}
             {activeSection === 'review' && (
               <div className="txd-review-section">
                 {hasReviewed ? (
                   <div className="txd-review-done">
-                    <h3>Cảm ơn bạn đã đánh giá!</h3>
-                    <p>Đánh giá của bạn giúp cộng đồng EduCycle tốt hơn.</p>
+                    <h3>Cam on ban da danh gia.</h3>
                   </div>
                 ) : canReview ? (
                   <form className="txd-review-form" onSubmit={handleSubmitReview}>
-                    <h3 className="txd-review-title">Đánh giá @{otherUser?.username}</h3>
-                    <p className="txd-review-hint">Đánh giá sẽ hiển thị trên hồ sơ người dùng đó</p>
+                    <h3 className="txd-review-title">Danh gia @{otherUser?.username}</h3>
                     <div className="txd-stars-input">
-                      <label>Số sao:</label>
+                      <label>So sao:</label>
                       <div className="txd-stars-row">
-                        {[1,2,3,4,5].map(star => (
-                          <button key={star} type="button" className={`txd-star-btn ${reviewForm.rating>=star?'active':''}`} onClick={() => setReviewForm({...reviewForm, rating:star})}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            className={`txd-star-btn ${reviewForm.rating >= star ? 'active' : ''}`}
+                            onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                          >
                             {star}
                           </button>
                         ))}
-                        <span className="txd-stars-text">
-                          {reviewForm.rating===5?'Tuyệt vời!':reviewForm.rating===4?'Rất tốt':reviewForm.rating===3?'Bình thường':reviewForm.rating===2?'Kém':'Rất kém'}
-                        </span>
                       </div>
                     </div>
                     <div className="txd-review-comment">
-                      <label>Nhận xét:</label>
-                      <textarea className="txd-review-textarea" rows={4} placeholder="Chia sẻ trải nghiệm giao dịch..." value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment:e.target.value})} />
+                      <label>Nhan xet:</label>
+                      <textarea
+                        className="txd-review-textarea"
+                        rows={4}
+                        placeholder="Chia se trai nghiem giao dich..."
+                        value={reviewForm.comment}
+                        onChange={(event) => setReviewForm({ ...reviewForm, comment: event.target.value })}
+                      />
                     </div>
-                    <button type="submit" className="txd-btn txd-btn-submit-review">Gửi đánh giá</button>
+                    <button type="submit" className="txd-btn txd-btn-submit-review">Gui danh gia</button>
                   </form>
                 ) : (
                   <div className="txd-review-locked">
-                    <p>Đánh giá chỉ khả dụng sau khi giao dịch hoàn thành.</p>
+                    <p>Danh gia chi co sau khi giao dich hoan thanh.</p>
                   </div>
                 )}
               </div>
@@ -626,3 +606,5 @@ export default function TransactionDetailPage() {
     </div>
   );
 }
+
+

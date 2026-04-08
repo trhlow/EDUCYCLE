@@ -55,6 +55,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
                     // ── Public read
                     .requestMatchers(HttpMethod.GET, "/api/public/users/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/public/health").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/products/{id}").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()

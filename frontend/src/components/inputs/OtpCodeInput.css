@@ -1,0 +1,43 @@
+.otp-code-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.otp-code-input__slot {
+  width: 44px;
+  min-width: 44px;
+  height: 48px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.otp-code-input__slot:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+.otp-code-input__slot:disabled {
+  opacity: 0.55;
+}
+
+@media (max-width: 39.99rem) {
+  .otp-code-input {
+    gap: var(--space-1);
+  }
+
+  .otp-code-input__slot {
+    width: 40px;
+    min-width: 40px;
+    height: 44px;
+  }
+}
