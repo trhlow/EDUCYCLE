@@ -367,3 +367,8 @@ Secret can co cho moi GitHub Environment (staging/production):
 - `DEPLOY_PATH`
 - `GHCR_USERNAME`
 - `GHCR_TOKEN` (`read:packages`)
+- Bat `Required reviewers` cho environment `production` de tao approval gate truoc khi deploy production.
+
+Smoke check sau deploy:
+- `curl -fsS http://localhost/api/public/health`
+- `curl -fsSI http://localhost`

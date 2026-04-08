@@ -1,0 +1,10 @@
+[
+  { "name": "frontend", "color": "1D76DB", "description": "Frontend implementation tasks" },
+  { "name": "ux", "color": "FBCA04", "description": "UX behavior and interaction quality" },
+  { "name": "a11y", "color": "5319E7", "description": "Accessibility and WCAG tasks" },
+  { "name": "perf", "color": "0E8A16", "description": "Performance and Web Vitals tasks" },
+  { "name": "transactions", "color": "BFD4F2", "description": "Transactions/chat/otp domain" },
+  { "name": "ci-cd", "color": "D4C5F9", "description": "CI/CD and deployment automation" },
+  { "name": "priority:p0", "color": "B60205", "description": "Critical priority" },
+  { "name": "priority:p1", "color": "D93F0B", "description": "High priority" }
+]
