@@ -42,3 +42,4 @@
 ## Frontend execution
 
 - A/B/C roadmap va issue breakdown: [guides/frontend-abc-roadmap.md](guides/frontend-abc-roadmap.md)
+- Lighthouse CI workflow: `.github/workflows/lighthouse.yml` + config `frontend/.lighthouserc.json`
