@@ -178,8 +178,9 @@ export default function ProfilePage() {
   const isPhoneVerified = user?.phoneVerified ?? false;
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
+    <div className="profile-page edu-page">
+      <div className="edu-container">
+        <div className="profile-container">
         <aside className="profile-sidebar">
           <div className="profile-avatar-section">
             <div className="profile-avatar">
@@ -462,6 +463,7 @@ export default function ProfilePage() {
             </section>
           )}
         </main>
+        </div>
       </div>
     </div>
   );

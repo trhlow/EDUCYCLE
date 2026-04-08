@@ -1,7 +1,16 @@
+.admin-page {
+  padding-block: clamp(var(--space-4), 2.2vw, var(--space-8));
+}
+
 .admin-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
-  min-height: calc(100vh - 140px);
+  min-height: min(76vh, 58rem);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Admin Sidebar */
@@ -154,9 +163,10 @@
 .admin-section {
   background: var(--bg-elevated);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-6);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .admin-section-header {
@@ -240,6 +250,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 680px;
 }
 
 .admin-table th {
@@ -399,6 +410,11 @@
 @media (max-width: 1024px) {
   .admin-layout {
     grid-template-columns: 1fr;
+    min-height: auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
   }
 
   .admin-sidebar {
@@ -410,6 +426,7 @@
     bottom: 0;
     z-index: 200;
     padding-top: var(--space-8);
+    box-shadow: var(--shadow-lg);
   }
 
   .admin-sidebar.open {

@@ -41,9 +41,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="dash-layout">
-      {/* Sidebar */}
-      <aside className={`dash-sidebar ${sidebarOpen ? 'open' : ''}`}>
+    <div className="dash-page edu-page">
+      <div className="edu-container">
+        <div className="dash-layout">
+          {/* Sidebar */}
+          <aside className={`dash-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="dash-sidebar-user">
           <div className="dash-sidebar-avatar">
             {user?.username?.charAt(0)?.toUpperCase() || '?'}
@@ -100,19 +102,21 @@ export default function DashboardPage() {
             Đóng menu
           </button>
         )}
-      </aside>
+          </aside>
 
-      {/* Main Content */}
-      <div className="dash-main">
-        <button className="dash-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
-          Menu
-        </button>
+          {/* Main Content */}
+          <div className="dash-main">
+            <button className="dash-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+              Menu
+            </button>
 
-        {currentView === 'overview' && <OverviewView user={user} />}
-        {currentView === 'products' && <ProductsView />}
-        {currentView === 'purchases' && <PurchasesView />}
-        {currentView === 'sales' && <SalesView />}
-        {currentView === 'settings' && <SettingsView />}
+            {currentView === 'overview' && <OverviewView user={user} />}
+            {currentView === 'products' && <ProductsView />}
+            {currentView === 'purchases' && <PurchasesView />}
+            {currentView === 'sales' && <SalesView />}
+            {currentView === 'settings' && <SettingsView />}
+          </div>
+        </div>
       </div>
     </div>
   );
