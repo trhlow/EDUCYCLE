@@ -333,6 +333,7 @@ Add environment-level secrets (same key names for both):
 - `DEPLOY_PATH` (example: `/opt/educycle`)
 - `GHCR_USERNAME` (GitHub username with package pull access)
 - `GHCR_TOKEN` (PAT with `read:packages`)
+- Enable **Required reviewers** for `production` environment to enforce approval before production deploy.
 
 ### One-time server bootstrap
 
@@ -358,6 +359,9 @@ After this bootstrap, CD workflow handles:
 1. Build and push `educycle-api` + `educycle-web` images to GHCR
 2. Upload `docker-compose.deploy.yml` to server
 3. `docker compose pull && docker compose up -d --remove-orphans`
+4. Smoke check:
+   - `curl -fsS http://localhost/api/public/health`
+   - `curl -fsSI http://localhost`
 
 ---
 

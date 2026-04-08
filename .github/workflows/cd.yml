@@ -186,6 +186,8 @@ jobs:
             export API_IMAGE WEB_IMAGE
             docker compose -f docker-compose.deploy.yml pull
             docker compose -f docker-compose.deploy.yml up -d --remove-orphans
+            curl -fsS http://localhost/api/public/health > /dev/null
+            curl -fsSI http://localhost > /dev/null
             docker image prune -f
             docker logout ghcr.io
 
@@ -239,5 +241,7 @@ jobs:
             export API_IMAGE WEB_IMAGE
             docker compose -f docker-compose.deploy.yml pull
             docker compose -f docker-compose.deploy.yml up -d --remove-orphans
+            curl -fsS http://localhost/api/public/health > /dev/null
+            curl -fsSI http://localhost > /dev/null
             docker image prune -f
             docker logout ghcr.io

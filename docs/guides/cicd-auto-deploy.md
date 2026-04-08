@@ -31,6 +31,10 @@ Moi environment can cac secret sau:
 - `GHCR_USERNAME`: tai khoan GitHub co quyen pull package
 - `GHCR_TOKEN`: personal access token co `read:packages`
 
+Khuyen nghi bat buoc:
+
+- Bat **Required reviewers** cho environment `production` de tao approval gate truoc deploy.
+
 ## 4) Chuan bi server (mot lan)
 
 ```bash
@@ -78,10 +82,15 @@ docker compose -f docker-compose.deploy.yml up -d --remove-orphans
 ```bash
 docker compose -f docker-compose.deploy.yml ps
 curl -I http://localhost
-curl -s http://localhost/api/actuator/health
+curl -s http://localhost/api/public/health
 ```
 
-Luu y: neu endpoint health bi block boi security policy, uu tien `docker compose ps` va log service `api`.
+Neu smoke check fail, xem log:
+
+```bash
+docker compose -f docker-compose.deploy.yml logs api --tail 200
+docker compose -f docker-compose.deploy.yml logs web --tail 200
+```
 
 ## 7) Rollback nhanh
 

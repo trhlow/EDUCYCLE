@@ -1,0 +1,67 @@
+name: "Frontend Plan Task"
+description: "Task template for EduCycle A/B/C implementation milestones."
+title: "[M?:domain] "
+labels:
+  - frontend
+body:
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Milestone
+      description: Select the execution milestone for this task.
+      options:
+        - M0 Stabilize
+        - M1 UI System
+        - M2 Data/TS
+        - M3 Transactions+Hardening
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+    validations:
+      required: true
+  - type: checkboxes
+    id: domains
+    attributes:
+      label: Domain labels
+      options:
+        - label: frontend
+        - label: ux
+        - label: a11y
+        - label: perf
+        - label: transactions
+        - label: ci-cd
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: Describe what success looks like.
+      placeholder: Implement ...
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation checklist
+      description: Add concrete tasks.
+      value: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ] UX/UI behavior verified
+        - [ ] Responsive breakpoints checked
+        - [ ] Accessibility checks passed
+        - [ ] Test evidence attached
+    validations:
+      required: true

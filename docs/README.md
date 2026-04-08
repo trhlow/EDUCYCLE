@@ -38,3 +38,7 @@
 - CI: `.github/workflows/ci.yml`
 - CD: `.github/workflows/cd.yml`
 - Huong dan deploy tu dong: [guides/cicd-auto-deploy.md](guides/cicd-auto-deploy.md)
+
+## Frontend execution
+
+- A/B/C roadmap va issue breakdown: [guides/frontend-abc-roadmap.md](guides/frontend-abc-roadmap.md)
