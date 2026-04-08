@@ -2,6 +2,7 @@ import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import ChatbotWidget from '../ChatbotWidget';
 import EduCycleLogo from '../branding/EduCycleLogo';
+import BackendStatusBanner from '../system/BackendStatusBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
 
@@ -14,6 +15,7 @@ export default function Layout() {
         Bỏ qua điều hướng
       </a>
       <Navbar />
+      <BackendStatusBanner />
       <main id="main-content" className="main-content" tabIndex={-1}>
         <Outlet />
       </main>

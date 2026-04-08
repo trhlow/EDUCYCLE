@@ -63,4 +63,10 @@ class PublicApiIntegrationTest {
                         .param("count", "3"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void getPublicHealth_isPublic() throws Exception {
+        mockMvc.perform(get("/api/public/health"))
+                .andExpect(status().isOk());
+    }
 }
