@@ -12,6 +12,8 @@ import { useTransaction } from '../features/transactions/hooks/useTransaction';
 import { useTransactionMessages, upsertMessage } from '../features/transactions/hooks/useTransactionMessages';
 import { useSendTransactionMessage } from '../features/transactions/hooks/useSendTransactionMessage';
 import { useGenerateTransactionOtp, useVerifyTransactionOtp } from '../features/transactions/hooks/useTransactionOtp';
+import TransactionTimeline from '../components/transactions/TransactionTimeline';
+import { PageHeader, StatusBadge } from '../components/ui';
 import './TransactionDetailPage.css';
 
 const STATUS_CONFIG = {
@@ -340,29 +342,14 @@ export default function TransactionDetailPage() {
   return (
     <div className="txd-page">
       <div className="txd-container">
-        <div className="txd-breadcrumb">
-          <Link to="/transactions">Giao dich cua toi</Link>
-          <span>/</span>
-          <span>#{transaction.id}</span>
-        </div>
+        <PageHeader
+          eyebrow={`Phien giao dich #${transaction.id}`}
+          title="Chi tiet giao dich"
+          subtitle={`Doi tac: @${maskUsername(otherUser?.username)} • Cap nhat lan cuoi ${formatDate(transaction.updatedAt)}`}
+          actions={<Link to="/transactions">Quay lai danh sach</Link>}
+        />
 
-        <div className="txd-progress">
-          {STEPS.map((stepInfo) => {
-            const current = config.step;
-            const isActive = stepInfo.step === current;
-            const isDone = current > 0 && stepInfo.step < current;
-            const isFailed = current < 0;
-            return (
-              <div
-                key={stepInfo.step}
-                className={`txd-step ${isActive ? 'txd-step-active' : ''} ${isDone ? 'txd-step-done' : ''} ${isFailed ? 'txd-step-failed' : ''}`}
-              >
-                <div className="txd-step-circle">{stepInfo.step}</div>
-                <span className="txd-step-label">{stepInfo.label}</span>
-              </div>
-            );
-          })}
-        </div>
+        <TransactionTimeline steps={STEPS} currentStep={config.step} failed={config.step < 0} />
 
         <div className="txd-layout">
           <div className="txd-left">
@@ -380,9 +367,9 @@ export default function TransactionDetailPage() {
 
             <div className="txd-info-card">
               <h3 className="txd-info-title">Thong tin giao dich</h3>
-              <div className="txd-info-grid">
+                <div className="txd-info-grid">
                 <div className="txd-info-row"><span className="txd-info-label">Ma giao dich</span><span className="txd-info-value">#{transaction.id}</span></div>
-                <div className="txd-info-row"><span className="txd-info-label">Trang thai</span><span className={`tx-status-badge tx-status-${config.color}`}>{config.label}</span></div>
+                <div className="txd-info-row"><span className="txd-info-label">Trang thai</span><StatusBadge status={statusKey} label={config.label} /></div>
                 <div className="txd-info-row"><span className="txd-info-label">Vai tro cua ban</span><span className={`tx-role-badge tx-role-${role}`}>{role === 'buyer' ? 'Nguoi mua' : 'Nguoi ban'}</span></div>
                 <div className="txd-info-row"><span className="txd-info-label">Doi tac</span><span className="txd-info-value">@{maskUsername(otherUser?.username)}</span></div>
                 <div className="txd-info-row"><span className="txd-info-label">Tao luc</span><span className="txd-info-value">{formatDate(transaction.createdAt)}</span></div>
