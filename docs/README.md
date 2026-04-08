@@ -43,3 +43,4 @@
 
 - A/B/C roadmap va issue breakdown: [guides/frontend-abc-roadmap.md](guides/frontend-abc-roadmap.md)
 - Lighthouse CI workflow: `.github/workflows/lighthouse.yml` + config `frontend/.lighthouserc.json`
+- Accessibility smoke workflow: `.github/workflows/a11y-smoke.yml` (axe-core CLI on key routes)

@@ -1,0 +1,43 @@
+name: Frontend A11y Smoke
+
+on:
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  axe-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start preview server
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 &
+          echo $! > /tmp/preview.pid
+
+      - name: Wait for preview
+        run: npx --yes wait-on -t 120000 http://127.0.0.1:4173
+
+      - name: Axe smoke scan
+        run: |
+          npx --yes @axe-core/cli http://127.0.0.1:4173 --exit
+          npx --yes @axe-core/cli http://127.0.0.1:4173/auth --exit
+          npx --yes @axe-core/cli http://127.0.0.1:4173/transactions --exit
