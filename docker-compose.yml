@@ -28,7 +28,7 @@ services:
       POSTGRES_USER: educycle
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env — xem .env.example}
     volumes:
-      - educycle_pg_data:/var/lib/postgresql/data
+      - educycle_pg_data:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U educycle -d educycledb']
       interval: 5s
@@ -47,8 +47,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
       SPRING_DATASOURCE_USERNAME: educycle
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
+      APP_MAIL_REQUIRE_DELIVERY: ${APP_MAIL_REQUIRE_DELIVERY:-true}
       APP_UPLOAD_DIR: /app/data/uploads
       # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
       # AI chatbot (tuỳ chọn) — xem docs/SETUP_CHATBOT.md
@@ -82,6 +84,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
     ports:
       - '80:80'
     depends_on:

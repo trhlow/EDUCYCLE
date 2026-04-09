@@ -19,9 +19,10 @@
 
     <properties>
         <!-- Project baseline JDK -->
-        <java.version>26</java.version>
+        <java.version>25</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.38</lombok.version>
+        <testcontainers.version>1.20.6</testcontainers.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -134,12 +135,7 @@
             <version>6.0.0</version>
         </dependency>
 
-        <!-- Observability (no-op when SENTRY_DSN empty) -->
-        <dependency>
-            <groupId>io.sentry</groupId>
-            <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>8.16.0</version>
-        </dependency>
+        <!-- Observability: temporarily disabled for Spring Boot 4 compatibility in local deploy -->
 
         <!-- ===== SPRINGDOC / SWAGGER ===== -->
         <dependency>
@@ -187,11 +183,13 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

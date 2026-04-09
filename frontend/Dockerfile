@@ -1,10 +1,12 @@
-# Build SPA — API qua cùng origin (/api) nhờ nginx
+# Build SPA - API through same-origin (/api) via nginx
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 COPY . .
-# Không set VITE_API_URL → axios dùng relative /api
+# For docker-compose local deployment, force relative API base.
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 
 FROM nginx:1.27-alpine

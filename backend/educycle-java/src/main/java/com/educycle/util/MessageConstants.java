@@ -10,6 +10,8 @@ public final class MessageConstants {
     public static final String USER_NOT_FOUND = "Không tìm thấy người dùng";
     public static final String EMAIL_NOT_FOUND = "Không tìm thấy email";
     public static final String OTP_INVALID_OR_EXPIRED = "Mã OTP không hợp lệ hoặc đã hết hạn";
+    public static final String EMAIL_DELIVERY_UNAVAILABLE =
+            "Hệ thống email xác thực đang tạm gián đoạn. Vui lòng thử lại sau.";
     public static final String EMAIL_ALREADY_VERIFIED = "Email đã được xác thực";
     public static final String REFRESH_TOKEN_REQUIRED = "Bắt buộc phải có mã làm mới phiên";
     public static final String INVALID_REFRESH_TOKEN = "Mã làm mới phiên không hợp lệ";

@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - educycle_pg_data:/var/lib/postgresql/data
+      - educycle_pg_data:/var/lib/postgresql
 
 volumes:
   educycle_pg_data:

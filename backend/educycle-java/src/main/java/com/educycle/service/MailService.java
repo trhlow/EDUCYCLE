@@ -1,5 +1,7 @@
 package com.educycle.service;
 
+import com.educycle.exception.ServiceUnavailableException;
+import com.educycle.util.MessageConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +19,15 @@ public class MailService {
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
     private final String mailFrom;
+    private final boolean requireDelivery;
 
     public MailService(
             ObjectProvider<JavaMailSender> mailSenderProvider,
-            @Value("${app.mail-from:EduCycle}") String mailFrom) {
+            @Value("${app.mail-from:EduCycle}") String mailFrom,
+            @Value("${app.mail.require-delivery:false}") boolean requireDelivery) {
         this.mailSenderProvider = mailSenderProvider;
         this.mailFrom = mailFrom;
+        this.requireDelivery = requireDelivery;
     }
 
     /**
@@ -31,6 +36,9 @@ public class MailService {
     public boolean sendPlain(String to, String subject, String body) {
         JavaMailSender sender = mailSenderProvider.getIfAvailable();
         if (sender == null) {
+            if (requireDelivery) {
+                throw new ServiceUnavailableException(MessageConstants.EMAIL_DELIVERY_UNAVAILABLE);
+            }
             log.warn(
                     "[EduCycle — chưa cấu hình SMTP] OTP/link chỉ có trên console này. "
                             + "Để gửi email thật: thêm profile `smtp` và biến MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD "
@@ -48,6 +56,9 @@ public class MailService {
             log.debug("Đã gửi mail tới {}", to);
             return true;
         } catch (Exception e) {
+            if (requireDelivery) {
+                throw new ServiceUnavailableException(MessageConstants.EMAIL_DELIVERY_UNAVAILABLE);
+            }
             log.error("Gửi mail thất bại tới {}: {}", to, e.getMessage());
             log.warn(
                     "[EduCycle — SMTP lỗi, nội dung mail dự phòng trên console]\nTo: {}\nSubject: {}\n---\n{}\n---",

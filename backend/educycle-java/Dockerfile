@@ -1,13 +1,13 @@
 # Build stage
-FROM eclipse-temurin:26-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests -Djwt.secret=build-placeholder
+    mvn clean package -Dmaven.test.skip=true -Djwt.secret=build-placeholder
 
 # Runtime stage
-FROM eclipse-temurin:26-jre-alpine AS runtime
+FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
