@@ -69,6 +69,7 @@ export function NotificationProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    const popupTimers = popupTimersRef.current;
     if (!isAuthenticated) {
       setNotifications([]);
       setUnreadCount(0);
@@ -114,7 +115,7 @@ export function NotificationProvider({ children }) {
       clearInterval(interval);
       stompClientRef.current?.deactivate();
       stompClientRef.current = null;
-      Object.values(popupTimersRef.current).forEach(clearTimeout);
+      Object.values(popupTimers).forEach(clearTimeout);
     };
   }, [isAuthenticated, user?.id, fetchUnreadCount, fetchRecent, addPopup]);
 
