@@ -7,6 +7,7 @@ import { productsApi, categoriesApi } from '../api/endpoints';
 import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
+import { isEducationalListing } from '../utils/academicMarketplace';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
 import { EmptyState, PageHeader } from '../components/ui';
@@ -89,7 +90,9 @@ export default function ProductListingPage() {
 
   const products = useMemo(() => {
     if (!productPages?.pages?.length) return [];
-    return productPages.pages.flatMap((pg) => pg.content.map(mapP));
+    return productPages.pages
+      .flatMap((pg) => pg.content.map(mapP))
+      .filter(isEducationalListing);
   }, [productPages]);
 
   /** Đánh giá tối thiểu: lọc trên tập đã tải (BE chưa có truy vấn aggregate theo review). */
@@ -192,7 +195,7 @@ export default function ProductListingPage() {
                   type="button"
                   className="plp-clear-filters"
                   onClick={() => setSidebarOpen(false)}
-                  style={{ marginTop: '0.5rem' }}
+                  className="plp-close-filters"
                 >
                   Đóng Bộ Lọc
                 </button>
@@ -255,7 +258,7 @@ export default function ProductListingPage() {
                 title="Chưa có sản phẩm nào"
                 description="Hãy là người đầu tiên đăng bán giáo trình, sách tham khảo hoặc tài liệu ôn thi trên EduCycle."
                 actions={
-                  <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
+                  <Link to="/products/new" className="plp-reset-btn plp-reset-link">
                     Đăng bán ngay
                   </Link>
                 }
@@ -267,8 +270,7 @@ export default function ProductListingPage() {
                     <Link
                       to={`/products/${product.id}`}
                       key={product.id}
-                      className={viewMode === 'grid' ? 'plp-card' : 'plp-card-list'}
-                      style={{ textDecoration: 'none', color: 'inherit' }}
+                      className={`${viewMode === 'grid' ? 'plp-card' : 'plp-card-list'} plp-card-link`}
                     >
                       <div className="plp-card-image">
                         <img src={product.imageUrl} alt={product.name} />
@@ -307,7 +309,7 @@ export default function ProductListingPage() {
                   ))}
                 </div>
                 {!last && (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                  <div className="plp-load-more-wrap">
                     <button type="button" className="plp-reset-btn" disabled={loadingMore} onClick={loadMore}>
                       {loadingMore ? 'Đang tải…' : 'Tải thêm'}
                     </button>

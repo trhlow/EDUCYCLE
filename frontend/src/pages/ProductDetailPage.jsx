@@ -81,17 +81,17 @@ export default function ProductDetailPage() {
   }, [product?.sellerId]);
 
   if (loading) return (
-    <div className="pdp-container" style={{ textAlign:'center', padding:'6rem 2rem' }}>
+    <div className="pdp-container pdp-state">
       <h2>Đang tải…</h2>
-      <p style={{ color:'var(--text-secondary)', margin:'1rem 0' }}>Vui lòng chờ trong giây lát.</p>
+      <p className="pdp-state-text">Vui lòng chờ trong giây lát.</p>
     </div>
   );
 
   if (!product) return (
-    <div className="pdp-container" style={{ textAlign:'center', padding:'6rem 2rem' }}>
+    <div className="pdp-container pdp-state">
       <h2>Không tìm thấy sản phẩm</h2>
-      <p style={{ color:'var(--text-secondary)', margin:'1rem 0' }}>Sản phẩm không tồn tại hoặc đã bị xóa.</p>
-      <Link to="/products" className="plp-reset-btn" style={{ display:'inline-block', textDecoration:'none' }}>Duyệt Sản Phẩm</Link>
+      <p className="pdp-state-text">Sản phẩm không tồn tại hoặc đã bị xóa.</p>
+      <Link to="/products" className="plp-reset-btn pdp-state-link">Duyệt sản phẩm</Link>
     </div>
   );
 
@@ -124,7 +124,7 @@ export default function ProductDetailPage() {
   // Issue #4: Hiển thị "Giá liên hệ" khi price=0 hoặc priceType='contact'
   const isContactPrice = product.priceType === 'contact' || product.price === 0;
   const priceDisplay = isContactPrice
-    ? <span style={{ color:'var(--accent-500)', fontWeight:600 }}>Giá liên hệ</span>
+    ? <span className="pdp-price-contact">Giá liên hệ</span>
     : <span>{Number(product.price).toLocaleString('vi-VN')}đ</span>;
 
   // Issue #5: Seller rating summary
@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
             {thumbImages.length > 0 ? (
               <img src={thumbImages[selectedThumb]} alt={product.name} />
             ) : (
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', background:'var(--bg-secondary)', color:'var(--text-muted)', fontSize:'var(--text-sm)' }}>Chưa có ảnh</div>
+              <div className="pdp-main-image-empty">Chưa có ảnh</div>
             )}
           </div>
           {thumbImages.length > 1 && (
@@ -183,7 +183,7 @@ export default function ProductDetailPage() {
                 <span className="pdp-rating-text">({reviews.length} đánh giá người bán)</span>
               </>
             ) : (
-              <span className="pdp-rating-text" style={{ color:'var(--text-tertiary)' }}>Chưa có đánh giá người bán</span>
+              <span className="pdp-rating-text pdp-rating-empty">Chưa có đánh giá người bán</span>
             )}
           </div>
 
@@ -193,12 +193,12 @@ export default function ProductDetailPage() {
           {isReserved && <StatusBadge label="Đang có người đặt mua" tone="warning" className="pdp-inline-status" />}
           {isPending && <StatusBadge label="Đang chờ kiểm duyệt" tone="info" className="pdp-inline-status" />}
           {isRejected && (
-            <div style={{ background:'var(--error-light)', border:'1px solid #fecaca', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#991b1b', marginBottom:'var(--space-3)' }}>
+            <div className="pdp-alert pdp-alert--error">
               <strong>Tin bị từ chối</strong>
               {product.rejectReason ? (
-                <p style={{ margin:'var(--space-2) 0 0', whiteSpace:'pre-wrap' }}>Lý do: {product.rejectReason}</p>
+                <p className="pdp-alert-note pdp-alert-note--preserve">Lý do: {product.rejectReason}</p>
               ) : (
-                <p style={{ margin:'var(--space-2) 0 0' }}>Vui lòng chỉnh sửa và gửi lại để admin xem xét.</p>
+                <p className="pdp-alert-note">Vui lòng chỉnh sửa và gửi lại để admin xem xét.</p>
               )}
             </div>
           )}
@@ -206,7 +206,7 @@ export default function ProductDetailPage() {
           {/* Issue #4: price display */}
           <div className="pdp-price">{priceDisplay}</div>
           {isContactPrice && (
-            <p style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'-var(--space-2)', marginBottom:'var(--space-3)' }}>
+            <p className="pdp-price-note">
               Giá sẽ được thương lượng khi gặp mặt
             </p>
           )}
@@ -214,7 +214,7 @@ export default function ProductDetailPage() {
           {/* Actions */}
           <div className="pdp-actions">
             {isOwner && !isSold && !isReserved && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', width: '100%', marginBottom: 'var(--space-2)' }}>
+              <div className="pdp-owner-actions">
                 <button
                   type="button"
                   className="pdp-btn-buy"
@@ -238,16 +238,16 @@ export default function ProductDetailPage() {
               <div className="pdp-sold-notice">Sản phẩm đã được bán</div>
             ) : isReserved ? (
               // Issue #3: show reserved status clearly, still allow wishlist
-              <div style={{ background:'var(--warning-light)', border:'1px solid #fbbf24', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#92400e' }}>
+              <div className="pdp-alert pdp-alert--warning">
                 Sản phẩm này đang trong quá trình giao dịch với người khác.
                 Bạn có thể yêu thích để theo dõi nếu giao dịch không thành.
               </div>
             ) : isPending ? (
-              <div style={{ background:'var(--info-light)', border:'1px solid #bfdbfe', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'#1e40af' }}>
+              <div className="pdp-alert pdp-alert--info">
                 Sản phẩm đang chờ admin kiểm duyệt. Vui lòng quay lại sau.
               </div>
             ) : isRejected && !isOwner ? (
-              <div style={{ background:'var(--bg-secondary)', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', fontSize:'var(--text-sm)', color:'var(--text-secondary)' }}>
+              <div className="pdp-alert pdp-alert--neutral">
                 Tin này không hiển thị công khai do chưa được duyệt hoặc đã bị từ chối.
               </div>
             ) : isAuthenticated && product.sellerId !== user?.id ? (
@@ -365,28 +365,28 @@ export default function ProductDetailPage() {
             {activeTab === 'reviews' && (
               <div>
                 <h3 className="pdp-section-title">Uy Tín Người Bán</h3>
-                <p style={{ color:'var(--text-secondary)', fontSize:'var(--text-sm)', marginBottom:'var(--space-4)' }}>
+                <p className="pdp-review-intro">
                   Đánh giá từ những người đã hoàn tất giao dịch với <strong>{maskUsername(product.seller)}</strong>.
                   Đây là điểm uy tín cá nhân của người bán, không phải của sản phẩm.
                 </p>
                 {reviews.length === 0 ? (
-                  <div style={{ textAlign:'center', padding:'var(--space-8)', color:'var(--text-tertiary)' }}>
+                  <div className="pdp-review-empty">
                     <p>Người bán này chưa có đánh giá nào.</p>
-                    <p style={{ fontSize:'var(--text-xs)', marginTop:'var(--space-2)' }}>Hoàn tất giao dịch đầu tiên để có điểm uy tín.</p>
+                    <p className="pdp-review-empty-sub">Hoàn tất giao dịch đầu tiên để có điểm uy tín.</p>
                   </div>
                 ) : (
                   <>
                     {/* Summary */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'var(--space-4)', padding:'var(--space-4)', background:'var(--bg-secondary)', borderRadius:'var(--radius-lg)', marginBottom:'var(--space-4)' }}>
-                      <div style={{ textAlign:'center' }}>
-                        <div style={{ fontSize:'var(--text-3xl)', fontWeight:700, color:'var(--accent-500)', lineHeight:1 }}>{avgRating}</div>
-                        <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'var(--space-1)' }}>/ 5 sao</div>
+                    <div className="pdp-review-summary">
+                      <div className="pdp-review-summary-score">
+                        <div className="pdp-review-summary-value">{avgRating}</div>
+                        <div className="pdp-review-summary-unit">/ 5 sao</div>
                       </div>
-                      <div>
-                        <div style={{ color:'#f59e0b', fontSize:'var(--text-lg)' }}>
+                      <div className="pdp-review-summary-meta">
+                        <div className="pdp-review-summary-stars">
                           {avgRating}/5 sao
                         </div>
-                        <div style={{ fontSize:'var(--text-sm)', color:'var(--text-secondary)', marginTop:4 }}>{reviews.length} đánh giá</div>
+                        <div className="pdp-review-summary-count">{reviews.length} đánh giá</div>
                       </div>
                     </div>
                     {reviews.map(review => (
@@ -409,16 +409,16 @@ export default function ProductDetailPage() {
             {activeTab === 'info' && (
               <div>
                 <h3 className="pdp-section-title">Thông Tin Sản Phẩm</h3>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--space-4)' }}>
+                <div className="pdp-info-grid">
                   {[
                     ['Danh mục',   product.category],
                     ['Giá',        isContactPrice ? 'Giá liên hệ' : `${Number(product.price).toLocaleString('vi-VN')}đ`],
                     ['Tình trạng', product.condition || 'Không rõ'],
                     ['Người bán',  maskUsername(product.seller)],
                   ].map(([label, value]) => (
-                    <div key={label}>
-                      <strong style={{ color:'var(--text-primary)' }}>{label}:</strong>
-                      <p style={{ color:'var(--text-secondary)', fontSize:'var(--text-sm)', marginTop:4 }}>{value}</p>
+                    <div key={label} className="pdp-info-item">
+                      <strong className="pdp-info-item-label">{label}:</strong>
+                      <p className="pdp-info-item-value">{value}</p>
                     </div>
                   ))}
                 </div>
