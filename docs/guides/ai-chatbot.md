@@ -1,39 +1,47 @@
-# AI Chatbot (Anthropic qua backend)
+# AI chatbot
 
-EduCycle **không** đặt API key LLM trong bundle frontend. Trình duyệt chỉ gọi **`POST /api/ai/chat`** trên backend; server gọi Anthropic (nếu đã cấu hình).
+EduCycle keeps all LLM provider keys on the backend. The browser only calls backend endpoints under `/api/ai/...`.
 
-## Yêu cầu
+## Required backend env vars
 
-- Biến môi trường **`ANTHROPIC_API_KEY`** trên **tiến trình Spring Boot** (Docker service `api` hoặc `mvn spring-boot:run`).
-- **RAG (tuỳ chọn):** **`OPENAI_API_KEY`** — embeddings `text-embedding-3-small`, lưu cột `embedding` (PostgreSQL `double precision[]`). Khi bật, system prompt gửi Claude được bổ sung các đoạn tri thức liên quan câu hỏi mới nhất của user. Cấu hình: `educycle.rag.*` trong `application.yml` (`EDUCYCLE_RAG_ENABLED`, `EDUCYCLE_RAG_TOP_K`, `EDUCYCLE_RAG_MIN_COSINE`, `EDUCYCLE_RAG_BOOTSTRAP`).
-- Rate limit: xem `AiChatRateLimiter` / Redis (production) — chi tiết trong [NOTES.md](../NOTES.md).
+- `ANTHROPIC_API_KEY` for the main chatbot provider
 
-## Docker (root `docker-compose`)
+## Optional RAG env vars
 
-Trong `.env` cạnh `docker-compose.yml` (không commit file thật):
+- `OPENAI_API_KEY` for embedding generation
+- `EDUCYCLE_RAG_ENABLED`
+- `EDUCYCLE_RAG_TOP_K`
+- `EDUCYCLE_RAG_MIN_COSINE`
+- `EDUCYCLE_RAG_BOOTSTRAP`
+
+Bootstrap content lives in:
+
+- `backend/educycle-java/src/main/resources/rag/educycle-knowledge.md`
+
+## Docker
+
+Add provider keys to the root `.env` file, then restart the API service:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-api03-...
-OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
 ```
 
-Rebuild / khởi động lại service `api` sau khi thêm key.
-
-## Dev local
+## Local backend run
 
 ```powershell
-cd backend/educycle-java
-$env:ANTHROPIC_API_KEY="sk-ant-..."
+cd backend\educycle-java
+$env:ANTHROPIC_API_KEY="..."
 mvn spring-boot:run
 ```
 
-Hoặc đặt trong `application.yml` chỉ profile dev — **không** commit secret.
+## Security notes
 
-## Frontend
+- Do not expose LLM keys through `VITE_*` variables.
+- Keep AI traffic behind the backend proxy.
+- Treat RAG bootstrap content as application data, not public credentials.
 
-Widget chat gọi endpoint đã proxy qua Vite (`/api/...`). Không cần `VITE_*` cho Anthropic.
+## Related docs
 
-## Xem thêm
-
-- [SETUP_CHATBOT.md](../SETUP_CHATBOT.md) — entry ngắn trong `docs/`
-- [README.md — AI Chatbot](../../README.md#ai-chatbot)
+- [Root README](../../README.md)
+- [Architecture overview](../architecture/README.md)

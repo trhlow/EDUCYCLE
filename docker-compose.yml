@@ -51,7 +51,7 @@ services:
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
       APP_UPLOAD_DIR: /app/data/uploads
       # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
-      # AI chatbot (tuỳ chọn) — xem docs/SETUP_CHATBOT.md
+      # AI chatbot (tuỳ chọn) — xem docs/guides/ai-chatbot.md
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       EDUCYCLE_REDIS_ENABLED: ${EDUCYCLE_REDIS_ENABLED:-true}

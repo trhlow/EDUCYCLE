@@ -1,18 +1,62 @@
 # Getting started
 
-1. **Clone**
-   ```bash
-   git clone https://github.com/trhlow/EDUCYCLE.git
-   cd EDUCYCLE
-   ```
+## Prerequisites
 
-2. **Chọn môi trường**
+- Docker Desktop
+- Maven
+- Node.js + npm
+- A recent JDK for the backend module
 
-   | Mục tiêu | Xem |
-   |----------|-----|
-   | Chạy full stack gần prod (Docker) | [README.md — Option 1: Docker Compose](../../README.md#option-1-docker-compose-recommended-for-demo) |
-   | Dev FE + BE (hot reload) | [README.md — Option 2: Local development](../../README.md#option-2-local-development-recommended-for-coding) |
+## Option 1: Full stack with Docker
 
-3. **Biến môi trường** — dùng [`.env.example`](../../.env.example) (root compose) và `frontend/.env.example` cho Vite.
+From the repo root:
 
-4. **Kiểm tra trước khi push** — chạy [`scripts/verify.ps1`](../../scripts/verify.ps1) (Windows) hoặc [`scripts/verify.sh`](../../scripts/verify.sh) (Git Bash / Linux / macOS).
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
+```
+
+Required values in `.env`:
+
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+
+Open [http://localhost](http://localhost).
+
+## Option 2: Local development
+
+### Backend database
+
+```powershell
+cd backend\educycle-java
+docker compose up -d
+```
+
+### Backend API
+
+```powershell
+cd backend\educycle-java
+mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
+```
+
+### Frontend app
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+The default Vite proxy target is `http://localhost:8081`.  
+If the backend runs on `8080`, create `frontend/.env.local` with:
+
+```env
+VITE_DEV_PROXY_TARGET=http://localhost:8080
+```
+
+## Common URLs
+
+- Docker app: `http://localhost`
+- Frontend dev: `http://localhost:5173`
+- Backend dev: `http://localhost:8081`
+- Swagger UI: `http://localhost:8081/swagger-ui.html`

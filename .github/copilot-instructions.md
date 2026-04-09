@@ -1,54 +1,36 @@
-# EduCycle — AI / Copilot Instructions
+# EduCycle Copilot Instructions
 
-## Stack thực tế (không dùng .NET)
-- **Backend**: Java 17 + Spring Boot 3.2.5 + PostgreSQL + Flyway
-- **Frontend**: React 19 + Vite 7 + Axios + Context API
-- **Backend path**: `backend/educycle-java/` (build: `pom.xml`, run: `mvn spring-boot:run`)
-- **Frontend path**: `frontend/` (run: `npm run dev`)
-- **API port**: `http://localhost:8080` (không phải 5171)
+## Project structure
 
-## Quy trình Git (bắt buộc)
-- Làm xong mỗi feature → commit trước rồi mới làm tiếp
-- Dùng **feature branch workflow**: `feature/be-<tên>` hoặc `feature/fe-<tên>` → `dev` → `main`
-- **Không bao giờ** `git add .` — stage từng file cụ thể
+- Backend: `backend/educycle-java/`
+- Frontend: `frontend/`
+- Shared docs: `docs/`
+- Deployment files: `deploy/`
 
-## Commit message format
-```
-<type>(<scope>): <mô tả>
-```
-- `type`: feat | fix | refactor | docs | chore | security | test
-- `scope`: be | fe | db | ws | auth | docs
+## Current conventions
 
-## Rules bắt buộc
-- Status enums từ backend luôn **UPPERCASE**: `"PENDING"` `"ADMIN"` `"APPROVED"` — dùng `.toUpperCase()` khi compare
-- Flyway: V1, V2, V3 đã có → thêm **V4** nếu cần. Không sửa file cũ
-- Refresh token: dùng `SecureRandom` — không dùng `UUID.randomUUID()`
-- CSS: dùng `var(--token-name)` — không hardcode màu hex
-- Không có mock bypass trong `AuthContext`
+- The frontend compares backend statuses in uppercase form.
+- Frontend styling should use tokens from `frontend/src/styles/`.
+- Backend database changes use new Flyway migrations; do not edit old applied migrations.
+- Prefer small, focused commits and stage specific files instead of `git add .`.
 
-## Paths quan trọng
-| Thứ | Đường dẫn |
-|-----|-----------|
-| Backend Java | `backend/educycle-java/` |
-| Frontend React | `frontend/` |
-| DB migrations | `backend/educycle-java/src/main/resources/db/migration/` |
-| API config | `backend/educycle-java/src/main/resources/application.yml` |
-| CI/CD | `.github/workflows/ci.yml` |
-| Cursor rules | `.cursor/rules/` |
+## Before changing code
 
-## Build / verify trước khi push
+- Read the relevant module README first.
+- For project-wide context, start at `docs/README.md`.
+- For runtime behavior, read `docs/architecture/README.md`.
+
+## Useful commands
+
 ```powershell
 # Backend
 cd backend\educycle-java
-mvn clean compile -q
+mvn clean verify
 
 # Frontend
 cd frontend
+npm ci
+npm run typecheck
+npm run test
 npm run build
 ```
-
-## Không commit
-- `backend/educycle-java/target/`
-- `frontend/dist/`
-- `frontend/node_modules/`
-- `.env` thật — dùng `.env.example`
