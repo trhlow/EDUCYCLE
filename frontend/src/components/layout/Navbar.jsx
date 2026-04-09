@@ -53,7 +53,7 @@ export default function Navbar() {
     navigate(resolveNotifRoute(n));
   };
 
-  const catalogActive = location.pathname === '/' && searchParams.has('category');
+  const catalogActive = location.pathname === '/products' && searchParams.has('category');
 
   const goCatalog = useCallback((category, query) => {
     const params = new URLSearchParams();
@@ -61,7 +61,7 @@ export default function Navbar() {
     const trimmed = query != null ? String(query).trim() : '';
     if (trimmed) params.set('q', trimmed);
     const qs = params.toString();
-    navigate({ pathname: '/', search: qs ? `?${qs}` : '' }, { state: { scrollTo: 'products' } });
+    navigate({ pathname: '/products', search: qs ? `?${qs}` : '' });
     setMenuOpen(false);
   }, [navigate]);
 

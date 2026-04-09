@@ -7,7 +7,7 @@ import RouteTransition from './components/RouteTransition';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
-// ProductListingPage vẫn giữ như standalone (dùng cho redirect nội bộ nếu cần)
+const ProductListingPage = lazy(() => import('./pages/ProductListingPage'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -28,16 +28,9 @@ const BookWantedInquiryChatPage = lazy(() => import('./pages/BookWantedInquiryCh
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserPublicProfilePage = lazy(() => import('./pages/UserPublicProfilePage'));
 
-// Redirect /products → trang chủ section #products (giữ query; scroll qua state → HomePage xử lý)
-function ProductsRedirect() {
+function SearchRedirect() {
   const location = useLocation();
-  return (
-    <Navigate
-      to={{ pathname: '/', search: location.search }}
-      state={{ scrollTo: 'products' }}
-      replace
-    />
-  );
+  return <Navigate to={{ pathname: '/products', search: location.search }} replace />;
 }
 
 function SuspenseWrapper({ children }) {
@@ -55,8 +48,8 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<SuspenseWrapper><HomePage /></SuspenseWrapper>} />
         <Route path="auth" element={<SuspenseWrapper><GuestRoute><AuthPage /></GuestRoute></SuspenseWrapper>} />
-        {/* /products → redirect về trang chủ và scroll xuống section sản phẩm */}
-        <Route path="products" element={<ProductsRedirect />} />
+        <Route path="products" element={<SuspenseWrapper><ProductListingPage /></SuspenseWrapper>} />
+        <Route path="search" element={<SearchRedirect />} />
 
         <Route path="products/new" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
         <Route path="products/:id/edit" element={<SuspenseWrapper><ProtectedRoute><PostProductPage /></ProtectedRoute></SuspenseWrapper>} />
