@@ -7,6 +7,7 @@ import { productsApi } from '../api/endpoints';
 import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
 import { extractPage } from '../utils/pageApi';
 import { useUnsplashCurated } from '../hooks/useUnsplashCurated';
+import { isEducationalListing } from '../utils/academicMarketplace';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import {
   IconHeart,
@@ -198,7 +199,9 @@ export default function HomePage() {
 
   const products = useMemo(() => {
     if (!productPages?.pages?.length) return [];
-    return productPages.pages.flatMap((pg) => pg.content.map(mapApiProductToCard));
+    return productPages.pages
+      .flatMap((pg) => pg.content.map(mapApiProductToCard))
+      .filter(isEducationalListing);
   }, [productPages]);
 
   const loading = isPending;
@@ -514,8 +517,8 @@ export default function HomePage() {
                 ? 'Đang tải...'
                 : `${products.length} đã tải${totalElements ? ` · ${totalElements} khớp bộ lọc` : ''}`}
             </p>
-            <p style={{ marginTop: 'var(--space-2)', fontSize: 'var(--text-sm)' }}>
-              <Link to="/book-wanted" style={{ color: 'var(--primary-600)', fontWeight: 600, textDecoration: 'none' }}>
+            <p className="hp-products-note">
+              <Link to="/book-wanted" className="hp-products-note-link">
                 Đang cần mua / tìm sách? Xem tin nhu cầu từ sinh viên →
               </Link>
             </p>
@@ -598,23 +601,29 @@ export default function HomePage() {
           <div className="hp-product-grid">
             {products.map((product, i) => (
               <Reveal key={product.id} delay={Math.min(i % 6 * 40, 180)}>
-                <Link to={`/products/${product.id}`} className="hp-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link to={`/products/${product.id}`} className="hp-product-card hp-product-card-link">
                   <div className="hp-product-card__img">
                     {product.imageUrl ? (
                       <img
+                        className="hp-product-card__img-media"
                         src={product.imageUrl}
                         alt={product.name}
                         loading="lazy"
                         decoding="async"
                         width={400}
                         height={300}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
+                        onError={(event) => {
+                          event.currentTarget.classList.add('hp-product-card__img-media--hidden');
                         }}
                       />
                     ) : null}
-                    <div className="hp-product-card__img-placeholder" style={{ display: product.imageUrl ? 'none' : 'flex' }}>Chưa có ảnh</div>
+                    <div
+                      className={`hp-product-card__img-placeholder ${
+                        product.imageUrl ? 'hp-product-card__img-placeholder--with-media' : ''
+                      }`}
+                    >
+                      Chưa có ảnh
+                    </div>
                     <div className="hp-product-card__cat">{product.category}</div>
                     <button
                       type="button"
@@ -642,7 +651,7 @@ export default function HomePage() {
         )}
 
         {!loading && !last && products.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-8)' }}>
+          <div className="hp-load-more-wrap">
             <button
               type="button"
               className="hp-btn hp-btn--ghost hp-btn--min-wide"

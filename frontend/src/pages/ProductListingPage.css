@@ -8,7 +8,7 @@
 
 .plp-content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 17.5rem) 1fr;
+  grid-template-columns: minmax(0, 18rem) 1fr;
   gap: var(--space-8);
 }
 
@@ -150,7 +150,7 @@
 .plp-search-container {
   flex: 1;
   position: relative;
-  min-width: 250px;
+  min-width: 15rem;
 }
 
 .plp-search-icon {
@@ -200,11 +200,11 @@
 
 .plp-view-toggle {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-1);
   background: var(--bg-primary);
   border: 2px solid var(--border-light);
   border-radius: var(--radius-md);
-  padding: 0.25rem;
+  padding: var(--space-1);
 }
 
 .plp-view-btn {
@@ -232,7 +232,7 @@
 /* Product Grid */
 .plp-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: var(--space-6);
 }
 
@@ -267,7 +267,7 @@
   transition: var(--transition);
   cursor: pointer;
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 13.75rem 1fr;
 }
 
 .plp-card-list:hover {
@@ -296,7 +296,7 @@
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
-  background: rgba(255, 255, 255, 0.95);
+  background: color-mix(in srgb, var(--bg-elevated) 95%, transparent);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
@@ -308,21 +308,21 @@
   position: absolute;
   top: var(--space-3);
   left: var(--space-3);
-  width: 36px;
-  height: 36px;
+  width: var(--space-10);
+  height: var(--space-10);
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  transition: transform 0.2s, background 0.2s, color 0.2s;
+  transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
   z-index: 2;
 }
-.plp-wishlist-btn:hover { transform: scale(1.15); background: white; }
-.plp-wishlist-btn.active { background: white; color: var(--error); }
+.plp-wishlist-btn:hover { transform: scale(1.1); background: var(--bg-elevated); }
+.plp-wishlist-btn.active { background: var(--bg-elevated); color: var(--error); }
 
 .plp-card-content {
   padding: var(--space-5);
@@ -453,6 +453,25 @@
   color: var(--text-primary);
 }
 
+.plp-close-filters {
+  margin-top: var(--space-2);
+}
+
+.plp-reset-link {
+  text-decoration: none;
+}
+
+.plp-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.plp-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
 @media (max-width: 1024px) {
   .plp-content-grid {
     grid-template-columns: 1fr;
@@ -483,5 +502,12 @@
   }
   .plp-card-list {
     grid-template-columns: 1fr;
+  }
+  .plp-toolbar-actions {
+    width: 100%;
+  }
+  .plp-sort-select {
+    min-width: 0;
+    flex: 1;
   }
 }
