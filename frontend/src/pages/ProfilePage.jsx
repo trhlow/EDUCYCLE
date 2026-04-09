@@ -54,8 +54,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; refreshUser ổn định qua useCallback
-  }, []);
+  }, [refreshUser, toast]);
 
   useEffect(() => {
     if (!user) return;
@@ -65,7 +64,7 @@ export default function ProfilePage() {
       bio: user.bio || '',
       avatar: user.avatar || '',
     });
-  }, [user?.id, user?.username, user?.email, user?.bio, user?.avatar]);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -74,7 +73,7 @@ export default function ProfilePage() {
       notifyTransactions: user.notifyTransactions ?? true,
       notifyMessages: user.notifyMessages ?? true,
     });
-  }, [user?.notifyProductModeration, user?.notifyTransactions, user?.notifyMessages]);
+  }, [user]);
 
   const handleNotifToggle = async (key) => {
     const prev = { ...notifPrefs };
