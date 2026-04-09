@@ -19,8 +19,9 @@
 }
 
 .app-footer {
-  background: var(--neutral-900);
-  color: var(--neutral-200);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-light);
   padding: var(--space-12) var(--space-6) var(--space-6);
   margin-top: auto;
 }
@@ -40,7 +41,7 @@
 .footer-section-title {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
-  color: var(--neutral-0);
+  color: var(--text-primary);
   margin-bottom: var(--space-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -54,11 +55,11 @@
 
 .footer-link {
   font-size: var(--text-sm);
-  color: var(--neutral-200);
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-standard);
 }
-a.footer-link:hover { color: var(--neutral-0); }
+a.footer-link:hover { color: var(--primary-700); }
 
 .footer-brand {
   display: inline-flex;
@@ -67,13 +68,13 @@ a.footer-link:hover { color: var(--neutral-0); }
   font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: var(--weight-bold);
-  color: var(--neutral-0);
+  color: var(--primary-700);
   margin-bottom: var(--space-2);
   text-decoration: none;
 }
 
 .footer-brand:hover {
-  color: var(--neutral-0);
+  color: var(--primary-800);
   text-decoration: none;
   opacity: 0.92;
 }
@@ -87,14 +88,14 @@ a.footer-link:hover { color: var(--neutral-0); }
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--neutral-700);
+  border-top: 1px solid var(--border-light);
   padding-top: var(--space-6);
   text-align: center;
 }
 
 .footer-copyright {
   font-size: var(--text-xs);
-  color: var(--neutral-300);
+  color: var(--text-tertiary);
 }
 
 .mobile-quick-actions {
@@ -112,7 +113,7 @@ a.footer-link:hover { color: var(--neutral-0); }
   background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   border-top: 1px solid var(--border-light);
   backdrop-filter: blur(10px);
-  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .mobile-quick-actions__item {
@@ -121,7 +122,7 @@ a.footer-link:hover { color: var(--neutral-0); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: var(--space-1);
   border-radius: var(--radius-md);
   color: var(--text-tertiary);
   text-decoration: none;
