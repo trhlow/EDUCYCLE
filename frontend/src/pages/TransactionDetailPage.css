@@ -10,8 +10,19 @@
 }
 
 .txd-container {
-  max-width: 1200px;
+  max-width: var(--layout-max-width-tight);
   margin: 0 auto;
+}
+
+.txd-empty-state {
+  text-align: center;
+  padding: var(--space-16);
+}
+
+.txd-empty-actions {
+  display: inline-flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .txd-loading {
@@ -271,6 +282,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.txd-actions-group--dispute {
+  border: 1px solid color-mix(in srgb, var(--error) 28%, var(--border-light));
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.txd-action-textarea {
+  width: 100%;
+  min-height: 4.5rem;
+  margin-bottom: var(--space-2);
+  resize: vertical;
 }
 
 .txd-actions-hint {
