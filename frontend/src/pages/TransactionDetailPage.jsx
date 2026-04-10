@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
 import { createChatClient, sendChatMessage } from '../api/websocket';
 import OtpCodeInput from '../components/inputs/OtpCodeInput';
-import { queryKeys } from '../lib/query/queryKeys';
-import { useTransaction } from '../features/transactions/hooks/useTransaction';
-import { useTransactionMessages, upsertMessage } from '../features/transactions/hooks/useTransactionMessages';
-import { useSendTransactionMessage } from '../features/transactions/hooks/useSendTransactionMessage';
-import { useGenerateTransactionOtp, useVerifyTransactionOtp } from '../features/transactions/hooks/useTransactionOtp';
+import { queryKeys } from '../services/query/queryKeys';
+import { useTransaction } from '../hooks/transactions/useTransaction';
+import { useTransactionMessages, upsertMessage } from '../hooks/transactions/useTransactionMessages';
+import { useSendTransactionMessage } from '../hooks/transactions/useSendTransactionMessage';
+import { useGenerateTransactionOtp, useVerifyTransactionOtp } from '../hooks/transactions/useTransactionOtp';
 import TransactionTimeline from '../components/transactions/TransactionTimeline';
 import { PageHeader, StatusBadge } from '../components/ui';
 import './TransactionDetailPage.css';
@@ -592,5 +592,6 @@ export default function TransactionDetailPage() {
     </div>
   );
 }
+
 
 

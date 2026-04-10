@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useWishlist } from '../contexts/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
@@ -464,3 +464,4 @@ export default function ProductListingPage() {
     </div>
   );
 }
+

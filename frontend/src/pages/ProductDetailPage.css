@@ -109,8 +109,9 @@
 .pdp-purchase-panel {
   background: var(--bg-elevated);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
   padding: var(--space-6);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   height: fit-content;
   position: sticky;
   top: 5rem;
@@ -147,7 +148,7 @@
 }
 
 .pdp-stars {
-  color: var(--accent-500);
+  color: var(--warning);
   font-weight: var(--weight-semibold);
   font-size: var(--text-lg);
 }
@@ -182,7 +183,7 @@
 }
 
 .pdp-price-contact {
-  color: var(--accent-600);
+  color: var(--primary-600);
   font-weight: var(--weight-semibold);
 }
 
@@ -248,7 +249,7 @@
 .pdp-btn-cart {
   width: 100%;
   padding: var(--space-4);
-  background: var(--accent-500);
+  background: var(--primary-600);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -259,9 +260,9 @@
 }
 
 .pdp-btn-cart:hover {
-  background: var(--accent-600);
+  background: var(--primary-700);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-accent);
+  box-shadow: var(--shadow-primary);
 }
 
 .pdp-btn-buy {
@@ -507,11 +508,11 @@
 }
 
 .pdp-review-star-btn.active {
-  color: var(--accent-500);
+  color: var(--warning);
 }
 
 .pdp-review-star-btn:hover {
-  color: var(--accent-400);
+  color: color-mix(in srgb, var(--warning) 85%, white);
 }
 
 .pdp-review-rating-text {
@@ -577,7 +578,7 @@
 }
 
 .pdp-review-stars {
-  color: var(--accent-500);
+  color: var(--warning);
   margin-bottom: var(--space-2);
 }
 
@@ -621,7 +622,7 @@
 .pdp-review-summary-value {
   font-size: var(--text-3xl);
   font-weight: var(--weight-bold);
-  color: var(--accent-600);
+  color: var(--primary-700);
   line-height: 1;
 }
 
@@ -689,7 +690,7 @@
 }
 
 .pdp-seller-rating-stars {
-  color: var(--accent-500);
+  color: var(--warning);
   font-size: var(--text-base);
 }
 

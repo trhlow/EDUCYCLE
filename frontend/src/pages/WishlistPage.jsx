@@ -1,6 +1,6 @@
 import { formatPrice } from '../utils/format';
 import { Link } from 'react-router-dom';
-import { useWishlist } from '../contexts/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import { IconTrash } from '../components/icons/Icons';
 import { EmptyState, PageHeader, SurfaceCard } from '../components/ui';

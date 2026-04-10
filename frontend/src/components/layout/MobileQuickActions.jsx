@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   IconHeart,
   IconMessageCircle,
@@ -42,3 +42,4 @@ export default function MobileQuickActions() {
     </nav>
   );
 }
+

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { authApi } from '../api/endpoints';
 import EduCycleLogo from '../components/branding/EduCycleLogo';
@@ -403,3 +403,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

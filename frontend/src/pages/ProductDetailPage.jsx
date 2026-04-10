@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getApiErrorMessage } from '../utils/apiError';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useWishlist } from '../contexts/WishlistContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
 import { maskUsername } from '../utils/maskUsername';
@@ -430,3 +430,4 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+

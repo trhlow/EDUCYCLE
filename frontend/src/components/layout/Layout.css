@@ -19,7 +19,7 @@
 }
 
 .app-footer {
-  background: var(--bg-elevated);
+  background: var(--bg-primary);
   color: var(--text-secondary);
   border-top: 1px solid var(--border-light);
   padding: var(--space-12) var(--space-6) var(--space-6);
@@ -59,7 +59,7 @@
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-standard);
 }
-a.footer-link:hover { color: var(--primary-700); }
+a.footer-link:hover { color: var(--primary-600); }
 
 .footer-brand {
   display: inline-flex;
@@ -110,7 +110,7 @@ a.footer-link:hover { color: var(--primary-700); }
   padding: var(--space-2) max(var(--space-3), env(safe-area-inset-left, 0))
     calc(var(--space-2) + env(safe-area-inset-bottom, 0))
     max(var(--space-3), env(safe-area-inset-right, 0));
-  background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, var(--bg-primary));
   border-top: 1px solid var(--border-light);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-md);

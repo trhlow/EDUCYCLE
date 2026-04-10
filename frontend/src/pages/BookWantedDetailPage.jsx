@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookWantedApi } from '../api/endpoints';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { getApiErrorMessage } from '../utils/apiError';
 import './BookWantedPages.css';
@@ -250,3 +250,4 @@ export default function BookWantedDetailPage() {
     </div>
   );
 }
+

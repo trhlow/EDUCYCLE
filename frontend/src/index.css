@@ -12,7 +12,7 @@
 
 html {
   font-size: 16px;
-  color-scheme: light dark;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
@@ -37,7 +37,7 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   min-height: 100vh;
   min-height: 100dvh;
   /* Mobile / notch — Sprint 4 */

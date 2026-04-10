@@ -1,7 +1,7 @@
 import { formatPrice } from '../utils/format';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi, uploadProductImage } from '../api/endpoints';
 import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
@@ -445,3 +445,4 @@ export default function PostProductPage() {
     </div>
   );
 }
+

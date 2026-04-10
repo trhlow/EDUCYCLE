@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IconAlertTriangle, IconArrowsClockwise, IconCheckCircle } from '../icons/Icons';
-import { useBackendHealth } from '../../features/system/hooks/useBackendHealth';
+import { useBackendHealth } from '../../hooks/system/useBackendHealth';
 import './BackendStatusBanner.css';
 
 const useOnlineStatus = () => {
@@ -62,3 +62,4 @@ export default function BackendStatusBanner() {
     </div>
   );
 }
+

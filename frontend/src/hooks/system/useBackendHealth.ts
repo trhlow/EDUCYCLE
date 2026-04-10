@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { publicApi } from '../../../api/endpoints';
-import { queryKeys } from '../../../lib/query/queryKeys';
-import { publicHealthSchema } from '../../../lib/schemas/entities';
+import { publicApi } from '../../api/endpoints';
+import { queryKeys } from '../../services/query/queryKeys';
+import { publicHealthSchema } from '../../services/schemas/entities';
 
 const ONLINE_REFRESH_MS = 20_000;
 
@@ -16,3 +16,6 @@ export const useBackendHealth = () =>
     retry: 0,
     staleTime: 10_000,
   });
+
+
+

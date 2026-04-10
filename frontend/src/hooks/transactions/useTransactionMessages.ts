@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { messagesApi } from '../../../api/endpoints';
-import { queryKeys } from '../../../lib/query/queryKeys';
-import { messageSchema } from '../../../lib/schemas/entities';
+import { messagesApi } from '../../api/endpoints';
+import { queryKeys } from '../../services/query/queryKeys';
+import { messageSchema } from '../../services/schemas/entities';
 
 export const upsertMessage = <T extends { id?: string | number }>(
   previous: T[] | undefined,
@@ -33,3 +33,6 @@ export const useTransactionMessages = (
     refetchInterval: options?.refetchInterval ?? false,
     placeholderData: (previous) => previous,
   });
+
+
+

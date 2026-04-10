@@ -34,7 +34,7 @@ function applyTheme(theme) {
 
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (metaTheme) {
-    metaTheme.setAttribute('content', theme === 'dark' ? '#0d1727' : '#2f5f9e');
+    metaTheme.setAttribute('content', theme === 'dark' ? '#0e1929' : '#16a374');
   }
 }
 
@@ -44,7 +44,7 @@ function resolveTheme(mode, systemTheme) {
 
 function getInitialMode() {
   const storedTheme = getStoredTheme();
-  return storedTheme ?? 'system';
+  return storedTheme ?? 'light';
 }
 
 export function ThemeProvider({ children }) {

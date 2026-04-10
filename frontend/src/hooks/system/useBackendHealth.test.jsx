@@ -2,10 +2,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { useBackendHealth } from './useBackendHealth';
-import { publicApi } from '../../../api/endpoints';
+import { publicApi } from '../../api/endpoints';
 
-vi.mock('../../../api/endpoints', async () => {
-  const actual = await vi.importActual('../../../api/endpoints');
+vi.mock('../../api/endpoints', async () => {
+  const actual = await vi.importActual('../../api/endpoints');
   return {
     ...actual,
     publicApi: {
@@ -47,3 +47,4 @@ describe('useBackendHealth', () => {
     expect(publicApi.health).toHaveBeenCalledTimes(1);
   });
 });
+

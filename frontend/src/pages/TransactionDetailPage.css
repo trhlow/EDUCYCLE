@@ -6,7 +6,7 @@
 .txd-page {
   padding: var(--space-6) var(--space-4);
   min-height: 80vh;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
 }
 
 .txd-container {
@@ -227,7 +227,7 @@
 .txd-product-price {
   font-size: var(--text-xl);
   font-weight: var(--weight-bold);
-  color: var(--accent-700);
+  color: var(--primary-700);
 }
 
 /* Info Card */
@@ -343,8 +343,8 @@
 .txd-btn-meeting { background: var(--primary-500); color: var(--text-inverse); }
 .txd-btn-meeting:hover { background: var(--primary-600); box-shadow: var(--shadow-primary); }
 
-.txd-btn-review { background: var(--accent-500); color: var(--text-inverse); }
-.txd-btn-review:hover { background: var(--accent-600); box-shadow: var(--shadow-accent); }
+.txd-btn-review { background: var(--primary-600); color: var(--text-inverse); }
+.txd-btn-review:hover { background: var(--primary-700); box-shadow: var(--shadow-primary); }
 
 .txd-btn-otp { background: var(--primary-600); color: var(--text-inverse); }
 .txd-btn-otp:hover { background: var(--primary-700); }
@@ -355,8 +355,8 @@
 .txd-btn-confirm { background: var(--primary-500); color: var(--text-inverse); width: 100%; }
 .txd-btn-confirm:hover { background: var(--primary-600); }
 
-.txd-btn-submit-review { background: var(--accent-500); color: var(--text-inverse); width: 100%; padding: var(--space-3); }
-.txd-btn-submit-review:hover { background: var(--accent-600); box-shadow: var(--shadow-accent); }
+.txd-btn-submit-review { background: var(--primary-600); color: var(--text-inverse); width: 100%; padding: var(--space-3); }
+.txd-btn-submit-review:hover { background: var(--primary-700); box-shadow: var(--shadow-primary); }
 
 /* ─── Right Column ──────────────────── */
 .txd-right {
@@ -813,7 +813,7 @@
 }
 
 .txd-star-btn.active {
-  color: var(--accent-400);
+  color: var(--warning);
 }
 
 .txd-star-btn:hover {

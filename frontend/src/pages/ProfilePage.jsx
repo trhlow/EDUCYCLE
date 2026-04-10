@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import './ProfilePage.css';
 
@@ -467,3 +467,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { transactionsApi } from '../../../api/endpoints';
-import { queryKeys } from '../../../lib/query/queryKeys';
-import { transactionSchema } from '../../../lib/schemas/entities';
+import { transactionsApi } from '../../api/endpoints';
+import { queryKeys } from '../../services/query/queryKeys';
+import { transactionSchema } from '../../services/schemas/entities';
 
 export const useTransaction = (id: string | number | undefined) =>
   useQuery({
@@ -13,3 +13,6 @@ export const useTransaction = (id: string | number | undefined) =>
     enabled: Boolean(id),
     staleTime: 15_000,
   });
+
+
+

@@ -1,7 +1,7 @@
 /* Transactions page */
 .tx-page {
   min-height: 70vh;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
 }
 
 .tx-container {

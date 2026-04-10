@@ -4,7 +4,7 @@ import MobileQuickActions from './MobileQuickActions';
 import ChatbotWidget from '../ChatbotWidget';
 import EduCycleLogo from '../branding/EduCycleLogo';
 import BackendStatusBanner from '../system/BackendStatusBanner';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import './Layout.css';
 
 export default function Layout() {
@@ -78,3 +78,4 @@ export default function Layout() {
     </div>
   );
 }
+

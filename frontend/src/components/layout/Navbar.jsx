@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 import { IconBell, IconHeart, IconMenu, IconMoon, IconSun, IconX } from '../icons/Icons';
 import EduCycleLogo from '../branding/EduCycleLogo';
 import NavbarCatalog from './NavbarCatalog';
@@ -241,3 +241,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

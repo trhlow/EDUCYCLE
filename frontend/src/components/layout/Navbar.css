@@ -7,7 +7,7 @@
   padding-right: max(var(--space-6), env(safe-area-inset-right, 0));
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--neutral-900) 6%, transparent);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -100,29 +100,29 @@
   left: 0;
   right: 0;
   height: var(--space-1);
-  background: var(--secondary-500);
+  background: var(--primary-500);
   border-radius: var(--radius-full);
 }
 
 .navbar-link-post {
-  background: var(--secondary-500);
+  background: var(--primary-600);
   color: var(--text-inverse) !important;
   padding: var(--space-2) var(--space-4) !important;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-weight: var(--weight-semibold) !important;
   font-size: var(--text-sm) !important;
   transition: var(--transition);
 }
 
 .navbar-link-post:hover {
-  background: var(--secondary-600);
+  background: var(--primary-700);
   color: var(--text-inverse) !important;
   transform: translateY(calc(var(--space-1) * -1));
   box-shadow: var(--shadow-card-hover);
 }
 
 .navbar-link-post.active {
-  background: var(--secondary-700);
+  background: var(--primary-700);
   color: var(--text-inverse) !important;
 }
 
@@ -165,8 +165,8 @@
 }
 
 .navbar-theme-btn.active {
-  color: var(--secondary-500);
-  border-color: color-mix(in srgb, var(--secondary-500) 45%, var(--border-light));
+  color: var(--primary-600);
+  border-color: color-mix(in srgb, var(--primary-500) 45%, var(--border-light));
 }
 
 .navbar-cart-badge {
@@ -189,7 +189,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  background: var(--primary-500);
+  background: var(--primary-600);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -199,7 +199,7 @@
 }
 
 .navbar-auth-btn:hover {
-  background: var(--primary-600);
+  background: var(--primary-700);
   transform: translateY(-1px);
   box-shadow: var(--shadow-primary);
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useWishlist } from '../contexts/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi } from '../api/endpoints';
 import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
@@ -688,3 +688,4 @@ export default function HomePage() {
     </div>
   );
 }
+

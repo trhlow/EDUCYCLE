@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { usersApi } from '../../../api/endpoints';
-import { queryKeys } from '../../../lib/query/queryKeys';
-import { userSchema } from '../../../lib/schemas/entities';
+import { usersApi } from '../../api/endpoints';
+import { queryKeys } from '../../services/query/queryKeys';
+import { userSchema } from '../../services/schemas/entities';
 
 export const useMe = (enabled = true) =>
   useQuery({
@@ -13,3 +13,6 @@ export const useMe = (enabled = true) =>
     enabled,
     staleTime: 60_000,
   });
+
+
+
