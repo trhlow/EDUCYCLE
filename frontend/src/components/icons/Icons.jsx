@@ -54,6 +54,8 @@ import {
   NotePencil,
   Gift,
   ArrowsClockwise,
+  Moon,
+  Sun,
 } from '@phosphor-icons/react';
 
 const ph = (size, className) => ({
@@ -90,6 +92,8 @@ export const IconCheckCircle = ({ size = 18, className = '' }) => <CheckCircle {
 export const IconAlertCircle = ({ size = 18, className = '' }) => <WarningCircle {...ph(size, className)} />;
 export const IconAlertTriangle = ({ size = 18, className = '' }) => <Warning {...ph(size, className)} />;
 export const IconInfo = ({ size = 18, className = '' }) => <Info {...ph(size, className)} />;
+export const IconMoon = ({ size = 18, className = '' }) => <Moon {...ph(size, className)} />;
+export const IconSun = ({ size = 18, className = '' }) => <Sun {...ph(size, className)} />;
 
 /* ── Extended icons ───────────────────────────────── */
 export const IconBookOpen     = ({ size = 20, className = '' }) => <BookOpen {...ph(size, className)} />;

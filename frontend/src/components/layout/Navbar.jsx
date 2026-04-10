@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { IconBell, IconHeart, IconMenu, IconX } from '../icons/Icons';
+import { useTheme } from '../../contexts/ThemeContext';
+import { IconBell, IconHeart, IconMenu, IconMoon, IconSun, IconX } from '../icons/Icons';
 import EduCycleLogo from '../branding/EduCycleLogo';
 import NavbarCatalog from './NavbarCatalog';
 import './Navbar.css';
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, resolveNotifRoute } = useNotifications();
   const notifList = Array.isArray(notifications) ? notifications : [];
   const navigate = useNavigate();
@@ -127,6 +129,16 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
+          <button
+            type="button"
+            className={`navbar-icon-btn navbar-theme-btn ${isDark ? 'active' : ''}`}
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+            title={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+          >
+            {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+          </button>
+
           {isAuthenticated && (
             <div className="navbar-notif-menu" ref={notifMenuRef}>
               <button type="button" className="navbar-icon-btn navbar-notif-btn" onClick={() => setNotifOpen(!notifOpen)} aria-label="Thông báo" title="Thông báo">

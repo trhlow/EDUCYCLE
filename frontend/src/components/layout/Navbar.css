@@ -159,6 +159,16 @@
   text-decoration: none;
 }
 
+.navbar-theme-btn {
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.navbar-theme-btn.active {
+  color: var(--secondary-500);
+  border-color: color-mix(in srgb, var(--secondary-500) 45%, var(--border-light));
+}
+
 .navbar-cart-badge {
   position: absolute;
   top: calc(var(--space-1) * -0.5);

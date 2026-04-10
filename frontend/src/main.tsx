@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -21,15 +22,17 @@ createRoot(rootEl).render(
     <QueryProvider>
       <ErrorBoundary>
         <BrowserRouter>
-          <AuthProvider>
-            <NotificationProvider>
-              <WishlistProvider>
-                <ToastProvider>
-                  <App />
-                </ToastProvider>
-              </WishlistProvider>
-            </NotificationProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <WishlistProvider>
+                  <ToastProvider>
+                    <App />
+                  </ToastProvider>
+                </WishlistProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </ErrorBoundary>
     </QueryProvider>
