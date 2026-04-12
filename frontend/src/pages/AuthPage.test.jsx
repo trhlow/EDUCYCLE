@@ -2,7 +2,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi, test, expect } from 'vitest';
 import AuthPage from './AuthPage';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider } from '../context/AuthContext';
 import { authApi } from '../api/endpoints';
 
 const mockToast = {
@@ -95,3 +95,4 @@ test('login form accepts non-edu.vn email and calls API (admin / staff)', async 
     });
   });
 });
+

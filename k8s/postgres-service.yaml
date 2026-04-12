@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: educycle-postgres
+  labels:
+    app: educycle-postgres
+spec:
+  selector:
+    app: educycle-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  type: ClusterIP

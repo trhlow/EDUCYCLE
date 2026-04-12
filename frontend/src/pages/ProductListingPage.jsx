@@ -1,72 +1,137 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useWishlist } from '../contexts/WishlistContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import { productsApi, categoriesApi } from '../api/endpoints';
 import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
 import { useDebounce } from '../hooks/useDebounce';
 import { extractPage } from '../utils/pageApi';
+import { isEducationalListing } from '../utils/academicMarketplace';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
-import { IconHeart, IconHeartFilled } from '../components/icons/Icons';
+import { IconHeart, IconHeartFilled, IconX } from '../components/icons/Icons';
+import { EmptyState, PageHeader } from '../components/ui';
 import './ProductListingPage.css';
 
-const FALLBACK_CATEGORIES = ['all', ...NAV_CATALOG.map((n) => n.category)];
-
+const FALLBACK_CATEGORIES = ['all', ...NAV_CATALOG.map((item) => item.category)];
 const PAGE_SIZE = 24;
 
+const mapProduct = (item) => ({
+  id: String(item.id),
+  name: item.name || '',
+  description: item.description || '',
+  price: item.price || 0,
+  priceType: item.priceType || (Number(item.price) === 0 ? 'contact' : 'fixed'),
+  category: item.categoryName || item.category || '',
+  imageUrl: item.imageUrl || item.imageUrls?.[0] || '',
+  rating: item.averageRating || 0,
+  reviews: item.reviewCount || 0,
+  seller: item.sellerName || '',
+  createdAt: item.createdAt || '',
+  status: item.status || '',
+});
+
+const formatPrice = (price, priceType) => {
+  if (priceType === 'contact' || Number(price) === 0) return 'Liên hệ';
+  return `${Number(price).toLocaleString('vi-VN')}đ`;
+};
+
+const sanitizeCategory = (value, fallback = 'all') => {
+  const next = (value || '').trim();
+  return next.length > 0 ? next : fallback;
+};
+
 export default function ProductListingPage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') ?? '';
+  const initialCategory = sanitizeCategory(searchParams.get('category'), 'all');
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [priceRange, setPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
 
   useEffect(() => {
+    const currentCategory = sanitizeCategory(searchParams.get('category'), 'all');
+    const currentQuery = searchParams.get('q') ?? '';
+
+    setSelectedCategory((previous) => (previous === currentCategory ? previous : currentCategory));
+    setSearchQuery((previous) => (previous === currentQuery ? previous : currentQuery));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    const trimmed = debouncedSearchQuery.trim();
+    if (selectedCategory !== 'all') params.set('category', selectedCategory);
+    if (trimmed) params.set('q', trimmed);
+    setSearchParams(params, { replace: true });
+  }, [selectedCategory, debouncedSearchQuery, setSearchParams]);
+
+  useEffect(() => {
+    let mounted = true;
+
     const fetchCategories = async () => {
       try {
-        const res = await categoriesApi.getAll();
-        const data = Array.isArray(res.data) ? res.data : [];
-        if (data.length > 0) {
-          setCategories(['all', ...data.map((c) => c.name || c.Name || '')]);
-        }
+        const response = await categoriesApi.getAll();
+        const rows = Array.isArray(response.data) ? response.data : [];
+        const serverCategories = rows
+          .map((row) => sanitizeCategory(row.name || row.Name || '', ''))
+          .filter(Boolean);
+
+        if (!mounted || serverCategories.length === 0) return;
+        setCategories(['all', ...serverCategories]);
       } catch {
-        // keep fallback
+        // Keep fallback categories for resilient UX.
       }
     };
+
     fetchCategories();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const mapP = (p) => ({
-    id: String(p.id),
-    name: p.name || '',
-    description: p.description || '',
-    price: p.price || 0,
-    category: p.categoryName || p.category || '',
-    imageUrl: p.imageUrl || p.imageUrls?.[0] || '',
-    rating: p.averageRating || 0,
-    reviews: p.reviewCount || 0,
-    seller: p.sellerName || '',
-    createdAt: p.createdAt || '',
-    status: p.status || '',
-  });
+  useEffect(() => {
+    if (!sidebarOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setSidebarOpen(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [sidebarOpen]);
 
   const catalogQueryParams = useMemo(() => {
     const params = { size: PAGE_SIZE, direction: 'desc', sort: sortBy };
-    const t = debouncedSearchQuery.trim();
-    if (t) params.q = t;
+    const trimmed = debouncedSearchQuery.trim();
+
+    if (trimmed) params.q = trimmed;
     if (selectedCategory !== 'all') params.category = selectedCategory;
-    if (priceRange === 'under50k') params.priceMax = 49999.99;
-    else if (priceRange === '50kto100k') {
+
+    if (priceRange === 'under50k') {
+      params.priceMax = 49999.99;
+    } else if (priceRange === '50kto100k') {
       params.priceMin = 50000;
       params.priceMax = 99999.99;
-    } else if (priceRange === 'over100k') params.priceMin = 100000;
+    } else if (priceRange === 'over100k') {
+      params.priceMin = 100000;
+    }
+
     return params;
   }, [debouncedSearchQuery, selectedCategory, priceRange, sortBy]);
 
@@ -80,32 +145,28 @@ export default function ProductListingPage() {
     queryKey: ['products', 'listing', PAGE_SIZE, catalogQueryParams],
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
-      const res = await productsApi.getAll({ ...catalogQueryParams, page: pageParam });
-      return extractPage(res);
+      const response = await productsApi.getAll({ ...catalogQueryParams, page: pageParam });
+      return extractPage(response);
     },
     getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.page + 1),
   });
 
   const products = useMemo(() => {
     if (!productPages?.pages?.length) return [];
-    return productPages.pages.flatMap((pg) => pg.content.map(mapP));
+    return productPages.pages
+      .flatMap((page) => page.content.map(mapProduct))
+      .filter(isEducationalListing);
   }, [productPages]);
 
-  /** Đánh giá tối thiểu: lọc trên tập đã tải (BE chưa có truy vấn aggregate theo review). */
   const filteredProducts = useMemo(() => {
     if (minRating === 0) return products;
-    return products.filter((p) => p.rating >= minRating);
+    return products.filter((product) => product.rating >= minRating);
   }, [products, minRating]);
 
   const loading = isPending;
   const loadingMore = isFetchingNextPage;
-  const last = !hasNextPage;
+  const reachedEnd = !hasNextPage;
   const totalElements = productPages?.pages?.[0]?.totalElements ?? 0;
-
-  const loadMore = () => {
-    if (!hasNextPage || isFetchingNextPage) return;
-    fetchNextPage().catch(() => toast.error('Không tải thêm được.'));
-  };
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -115,61 +176,99 @@ export default function ProductListingPage() {
     setMinRating(0);
   };
 
-  return (
-    <div>
-      <section className="plp-hero">
-        <h1 className="plp-hero-title">Tìm Sách &amp; Tài Liệu Học Tập</h1>
-        <p className="plp-hero-subtitle">
-          Trao đổi sách giáo trình, tài liệu và dụng cụ học tập giữa sinh viên
-        </p>
-      </section>
+  const loadMore = () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage().catch(() => toast.error('Không tải thêm được, vui lòng thử lại.'));
+  };
 
-      <div className="plp-container">
-        <div className="plp-content-grid">
-          <aside className={`plp-sidebar ${sidebarOpen ? 'open' : ''}`}>
+  const activeFilterTokens = [
+    selectedCategory !== 'all'
+      ? { key: 'category', label: `Danh mục: ${getCategoryDisplayLabel(selectedCategory) || selectedCategory}` }
+      : null,
+    priceRange !== 'all'
+      ? {
+          key: 'price',
+          label:
+            priceRange === 'under50k'
+              ? 'Giá: dưới 50k'
+              : priceRange === '50kto100k'
+                ? 'Giá: 50k - 100k'
+                : 'Giá: trên 100k',
+        }
+      : null,
+    minRating > 0 ? { key: 'rating', label: `Đánh giá từ ${minRating}+` } : null,
+    debouncedSearchQuery.trim() ? { key: 'query', label: `Từ khóa: ${debouncedSearchQuery.trim()}` } : null,
+  ].filter(Boolean);
+
+  return (
+    <div className="plp-page edu-page">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="plp-sidebar-backdrop"
+          aria-label="Đóng bộ lọc"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="plp-container edu-container">
+        <PageHeader
+          eyebrow="Marketplace học thuật"
+          title="Tìm sách và tài liệu học tập"
+          subtitle="Lọc theo danh mục, mức giá và đánh giá để tìm đúng giáo trình, tài liệu ôn thi hoặc dụng cụ học tập bạn cần."
+        />
+
+        <div className={`plp-content-grid ${sidebarOpen ? 'plp-content-grid--drawer-open' : ''}`}>
+          <aside className={`plp-sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Bộ lọc tìm kiếm">
             <div className="plp-filter-section">
-              <h3 className="plp-filter-title">Bộ Lọc</h3>
+              <div className="plp-filter-head">
+                <h3 className="plp-filter-title">Bộ lọc</h3>
+                <button type="button" className="plp-close-filters" onClick={() => setSidebarOpen(false)}>
+                  Đóng
+                </button>
+              </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Danh Mục</label>
+                <label className="plp-filter-label" htmlFor="plp-category-select">Danh mục</label>
                 <select
+                  id="plp-category-select"
                   className="plp-select"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(event) => setSelectedCategory(event.target.value)}
                 >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat === 'all' ? 'Tất Cả Danh Mục' : getCategoryDisplayLabel(cat) || cat}
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category === 'all' ? 'Tất cả danh mục' : getCategoryDisplayLabel(category) || category}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Khoảng Giá</label>
+                <span className="plp-filter-label">Khoảng giá</span>
                 <div className="plp-radio-group">
                   {[
-                    { value: 'all', label: 'Tất Cả Mức Giá' },
+                    { value: 'all', label: 'Tất cả mức giá' },
                     { value: 'under50k', label: 'Dưới 50.000đ' },
                     { value: '50kto100k', label: '50.000đ - 100.000đ' },
                     { value: 'over100k', label: 'Trên 100.000đ' },
-                  ].map((opt) => (
-                    <label key={opt.value} className="plp-radio-label">
+                  ].map((option) => (
+                    <label key={option.value} className="plp-radio-label">
                       <input
                         type="radio"
                         name="priceRange"
-                        value={opt.value}
-                        checked={priceRange === opt.value}
-                        onChange={(e) => setPriceRange(e.target.value)}
+                        value={option.value}
+                        checked={priceRange === option.value}
+                        onChange={(event) => setPriceRange(event.target.value)}
                       />
-                      {opt.label}
+                      {option.label}
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="plp-filter-group">
-                <label className="plp-filter-label">Đánh Giá Tối Thiểu (trên trang đã tải)</label>
+                <span className="plp-filter-label">Đánh giá tối thiểu</span>
                 <div className="plp-rating-options">
                   {[4.5, 4.0, 3.5, 3.0].map((rating) => (
                     <button
@@ -185,19 +284,8 @@ export default function ProductListingPage() {
               </div>
 
               <button type="button" className="plp-clear-filters" onClick={clearFilters}>
-                Xóa Tất Cả Bộ Lọc
+                Xóa tất cả bộ lọc
               </button>
-
-              {sidebarOpen && (
-                <button
-                  type="button"
-                  className="plp-clear-filters"
-                  onClick={() => setSidebarOpen(false)}
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  Đóng Bộ Lọc
-                </button>
-              )}
             </div>
           </aside>
 
@@ -206,28 +294,30 @@ export default function ProductListingPage() {
               <button type="button" className="plp-mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
                 Bộ lọc
               </button>
+
               <div className="plp-search-container">
                 <input
-                  type="text"
+                  type="search"
                   className="plp-search-input"
-                  placeholder="Tìm sách, tài liệu..."
+                  placeholder="Tìm giáo trình, tài liệu, dụng cụ học tập..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </div>
+
               <div className="plp-toolbar-actions">
-                <select className="plp-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                  <option value="newest">Mới Nhất</option>
-                  <option value="rating">Đánh Giá Cao Nhất</option>
-                  <option value="price-low">Giá: Thấp đến Cao</option>
-                  <option value="price-high">Giá: Cao đến Thấp</option>
+                <select className="plp-sort-select" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  <option value="newest">Mới nhất</option>
+                  <option value="price-low">Giá: thấp đến cao</option>
+                  <option value="price-high">Giá: cao đến thấp</option>
                 </select>
-                <div className="plp-view-toggle">
+
+                <div className="plp-view-toggle" role="tablist" aria-label="Chế độ hiển thị">
                   <button
                     type="button"
                     className={`plp-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                     onClick={() => setViewMode('grid')}
-                    aria-label="Grid view"
+                    aria-label="Hiển thị dạng lưới"
                   >
                     Lưới
                   </button>
@@ -235,7 +325,7 @@ export default function ProductListingPage() {
                     type="button"
                     className={`plp-view-btn ${viewMode === 'list' ? 'active' : ''}`}
                     onClick={() => setViewMode('list')}
-                    aria-label="List view"
+                    aria-label="Hiển thị dạng danh sách"
                   >
                     Danh sách
                   </button>
@@ -243,24 +333,45 @@ export default function ProductListingPage() {
               </div>
             </div>
 
+            {activeFilterTokens.length > 0 && (
+              <div className="plp-active-filters" aria-label="Bộ lọc đang áp dụng">
+                {activeFilterTokens.map((token) => (
+                  <button
+                    key={token.key}
+                    type="button"
+                    className="plp-active-filter-chip"
+                    onClick={() => {
+                      if (token.key === 'category') setSelectedCategory('all');
+                      if (token.key === 'price') setPriceRange('all');
+                      if (token.key === 'rating') setMinRating(0);
+                      if (token.key === 'query') setSearchQuery('');
+                    }}
+                  >
+                    {token.label}
+                    <IconX size={14} />
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="plp-results-count">
               Hiển thị {filteredProducts.length}
               {minRating > 0 ? ' sau lọc đánh giá' : ''} · đã tải {products.length}
-              {totalElements ? ` · ${totalElements} khớp bộ lọc server` : ''}
+              {totalElements ? ` · ${totalElements} mục từ server` : ''}
             </div>
 
             {loading ? (
               <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
-              <div className="plp-empty">
-                <h3 className="plp-empty-title">Chưa có sản phẩm nào</h3>
-                <p className="plp-empty-text">
-                  Hãy là người đầu tiên đăng bán tài liệu trên EduCycle!
-                </p>
-                <Link to="/products/new" className="plp-reset-btn" style={{ textDecoration: 'none' }}>
-                  Đăng bán ngay
-                </Link>
-              </div>
+              <EmptyState
+                title="Chưa có sản phẩm nào"
+                description="Hãy là người đầu tiên đăng bán giáo trình, sách tham khảo hoặc tài liệu ôn thi trên EduCycle."
+                actions={
+                  <Link to="/products/new" className="plp-reset-btn plp-reset-link">
+                    Đăng bán ngay
+                  </Link>
+                }
+              />
             ) : filteredProducts.length > 0 ? (
               <>
                 <div className={viewMode === 'grid' ? 'plp-product-grid' : 'plp-product-list'}>
@@ -268,61 +379,84 @@ export default function ProductListingPage() {
                     <Link
                       to={`/products/${product.id}`}
                       key={product.id}
-                      className={viewMode === 'grid' ? 'plp-card' : 'plp-card-list'}
-                      style={{ textDecoration: 'none', color: 'inherit' }}
+                      className={`${viewMode === 'grid' ? 'plp-card' : 'plp-card-list'} plp-card-link`}
                     >
                       <div className="plp-card-image">
-                        <img src={product.imageUrl} alt={product.name} />
-                        <div className="plp-card-badge">{product.category}</div>
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(event) => {
+                              event.currentTarget.style.display = 'none';
+                              event.currentTarget.parentElement
+                                ?.querySelector('.plp-card-image-fallback')
+                                ?.classList.add('show');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`plp-card-image-fallback ${product.imageUrl ? '' : 'show'}`}>Chưa có ảnh</div>
+                        <div className="plp-card-badge">{product.category || 'Tài liệu học tập'}</div>
                         <button
                           type="button"
                           className={`plp-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
                             toggleWishlist(product);
-                            toast.info(isInWishlist(product.id) ? 'Đã xóa khỏi yêu thích' : 'Đã thêm vào yêu thích');
+                            toast.info(
+                              isInWishlist(product.id)
+                                ? 'Đã xóa khỏi danh sách yêu thích.'
+                                : 'Đã thêm vào danh sách yêu thích.',
+                            );
                           }}
-                          title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
-                          aria-label={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                          title={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                          aria-label={isInWishlist(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
                         >
                           {isInWishlist(product.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
                         </button>
                       </div>
+
                       <div className="plp-card-content">
                         <h3 className="plp-card-title">{product.name}</h3>
-                        <p className="plp-card-description">{product.description}</p>
+                        <p className="plp-card-description">{product.description || 'Chưa có mô tả chi tiết.'}</p>
+
                         <div className="plp-card-meta">
                           <div className="plp-card-rating">
-                            <span className="plp-rating-stars">{product.rating} sao</span>
-                            <span className="plp-rating-count">({product.reviews})</span>
+                            <span className="plp-rating-stars">{product.rating ? `${product.rating} sao` : 'Chưa có đánh giá'}</span>
+                            {product.reviews > 0 && <span className="plp-rating-count">({product.reviews})</span>}
                           </div>
-                          <div className="plp-card-seller">bởi {product.seller}</div>
+                          <div className="plp-card-seller">bởi {product.seller || 'Thành viên EduCycle'}</div>
                         </div>
+
                         <div className="plp-card-footer">
-                          <div className="plp-card-price">{Number(product.price).toLocaleString('vi-VN')}đ</div>
+                          <div className="plp-card-price">{formatPrice(product.price, product.priceType)}</div>
                           <span className="plp-view-detail-btn">Xem chi tiết</span>
                         </div>
                       </div>
                     </Link>
                   ))}
                 </div>
-                {!last && (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+
+                {!reachedEnd && (
+                  <div className="plp-load-more-wrap">
                     <button type="button" className="plp-reset-btn" disabled={loadingMore} onClick={loadMore}>
-                      {loadingMore ? 'Đang tải…' : 'Tải thêm'}
+                      {loadingMore ? 'Đang tải...' : 'Tải thêm'}
                     </button>
                   </div>
                 )}
               </>
             ) : (
-              <div className="plp-empty">
-                <h3 className="plp-empty-title">Không có mục đạt đánh giá tối thiểu</h3>
-                <p className="plp-empty-text">Thử hạ mức sao hoặc tải thêm sản phẩm.</p>
-                <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>
-                  Bỏ lọc đánh giá
-                </button>
-              </div>
+              <EmptyState
+                title="Không có mục đạt đánh giá tối thiểu"
+                description="Thử hạ mức sao hoặc tải thêm sản phẩm để xem thêm kết quả."
+                actions={
+                  <button type="button" className="plp-reset-btn" onClick={() => setMinRating(0)}>
+                    Bỏ lọc đánh giá
+                  </button>
+                }
+              />
             )}
           </main>
         </div>
@@ -330,3 +464,4 @@ export default function ProductListingPage() {
     </div>
   );
 }
+

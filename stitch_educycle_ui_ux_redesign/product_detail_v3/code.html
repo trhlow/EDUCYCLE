@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EduCycle | Premium Academic Exchange</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "primary-container": "#10b981",
+                    "on-tertiary-fixed-variant": "#003ea8",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "on-background": "#121c28",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#4edea3",
+                    "on-secondary-fixed-variant": "#005049",
+                    "primary-fixed": "#6ffbbe",
+                    "secondary-fixed": "#89f5e7",
+                    "outline-variant": "#bbcabf",
+                    "inverse-on-surface": "#eaf1ff",
+                    "primary": "#006c49",
+                    "on-primary-fixed-variant": "#005236",
+                    "tertiary-fixed": "#dbe1ff",
+                    "outline": "#6c7a71",
+                    "on-primary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#00422b",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#eef4ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#006f66",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#d9e3f4",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-fixed": "#00174b",
+                    "surface-container-highest": "#d9e3f4",
+                    "on-surface": "#121c28",
+                    "surface-tint": "#006c49",
+                    "surface": "#f8f9ff",
+                    "on-secondary-fixed": "#00201d",
+                    "surface-container-high": "#dfe9fa",
+                    "secondary-container": "#86f2e4",
+                    "secondary": "#006a61",
+                    "tertiary-container": "#7f9fff",
+                    "inverse-surface": "#27313e",
+                    "inverse-primary": "#4edea3",
+                    "on-surface-variant": "#3c4a42",
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "on-tertiary-container": "#00328b",
+                    "tertiary": "#0053db",
+                    "surface-dim": "#d1dbec"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Shell -->
+<nav class="bg-[#f8f9ff]/80 dark:bg-[#121c28]/80 backdrop-blur-xl docked full-width top-0 sticky z-50 transition-colors duration-300">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tight text-[#006c49] dark:text-[#10b981]">EduCycle</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-[#006c49] dark:text-[#10b981] font-bold border-b-2 border-[#006c49] text-sm" href="#">Marketplace</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] hover:bg-[#eef4ff] transition-colors duration-300 px-3 py-1 rounded-lg text-sm" href="#">Campus Life</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] hover:bg-[#eef4ff] transition-colors duration-300 px-3 py-1 rounded-lg text-sm" href="#">Exchange History</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex bg-surface-container-high rounded-full px-4 py-2 items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 font-medium" placeholder="Search textbooks..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-[#eef4ff] rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">favorite</span>
+</button>
+<button class="p-2 hover:bg-[#eef4ff] rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">chat</span>
+</button>
+<button class="p-2 hover:bg-[#eef4ff] rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</button>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-8">
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-2 mb-8 text-sm font-medium text-on-surface-variant">
+<a class="hover:text-primary" href="#">Marketplace</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary" href="#">Engineering</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-on-surface font-semibold">Fundamentals of Fluid Mechanics</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left Column: Image Gallery -->
+<div class="lg:col-span-7 space-y-4">
+<div class="rounded-3xl overflow-hidden bg-surface-container-low aspect-[4/5] relative">
+<img class="w-full h-full object-cover" data-alt="close-up of a well-maintained engineering textbook with green and blue cover titled Fundamentals of Fluid Mechanics on a clean desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCklBvfeR-e26HBDVfTlZN7lS7IgSjdkzKcmkuKKM8CpVS1x9DWvrw8pVqwHJ_XHkVxRH205xpg_wLM8K2OUQtZUEF_4rgPonppVUYwx0xJ3Q3k92knVnfVz8vWqnfQELTR2xf65XL9wSESpOLksgv8DplLsV_RA2oUWYFi6GDeXhlclylwEFz2ar3is1fq8_CyXOyRhGUWmR5D_lHPk8qvGNfEcEM-QF9Vmvz0NMm-kA7rqz_9Xr2kuLyqgFdIZCoCQHKewJL-2MY"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full text-xs font-bold tracking-wide shadow-sm">AUTHENTICATED</span>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<div class="rounded-xl overflow-hidden border-2 border-primary aspect-square cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="high quality macro shot of textbook spine and binding showing minimal wear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBO9OCNVAbOH6E0G_QyabX50o90otkvCIrAInx2i75ixKKFB6Cx4yVWhxJLTROyDjYKi_rteYWQjd-oYNnfjYH1S0CR4E3auVYbehdNBi5yrGKdolkeaHk9AFYudyHV6ChY6pMPGWss4703E6ecubd_-_QsbAKVYiNDb6n3uTStLp8A5XKV61wYFzfLeOvkQ9OAiIlsB0HAeFRZhxavnSNuwfN-Wuh6dtrkIcJG1SXaLpEwhyAVrZXVWxpXxMrxRKkDqXtfpu9N_ls"/>
+</div>
+<div class="rounded-xl overflow-hidden bg-surface-container-low aspect-square cursor-pointer hover:opacity-80 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="clean textbook pages with neat pencil marginalia in a scientific diagram" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm6VC5mWpSiI9m2DJgcSMvjYYkWN1TgYdbmkg_69UXKGr4qmqkTJKYkQFf-WY_jpYprY6KcglfCz9iJOWAuE5BMDns4RjmTeYrR308JryXLQm3cNPKz2jahVifwnIQVKqj_4e1Ogjm_6DmX4xlNkBvdClzCME2A_CfvpgeJEtc6Zl3js071kIvX8ZMcM4PiOEZwQbfSkBYQKAqySyoyaPPQ-0x4Geilv2ON8-ZHUUdIwUz8KM1nGenscQCFjAlbOFs7WQg16oe5Dc"/>
+</div>
+<div class="rounded-xl overflow-hidden bg-surface-container-low aspect-square cursor-pointer hover:opacity-80 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="back cover of fluid mechanics textbook with some surface scratches" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRlMcaH06Y9_yDHEpWTJdolPVr4TXy_Xqve927E6cJpyQ9tHmcbCzmOjh2GUCHw8qr5wu76Z78Lg6XylzAi6Mu5_qhP3KhWhkuQcPL1u_Gt_HXmQ8rR7Ppv_QZfGMbosdrwH0jcHGTZhPs2HEu-_xTO7TWqNcadG1WjHwH9YpmwM67kNNDwUbGiWVRUp8PZWoA2h_nH7WGIA0Isb02FKF_v8D-5VyPbztlS2z0MYF56elPUnL0aTaTE0UK4IZddZCypsEC1JtXgKA"/>
+</div>
+<div class="relative rounded-xl overflow-hidden bg-surface-container-low aspect-square cursor-pointer group">
+<img class="w-full h-full object-cover opacity-60" data-alt="multiple textbooks stacked in a library environment with soft bokeh lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqXRFBJahKLkDzIK6Of1oxdw9rT20xZjVeWNVwwpAHz3ydRyGI9gRvPouJbBziNiUdV22HxIgBxPUhicYt3107hNo9fksbuTQjvVPN3xRiJvOHtfXPx5OwqmRo_TIkfpkyPCMAbyIg2dnhnca7IVqzor-_tQShKMFFXkij0Pyqx67r7g3XWkcrbTt1Hy1v-tldNO9PEC0YxZFL_1lpt41LbdkZ3Pj7-ae7cY_1w0HrsSa3KI4IjphF1OYH1yXEW-tiT0gsIzlHE5I"/>
+<div class="absolute inset-0 flex items-center justify-center text-on-surface font-bold">+2</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Product Info & Actions -->
+<div class="lg:col-span-5 flex flex-col">
+<div class="sticky top-28 space-y-8">
+<!-- Title & Price Block -->
+<div class="space-y-4">
+<div class="flex justify-between items-start">
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface leading-tight">Fundamentals of Fluid Mechanics, 8th Edition</h1>
+<button class="p-3 bg-surface-container-low rounded-full text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+</button>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-3xl font-black text-primary">245.000đ</span>
+<span class="text-on-surface-variant line-through text-lg">580.000đ</span>
+<span class="bg-error-container text-on-error-container px-3 py-1 rounded-lg text-xs font-bold">-58%</span>
+</div>
+</div>
+<!-- Condition Tags -->
+<div class="flex flex-wrap gap-2">
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-2xl">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+<span class="text-sm font-semibold text-on-surface-variant">90% - có ghi chú</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-2xl">
+<span class="material-symbols-outlined text-secondary text-sm">menu_book</span>
+<span class="text-sm font-semibold text-on-surface-variant">Softcover</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-2xl">
+<span class="material-symbols-outlined text-tertiary text-sm">history_edu</span>
+<span class="text-sm font-semibold text-on-surface-variant">Includes Lab Manual</span>
+</div>
+</div>
+<!-- Description Bento Block -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 space-y-4">
+<h3 class="text-lg font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">info</span>
+                            Product Details
+                        </h3>
+<p class="text-on-surface-variant leading-relaxed font-medium">
+                            Essential for <span class="text-primary font-bold">MECH203 (Fluid Dynamics I)</span>. This copy is well-preserved with light pencil annotations specifically highlighting key exam formulas on chapters 3-7. No water damage or torn pages. 
+                        </p>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<div class="space-y-1">
+<span class="text-[10px] uppercase tracking-widest text-outline font-bold">Subject</span>
+<p class="text-sm font-bold">Engineering</p>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase tracking-widest text-outline font-bold">ISBN-13</span>
+<p class="text-sm font-bold">978-1119080701</p>
+</div>
+</div>
+</div>
+<!-- Seller Card -->
+<div class="bg-surface-container-low rounded-3xl p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-2xl overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover" data-alt="friendly headshot of a smiling university student in front of a modern campus building" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYZdZisMY3HAw9ADZ_7MS_xlYH20VICs3z45hH4iwWXqIVaTa84TCSTULNFK920BK8qMqAI8rNqv5294AcG5SkK0zw2U0xLip2LK7VXZ5VUoqjKdbPodfsBD7jygRCvSGV3x4dnHMIHvuDF4uK9YwJjubnUXf1MkR_aOlplU6njpbHjE0P0tCm380DFsGZBIgj5v6sWltCbsAKpMiB0M_OsmOrA_FPCnUEB0Lz3Rsi3tXECtx7cMHeXkRZg2ShzyTbI2u2nGgiH9g"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Minh Hoang Le</h4>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.9</span>
+<span class="text-xs text-on-surface-variant ml-1">(24 trades)</span>
+</div>
+</div>
+</div>
+<button class="bg-surface-container-highest text-primary px-4 py-2 rounded-xl text-sm font-bold hover:bg-white transition-colors">
+                            View Profile
+                        </button>
+</div>
+<!-- Primary Actions -->
+<div class="space-y-3">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-5 rounded-3xl font-bold text-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">handshake</span>
+                            Yêu cầu giao dịch
+                        </button>
+<div class="grid grid-cols-2 gap-3">
+<button class="bg-surface-container-high text-on-surface py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors active:scale-95">
+<span class="material-symbols-outlined">chat</span>
+                                Nhắn tin
+                            </button>
+<button class="bg-surface-container-high text-on-surface py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors active:scale-95">
+<span class="material-symbols-outlined">bookmark_add</span>
+                                Lưu tin
+                            </button>
+</div>
+</div>
+<!-- Secure Trade Hint -->
+<div class="flex items-center gap-3 px-2">
+<span class="material-symbols-outlined text-tertiary">verified_user</span>
+<span class="text-xs font-semibold text-on-surface-variant leading-tight">Transactions on EduCycle are protected by our Campus Safety Guarantee.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Trust & Reviews Section -->
+<section class="mt-24 space-y-12">
+<div class="flex items-end justify-between">
+<div class="space-y-2">
+<h2 class="text-3xl font-black text-on-surface">Seller Reputation</h2>
+<p class="text-on-surface-variant font-medium">Recent reviews from the campus community</p>
+</div>
+<button class="text-primary font-bold flex items-center gap-1 hover:underline">
+                    View all 24 reviews
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center gap-1 mb-4 text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-on-surface-variant font-medium italic mb-6">"Book was exactly as described. Minh was very punctual at the library meeting spot. Highly recommend!"</p>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-container"></div>
+<span class="text-sm font-bold">Thanh T.</span>
+<span class="text-xs text-on-surface-variant ml-auto">2 weeks ago</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center gap-1 mb-4 text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+<p class="text-on-surface-variant font-medium italic mb-6">"Great price and honest about the annotations. Very helpful for my exam prep."</p>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container"></div>
+<span class="text-sm font-bold">Quoc An</span>
+<span class="text-xs text-on-surface-variant ml-auto">1 month ago</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center gap-1 mb-4 text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-on-surface-variant font-medium italic mb-6">"Minh is a trustworthy seller. The transaction was smooth and professional. Good quality textbooks."</p>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container"></div>
+<span class="text-sm font-bold">Linh D.</span>
+<span class="text-xs text-on-surface-variant ml-auto">3 months ago</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Related Items Grid -->
+<section class="mt-24 space-y-8">
+<h2 class="text-3xl font-black text-on-surface">You might also need</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+<!-- Related Card 1 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] overflow-hidden hover:scale-[1.02] transition-all cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden p-4">
+<img class="w-full h-full object-cover rounded-2xl" data-alt="textbook about thermodynamics for engineering students with blue geometric cover design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY4q5szTTwdpTTF4ExJIhwi3H22Vx5kNKKwd26Gj9GYVmk2SpMrIo7hcTWzoBepDc6nDIQfV8dFujWrsFTtAUV4RXykIhf3FtjcX6BihPi_PNxWQBUkn7CJzlLp9FYXnaQqx3SB9oRn92S0na9gzcrNpur0jNsSSkdU4m2xVI7n5owfxtpBWfC2RYv3sjbPPf_zD6ncCWOxbYBLVZcsnmBB_96jQP7MDirAqU-hU-14lZ81dsHQPs_HPUM_FCjCECFgUAx_4kpWC0"/>
+</div>
+<div class="p-5 pt-0 space-y-2">
+<h4 class="font-bold text-on-surface line-clamp-2 leading-snug group-hover:text-primary">Thermodynamics: An Engineering Approach</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-black text-primary">180.000đ</span>
+<span class="text-xs font-bold text-on-surface-variant">Used</span>
+</div>
+</div>
+</div>
+<!-- Related Card 2 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] overflow-hidden hover:scale-[1.02] transition-all cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden p-4">
+<img class="w-full h-full object-cover rounded-2xl" data-alt="calculus early transcendentals textbook by stewart on a wooden library table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh8xJWjaLtGniFTM1FjtuORfciiN0ns9MeDvg3_fjfYgYHo6v3QawYrJFzAd-vhaCWQBH0p59bNQ1PS18pOB3deyTW4btVdystrfUUtgRPg2zUL7xOCHQORjR5Q8kBsw8N4Mq7nnzRMvl_kFAEAUP4zwL1qNY8GkyERExHKF3NcFule4kcC25z4_aakBylRX51_w2HSZQCmrzhffdY_E0UjjDoDj2XNzS5ZPKXdeVxihmb95P91lvvFoUHz9_gcateW8bdwAbKVdY"/>
+</div>
+<div class="p-5 pt-0 space-y-2">
+<h4 class="font-bold text-on-surface line-clamp-2 leading-snug group-hover:text-primary">Calculus: Early Transcendentals</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-black text-primary">210.000đ</span>
+<span class="text-xs font-bold text-on-surface-variant">95% New</span>
+</div>
+</div>
+</div>
+<!-- Related Card 3 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] overflow-hidden hover:scale-[1.02] transition-all cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden p-4">
+<img class="w-full h-full object-cover rounded-2xl" data-alt="professional graphing calculator TI-84 on a blueprint background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAblIIc_KVptaRWtHy3F_mztvrdVWKeUU8qsQBPC5QAjnbSmU1n6pEZZKdnqflEK22NXxyv0JF18vXXJMK0XT4CfUE7CJ2miYaXw38Ki5zETrK3CLsxDXj3-JciFC0xj_Kp-B-5VfrJfqnFaQyOBq2rmRxz9iV0H5Ai7-dQJJwtlzb1VpK79uPjIxhkMNn6fpzUSwvKPxcrOfehwCOjdLoKlBD1YC91l12oXNNlmLmaXjJkDq1jobgweZFIQpuLl0A6YLOp9p0o-pw"/>
+</div>
+<div class="p-5 pt-0 space-y-2">
+<h4 class="font-bold text-on-surface line-clamp-2 leading-snug group-hover:text-primary">TI-84 Plus Graphing Calculator</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-black text-primary">1.200.000đ</span>
+<span class="text-xs font-bold text-on-surface-variant">Excellent</span>
+</div>
+</div>
+</div>
+<!-- Related Card 4 -->
+<div class="group bg-surface-container-lowest rounded-[2rem] overflow-hidden hover:scale-[1.02] transition-all cursor-pointer">
+<div class="aspect-[3/4] overflow-hidden p-4">
+<img class="w-full h-full object-cover rounded-2xl" data-alt="set of drafting tools and professional drawing pens for architecture or engineering" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6VlZf-IZxoOab4wHV8h7lFhS426tqHWeJYZFTojKq7MhvoPCAittE53uBv102U9nd7pdGUwV5ytNqXGTf_TZGe5vHS8tmA7Gkg0rT8yytTS43EOIgIz1Pbw68VOKlYmVEIRpNbB4B7cPiXK1BLR4GIX_sy3S2wZE9LCvLCDN674087PJh74OrlS8iThKQEz-qpEuxT0ywOvlGVbwaGgwkZTL7qt4RBK6knulNwKCwMwf3UX5mOtQyBsC2xGnvUx6gZPIZ3p98dGQ"/>
+</div>
+<div class="p-5 pt-0 space-y-2">
+<h4 class="font-bold text-on-surface line-clamp-2 leading-snug group-hover:text-primary">Professional Drafting Tool Set</h4>
+<div class="flex justify-between items-center">
+<span class="text-lg font-black text-primary">350.000đ</span>
+<span class="text-xs font-bold text-on-surface-variant">Used</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="bg-[#eef4ff] dark:bg-[#001f19] w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 mt-24">
+<div class="space-y-2 text-center md:text-left">
+<span class="font-plus-jakarta-sans font-bold text-[#006c49] text-xl">EduCycle</span>
+<p class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] max-w-xs">
+                © 2024 EduCycle. Cultivating a sustainable academic ecosystem.
+            </p>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-manrope text-sm tracking-wide hover:text-[#0053db] transition-colors" href="#">Sustainability Report</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-manrope text-sm tracking-wide hover:text-[#0053db] transition-colors" href="#">Student Safety</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-manrope text-sm tracking-wide hover:text-[#0053db] transition-colors" href="#">Terms of Exchange</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-manrope text-sm tracking-wide hover:text-[#0053db] transition-colors" href="#">Campus Ambassadors</a>
+</div>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-primary text-xl">share</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-primary text-xl">public</span>
+</div>
+</div>
+</footer>
+</body></html>

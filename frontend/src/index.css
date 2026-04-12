@@ -1,5 +1,6 @@
 @import './styles/tokens.css';
 @import './styles/marketplace-ui.css';
+@import './styles/ui-system.css';
 
 *,
 *::before,
@@ -17,6 +18,14 @@ html {
   scroll-behavior: smooth;
 }
 
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -28,7 +37,10 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary-200) 36%, transparent) 0, transparent 44%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--accent-200) 28%, transparent) 0, transparent 40%),
+    var(--gradient-surface);
   min-height: 100vh;
   min-height: 100dvh;
   /* Mobile / notch — Sprint 4 */
@@ -88,6 +100,11 @@ a {
 a:hover {
   color: var(--primary-700);
   text-decoration: underline;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary-300) 55%, transparent);
+  color: var(--text-primary);
 }
 
 img {

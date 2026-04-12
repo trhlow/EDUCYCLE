@@ -1,19 +1,18 @@
-import { Client } from '@stomp/stompjs';
+﻿import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { resolveWsOrigin } from '../utils/apiBase';
 
 const wsOrigin = () => resolveWsOrigin();
 
 /**
- * Create a STOMP client subscribed to a transaction's chat room.
- * Auth via JWT in STOMP CONNECT header.
- *
- * @param {string} token         - JWT access token
- * @param {string} transactionId - UUID of the transaction
- * @param {function} onMessage   - callback(MessageResponse)
- * @returns {Client} — call client.activate() to connect, client.deactivate() to disconnect
+ * Create a STOMP client subscribed to a transaction chat room.
+ * @param {string} token
+ * @param {string} transactionId
+ * @param {(payload: any) => void} onMessage
+ * @param {{onConnect?: () => void, onDisconnect?: () => void, onError?: () => void}} lifecycle
+ * @returns {Client}
  */
-export function createChatClient(token, transactionId, onMessage) {
+export function createChatClient(token, transactionId, onMessage, lifecycle = {}) {
   const client = new Client({
     webSocketFactory: () => new SockJS(`${wsOrigin()}/ws`),
     connectHeaders: {
@@ -21,27 +20,28 @@ export function createChatClient(token, transactionId, onMessage) {
     },
     reconnectDelay: 5000,
     onConnect: () => {
-      client.subscribe(
-        `/topic/transaction.${transactionId}`,
-        (frame) => {
-          try {
-            onMessage(JSON.parse(frame.body));
-          } catch {
-            // malformed frame — ignore
-          }
+      lifecycle.onConnect?.();
+      client.subscribe(`/topic/transaction.${transactionId}`, (frame) => {
+        try {
+          onMessage(JSON.parse(frame.body));
+        } catch {
+          // ignore malformed frame
         }
-      );
+      });
     },
     onStompError: (frame) => {
+      lifecycle.onError?.();
       console.error('STOMP error:', frame.headers?.message);
     },
+    onWebSocketClose: () => lifecycle.onDisconnect?.(),
+    onWebSocketError: () => lifecycle.onError?.(),
   });
 
   return client;
 }
 
 /**
- * Publish a chat message via STOMP (bypasses HTTP, server persists + broadcasts).
+ * Publish chat message via STOMP.
  */
 export function sendChatMessage(client, transactionId, content) {
   if (client?.connected) {

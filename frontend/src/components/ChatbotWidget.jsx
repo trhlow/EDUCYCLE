@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
 import { aiApi } from '../api/endpoints';
 import { streamAiChat } from '../api/aiStream';
@@ -293,3 +293,4 @@ export default function ChatbotWidget() {
     </>
   );
 }
+

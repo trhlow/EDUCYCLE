@@ -5,9 +5,11 @@
   padding: var(--space-4) var(--space-6);
   padding-left: max(var(--space-6), env(safe-area-inset-left, 0));
   padding-right: max(var(--space-6), env(safe-area-inset-right, 0));
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  background: color-mix(in srgb, var(--glass-surface) 100%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-light) 75%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--neutral-900) 8%, transparent);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -45,6 +47,7 @@
   font-weight: var(--weight-extrabold);
   color: var(--primary-600);
   text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
 .navbar-brand-logo {
@@ -100,29 +103,29 @@
   left: 0;
   right: 0;
   height: var(--space-1);
-  background: var(--secondary-500);
+  background: var(--gradient-primary);
   border-radius: var(--radius-full);
 }
 
 .navbar-link-post {
-  background: var(--secondary-500);
+  background: var(--gradient-primary);
   color: var(--text-inverse) !important;
   padding: var(--space-2) var(--space-4) !important;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-weight: var(--weight-semibold) !important;
   font-size: var(--text-sm) !important;
   transition: var(--transition);
 }
 
 .navbar-link-post:hover {
-  background: var(--secondary-600);
+  filter: brightness(1.05);
   color: var(--text-inverse) !important;
   transform: translateY(calc(var(--space-1) * -1));
   box-shadow: var(--shadow-card-hover);
 }
 
 .navbar-link-post.active {
-  background: var(--secondary-700);
+  background: var(--primary-700);
   color: var(--text-inverse) !important;
 }
 
@@ -159,6 +162,16 @@
   text-decoration: none;
 }
 
+.navbar-theme-btn {
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.navbar-theme-btn.active {
+  color: var(--primary-600);
+  border-color: color-mix(in srgb, var(--primary-500) 45%, var(--border-light));
+}
+
 .navbar-cart-badge {
   position: absolute;
   top: calc(var(--space-1) * -0.5);
@@ -179,7 +192,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  background: var(--primary-500);
+  background: var(--gradient-primary);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-md);
@@ -189,7 +202,7 @@
 }
 
 .navbar-auth-btn:hover {
-  background: var(--primary-600);
+  filter: brightness(1.05);
   transform: translateY(-1px);
   box-shadow: var(--shadow-primary);
 }
@@ -217,8 +230,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: var(--neutral-100);
-  border: 1px solid var(--border-light);
+  background: color-mix(in srgb, var(--bg-elevated) 86%, var(--bg-secondary));
+  border: 1px solid color-mix(in srgb, var(--border-light) 70%, transparent);
   border-radius: var(--radius-full);
   padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
   cursor: pointer;
@@ -233,7 +246,7 @@
   width: var(--space-8);
   height: var(--space-8);
   border-radius: var(--radius-full);
-  background: var(--primary-500);
+  background: var(--gradient-primary);
   color: var(--text-inverse);
   display: flex;
   align-items: center;
@@ -257,7 +270,7 @@
   top: calc(100% + var(--space-2));
   right: 0;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
+  border: 1px solid color-mix(in srgb, var(--border-light) 80%, transparent);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   min-width: min(100vw - var(--space-8), 12.5rem);
@@ -336,7 +349,7 @@
   top: calc(100% + var(--space-2));
   right: 0;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-light);
+  border: 1px solid color-mix(in srgb, var(--border-light) 80%, transparent);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   width: min(100vw - var(--space-6), 21.25rem);

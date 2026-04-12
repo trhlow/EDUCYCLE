@@ -1,8 +1,10 @@
 import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import MobileQuickActions from './MobileQuickActions';
 import ChatbotWidget from '../ChatbotWidget';
 import EduCycleLogo from '../branding/EduCycleLogo';
-import { useAuth } from '../../contexts/AuthContext';
+import BackendStatusBanner from '../system/BackendStatusBanner';
+import { useAuth } from '../../context/AuthContext';
 import './Layout.css';
 
 export default function Layout() {
@@ -14,15 +16,17 @@ export default function Layout() {
         Bỏ qua điều hướng
       </a>
       <Navbar />
+      <BackendStatusBanner />
       <main id="main-content" className="main-content" tabIndex={-1}>
         <Outlet />
       </main>
+      <MobileQuickActions />
       <footer className="app-footer">
         <div className="footer-container">
           <div className="footer-grid">
             <div className="footer-section">
               <Link to="/" className="footer-brand" aria-label="EduCycle — về trang chủ">
-                <EduCycleLogo size={36} variant="inverse" />
+                <EduCycleLogo size={36} />
                 <span className="footer-brand-text">EduCycle</span>
               </Link>
               <p className="footer-text">Sàn giao dịch tài liệu giáo dục chất lượng</p>
@@ -74,3 +78,4 @@ export default function Layout() {
     </div>
   );
 }
+

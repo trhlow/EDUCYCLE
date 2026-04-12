@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { bookWantedApi, categoriesApi } from '../api/endpoints';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { getApiErrorMessage } from '../utils/apiError';
 import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
@@ -203,3 +203,4 @@ export default function BookWantedFormPage() {
     </div>
   );
 }
+

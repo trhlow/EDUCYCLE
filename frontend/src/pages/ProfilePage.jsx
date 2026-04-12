@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import './ProfilePage.css';
 
@@ -54,8 +54,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once; refreshUser ổn định qua useCallback
-  }, []);
+  }, [refreshUser, toast]);
 
   useEffect(() => {
     if (!user) return;
@@ -65,7 +64,7 @@ export default function ProfilePage() {
       bio: user.bio || '',
       avatar: user.avatar || '',
     });
-  }, [user?.id, user?.username, user?.email, user?.bio, user?.avatar]);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -74,7 +73,7 @@ export default function ProfilePage() {
       notifyTransactions: user.notifyTransactions ?? true,
       notifyMessages: user.notifyMessages ?? true,
     });
-  }, [user?.notifyProductModeration, user?.notifyTransactions, user?.notifyMessages]);
+  }, [user]);
 
   const handleNotifToggle = async (key) => {
     const prev = { ...notifPrefs };
@@ -178,8 +177,9 @@ export default function ProfilePage() {
   const isPhoneVerified = user?.phoneVerified ?? false;
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
+    <div className="profile-page edu-page">
+      <div className="edu-container">
+        <div className="profile-container">
         <aside className="profile-sidebar">
           <div className="profile-avatar-section">
             <div className="profile-avatar">
@@ -462,7 +462,9 @@ export default function ProfilePage() {
             </section>
           )}
         </main>
+        </div>
       </div>
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { bookWantedApi } from '../api/endpoints';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { getApiErrorMessage } from '../utils/apiError';
 import './BookWantedPages.css';
@@ -152,3 +152,4 @@ export default function BookWantedInquiryChatPage() {
     </div>
   );
 }
+

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
-import { IconBell, IconHeart, IconMenu, IconX } from '../icons/Icons';
+import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
+import { IconBell, IconHeart, IconMenu, IconMoon, IconSun, IconX } from '../icons/Icons';
 import EduCycleLogo from '../branding/EduCycleLogo';
 import NavbarCatalog from './NavbarCatalog';
 import './Navbar.css';
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, resolveNotifRoute } = useNotifications();
   const notifList = Array.isArray(notifications) ? notifications : [];
   const navigate = useNavigate();
@@ -53,7 +55,7 @@ export default function Navbar() {
     navigate(resolveNotifRoute(n));
   };
 
-  const catalogActive = location.pathname === '/' && searchParams.has('category');
+  const catalogActive = location.pathname === '/products' && searchParams.has('category');
 
   const goCatalog = useCallback((category, query) => {
     const params = new URLSearchParams();
@@ -61,7 +63,7 @@ export default function Navbar() {
     const trimmed = query != null ? String(query).trim() : '';
     if (trimmed) params.set('q', trimmed);
     const qs = params.toString();
-    navigate({ pathname: '/', search: qs ? `?${qs}` : '' }, { state: { scrollTo: 'products' } });
+    navigate({ pathname: '/products', search: qs ? `?${qs}` : '' });
     setMenuOpen(false);
   }, [navigate]);
 
@@ -127,6 +129,16 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
+          <button
+            type="button"
+            className={`navbar-icon-btn navbar-theme-btn ${isDark ? 'active' : ''}`}
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+            title={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+          >
+            {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+          </button>
+
           {isAuthenticated && (
             <div className="navbar-notif-menu" ref={notifMenuRef}>
               <button type="button" className="navbar-icon-btn navbar-notif-btn" onClick={() => setNotifOpen(!notifOpen)} aria-label="Thông báo" title="Thông báo">
@@ -229,3 +241,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

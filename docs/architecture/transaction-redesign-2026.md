@@ -1,5 +1,7 @@
 # EduCycle — Báo Cáo Tái Thiết Kế Toàn Diện
 
+> Historical design note from March 2026. Keep this as context for past tradeoffs, not as the primary source of truth for the current repo structure.
+
 **Principal Engineer · 2026-03-26**  
 **Câu hỏi chính:** Chuyển sang MongoDB? Quy trình giao dịch có quá rắc rối không? Cần thay đổi gì?
 
@@ -144,8 +146,9 @@ Nội dung đầy đủ: giữ/không giữ tính năng, đơn giản hóa MEETI
 
 ## Tài liệu liên quan
 
-- [ARCHITECTURE.md](../ARCHITECTURE.md) — runtime, audit
-- [NOTES.md](../NOTES.md) — FE↔BE mapping, quy tắc status **UPPERCASE**
+- [Architecture overview](README.md) — runtime và cấu trúc hiện tại
+- [Backend README](../../backend/educycle-java/README.md)
+- [Frontend README](../../frontend/README.md)
 
 ---
 

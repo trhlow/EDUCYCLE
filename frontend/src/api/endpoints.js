@@ -138,6 +138,11 @@ export const mediaApi = {
   getUnsplashCurated: (params) => api.get('/media/unsplash/curated', { params }),
 };
 
+/** Public system APIs (no auth required). */
+export const publicApi = {
+  health: () => api.get('/public/health'),
+};
+
 /**
  * Multipart upload — bypass default JSON Content-Type on axios instance.
  * Returns `{ url: "/api/files/<uuid>.ext" }` (relative; use as img src on same origin).

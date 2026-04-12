@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { bookWantedApi } from '../api/endpoints';
 import { extractPage } from '../utils/pageApi';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import './BookWantedPages.css';
 
 const mapPost = (p) => ({
@@ -155,3 +155,4 @@ export default function BookWantedListPage() {
     </div>
   );
 }
+
