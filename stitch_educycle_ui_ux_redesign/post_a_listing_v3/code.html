@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Post Product | EduCycle</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ba1a1a",
+                      "primary-container": "#10b981",
+                      "on-tertiary-fixed-variant": "#003ea8",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "on-background": "#121c28",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-fixed-dim": "#4edea3",
+                      "on-secondary-fixed-variant": "#005049",
+                      "primary-fixed": "#6ffbbe",
+                      "secondary-fixed": "#89f5e7",
+                      "outline-variant": "#bbcabf",
+                      "inverse-on-surface": "#eaf1ff",
+                      "primary": "#006c49",
+                      "on-primary-fixed-variant": "#005236",
+                      "tertiary-fixed": "#dbe1ff",
+                      "outline": "#6c7a71",
+                      "on-primary-fixed": "#002113",
+                      "background": "#f8f9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-container": "#00422b",
+                      "surface-bright": "#f8f9ff",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#eef4ff",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#006f66",
+                      "on-error-container": "#93000a",
+                      "surface-variant": "#d9e3f4",
+                      "surface-container": "#e5eeff",
+                      "on-tertiary-fixed": "#00174b",
+                      "surface-container-highest": "#d9e3f4",
+                      "on-surface": "#121c28",
+                      "surface-tint": "#006c49",
+                      "surface": "#f8f9ff",
+                      "on-secondary-fixed": "#00201d",
+                      "surface-container-high": "#dfe9fa",
+                      "secondary-container": "#86f2e4",
+                      "secondary": "#006a61",
+                      "tertiary-container": "#7f9fff",
+                      "inverse-surface": "#27313e",
+                      "inverse-primary": "#4edea3",
+                      "on-surface-variant": "#3c4a42",
+                      "secondary-fixed-dim": "#6bd8cb",
+                      "on-tertiary-container": "#00328b",
+                      "tertiary": "#0053db",
+                      "surface-dim": "#d1dbec"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Manrope"],
+                      "label": ["Manrope"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-[#f8f9ff]/80 dark:bg-[#121c28]/80 backdrop-blur-xl docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tight text-[#006c49] dark:text-[#10b981]">EduCycle</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-medium hover:text-[#006c49] transition-colors" href="#">Marketplace</a>
+<a class="text-[#006c49] dark:text-[#10b981] font-bold border-b-2 border-[#006c49]" href="#">List Item</a>
+<a class="text-[#3c4a42] dark:text-[#bbcabf] font-medium hover:text-[#006c49] transition-colors" href="#">Resources</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-[#eef4ff] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">favorite</span>
+</button>
+<button class="p-2 rounded-full hover:bg-[#eef4ff] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">chat</span>
+</button>
+<button class="p-2 rounded-full hover:bg-[#eef4ff] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="flex-grow max-w-4xl mx-auto w-full px-6 py-12">
+<!-- Header -->
+<div class="mb-12">
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Cycle Your Knowledge</h1>
+<p class="text-on-surface-variant max-w-lg">Help another student by listing your textbooks and supplies. Every exchange reduces academic waste.</p>
+</div>
+<!-- Progress Indicator -->
+<div class="mb-12 relative">
+<div class="flex justify-between items-center relative z-10">
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">1</div>
+<span class="text-xs font-bold text-primary">Media</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold">2</div>
+<span class="text-xs font-medium text-on-surface-variant">Details</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold">3</div>
+<span class="text-xs font-medium text-on-surface-variant">Subject</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-xs font-medium text-on-surface-variant">Finish</span>
+</div>
+</div>
+<div class="absolute top-5 left-0 w-full h-[2px] bg-surface-container-high -z-0">
+<div class="w-1/4 h-full bg-primary transition-all duration-500"></div>
+</div>
+</div>
+<!-- Multi-Step Form Container -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+<div class="md:col-span-8 space-y-10">
+<!-- Step 1: Upload Images -->
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">photo_camera</span>
+<h2 class="text-xl font-bold tracking-tight">Upload Images</h2>
+</div>
+<p class="text-sm text-on-surface-variant mb-6">Add up to 5 clear photos of the front, back, and any wear. Good lighting helps sell faster!</p>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+<label class="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low cursor-pointer transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mb-2">add_a_photo</span>
+<span class="text-xs font-medium text-on-surface-variant">Add Photo</span>
+<input class="hidden" type="file"/>
+</label>
+<!-- Image Preview 1 -->
+<div class="aspect-square rounded-xl overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="close-up of a well-maintained hardcover textbook cover with minimalist academic design in soft natural studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4-SMPYpGozUg-kRAWI13URO4Uqd2916b1ZCGvSZj1xd6xpFQ29-vNpVpdKQ_HFdnUmSlaTrifrTAc-6OuTbdDAxs-iL4h8BOice0CetARMrSOCxtqh7KVBqkHk0QRcoOV-6UBNKwahiPdm1SMsB7WElQcD6zmoLWQkZKUKSlzDJygVAoiRgr1L1ddoFXIgGqOhj2Lw3w2DcjTAHWLe-6ITLOujwgGHlQ4yD2Fq9HkCfFuCr035r6KZB7IA4cW2pL5EkX2SRjXUqs"/>
+<button class="absolute top-2 right-2 p-1 bg-surface-container-lowest/80 rounded-full text-error opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<div class="aspect-square rounded-xl bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant/40">
+<span class="material-symbols-outlined">image</span>
+</div>
+</div>
+</section>
+<!-- Step 2: Info -->
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 opacity-50 pointer-events-none">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">info</span>
+<h2 class="text-xl font-bold tracking-tight">Core Information</h2>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Title</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" placeholder="e.g. Organic Chemistry 4th Ed." type="text"/>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Category</label>
+<select class="w-full bg-surface-container-high border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary">
+<option>Textbook</option>
+<option>Lab Gear</option>
+<option>Stationery</option>
+<option>Electronics</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Price ($)</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" placeholder="0.00" type="number"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Condition</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full border border-outline-variant text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">Like New</button>
+<button class="px-4 py-2 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">Good</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">Fair</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors">Poor</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 3: Detailed Description -->
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 opacity-50 pointer-events-none">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">description</span>
+<h2 class="text-xl font-bold tracking-tight">Academic Context</h2>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Subject / Department</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary" placeholder="e.g. Science, Mathematics" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-bold text-on-surface mb-2">Notes on Wear</label>
+<textarea class="w-full bg-surface-container-high border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary" placeholder="Mention highlights, notes in margins, or missing pages..." rows="4"></textarea>
+</div>
+</div>
+</section>
+<!-- Action Bar -->
+<div class="flex items-center justify-between pt-6 border-t border-surface-container-high">
+<button class="px-6 py-3 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container-low transition-all">Cancel</button>
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-10 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                        Save and Continue
+                    </button>
+</div>
+</div>
+<!-- Sidebar Info -->
+<div class="md:col-span-4 space-y-6">
+<!-- Moderation Notice -->
+<div class="bg-surface-container p-6 rounded-xl space-y-4">
+<div class="flex items-center gap-2 text-secondary font-bold">
+<span class="material-symbols-outlined">security</span>
+<h3 class="text-sm">Safety First</h3>
+</div>
+<p class="text-xs leading-relaxed text-on-surface-variant">
+                        All listings undergo a <span class="font-bold text-on-surface">24-hour moderation review</span> to ensure campus safety and academic integrity. Avoid posting solution manuals or restricted items.
+                    </p>
+<div class="pt-2">
+<a class="text-xs font-bold text-tertiary hover:underline flex items-center gap-1" href="#">
+                            Review Guidelines <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Sustainable Impact Card -->
+<div class="bg-secondary-container/30 p-6 rounded-xl border border-secondary/10">
+<div class="flex items-center gap-2 text-primary font-bold mb-3">
+<span class="material-symbols-outlined">eco</span>
+<h3 class="text-sm">Your Impact</h3>
+</div>
+<p class="text-xs text-on-secondary-container font-medium mb-4">By cycling this item, you are estimated to save:</p>
+<div class="space-y-3">
+<div class="flex justify-between items-center bg-surface-container-lowest/50 p-3 rounded-lg">
+<span class="text-xs text-on-surface-variant">Water</span>
+<span class="text-xs font-bold text-primary">~2.5 Gallons</span>
+</div>
+<div class="flex justify-between items-center bg-surface-container-lowest/50 p-3 rounded-lg">
+<span class="text-xs text-on-surface-variant">Carbon</span>
+<span class="text-xs font-bold text-primary">~1.2 kg CO2e</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Success Modal Overlay (Hidden by Default, show with logic) -->
+<!-- This is a simulated success state section for UI demonstration -->
+<div class="hidden fixed inset-0 bg-on-background/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+<div class="bg-surface-container-lowest max-w-md w-full rounded-3xl p-10 text-center shadow-2xl">
+<div class="w-20 h-20 bg-secondary-container rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-4xl text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="text-2xl font-black text-on-surface mb-3 tracking-tight">Listing Submitted!</h2>
+<p class="text-on-surface-variant mb-8 text-sm leading-relaxed">
+                Thank you for contributing to a sustainable campus. Your item "Organic Chemistry 4th Ed." is now being reviewed by our curators.
+            </p>
+<div class="flex flex-col gap-3">
+<button class="bg-primary text-on-primary py-4 rounded-xl font-bold hover:opacity-90 transition-all">Go to Dashboard</button>
+<button class="text-tertiary font-bold py-2 hover:underline transition-all">Post Another Item</button>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="bg-[#eef4ff] dark:bg-[#001f19] w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 mt-20">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-plus-jakarta-sans font-bold text-[#006c49] text-xl">EduCycle</span>
+<p class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] text-center md:text-left max-w-sm">
+                © 2024 EduCycle. Cultivating a sustainable academic ecosystem.
+            </p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Sustainability Report</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Student Safety</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Terms of Exchange</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Campus Ambassadors</a>
+</div>
+</footer>
+</body></html>

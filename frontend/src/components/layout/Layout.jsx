@@ -26,7 +26,7 @@ export default function Layout() {
           <div className="footer-grid">
             <div className="footer-section">
               <Link to="/" className="footer-brand" aria-label="EduCycle — về trang chủ">
-                <EduCycleLogo size={36} variant="inverse" />
+                <EduCycleLogo size={36} />
                 <span className="footer-brand-text">EduCycle</span>
               </Link>
               <p className="footer-text">Sàn giao dịch tài liệu giáo dục chất lượng</p>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EduCycle | Admin Moderation</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "primary-container": "#10b981",
+                    "on-tertiary-fixed-variant": "#003ea8",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "on-background": "#121c28",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#4edea3",
+                    "on-secondary-fixed-variant": "#005049",
+                    "primary-fixed": "#6ffbbe",
+                    "secondary-fixed": "#89f5e7",
+                    "outline-variant": "#bbcabf",
+                    "inverse-on-surface": "#eaf1ff",
+                    "primary": "#006c49",
+                    "on-primary-fixed-variant": "#005236",
+                    "tertiary-fixed": "#dbe1ff",
+                    "outline": "#6c7a71",
+                    "on-primary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#00422b",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#eef4ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#006f66",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#d9e3f4",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-fixed": "#00174b",
+                    "surface-on-surface": "#121c28",
+                    "surface-tint": "#006c49",
+                    "surface": "#f8f9ff",
+                    "on-secondary-fixed": "#00201d",
+                    "surface-container-high": "#dfe9fa",
+                    "secondary-container": "#86f2e4",
+                    "secondary": "#006a61",
+                    "tertiary-container": "#7f9fff",
+                    "inverse-surface": "#27313e",
+                    "inverse-primary": "#4edea3",
+                    "on-surface-variant": "#3c4a42",
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "on-tertiary-container": "#00328b",
+                    "tertiary": "#0053db",
+                    "surface-dim": "#d1dbec"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body": [
+                            "Manrope"
+                    ],
+                    "label": [
+                            "Manrope"
+                    ]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, .brand-font { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(248, 249, 255, 0.8);
+            backdrop-filter: blur(16px);
+        }
+        /* Custom scrollbar for data-heavy sections */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #bbcabf; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex">
+<!-- Side Navigation Shell -->
+<aside class="w-72 fixed h-screen bg-surface-container-low flex flex-col z-40">
+<div class="px-8 py-10">
+<span class="text-2xl font-black tracking-tight text-primary">EduCycle</span>
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant mt-1 opacity-60">Admin Console</p>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-on-surface-variant hover:bg-surface-container-high group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary">dashboard</span>
+<span class="font-bold text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 bg-primary-container/10 text-primary group" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+<span class="font-bold text-sm">Moderation Queue</span>
+<span class="ml-auto bg-primary text-on-primary text-[10px] px-2 py-1 rounded-full">24</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-on-surface-variant hover:bg-surface-container-high group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary">group</span>
+<span class="font-bold text-sm">User Management</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-on-surface-variant hover:bg-surface-container-high group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary">report</span>
+<span class="font-bold text-sm">Flagged Assets</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-on-surface-variant hover:bg-surface-container-high group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary">settings</span>
+<span class="font-bold text-sm">System Settings</span>
+</a>
+</nav>
+<div class="p-6 mt-auto">
+<div class="bg-surface-container-lowest p-4 rounded-2xl flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-bold">
+                    JD
+                </div>
+<div>
+<p class="text-xs font-bold">Julianne Doe</p>
+<p class="text-[10px] text-on-surface-variant">Lead Moderator</p>
+</div>
+<button class="ml-auto text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 flex-1 flex flex-col max-w-[calc(100vw-18rem)]">
+<!-- Top Sticky Header -->
+<header class="sticky top-0 z-30 glass-panel px-10 py-6 flex justify-between items-center">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-on-surface">Moderation Queue</h1>
+<p class="text-sm text-on-surface-variant font-medium">Reviewing pending textbooks and academic materials</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="bg-surface-container-high border-none rounded-full pl-10 pr-6 py-2.5 text-sm w-80 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="Search listing ID, user, or ISBN..." type="text"/>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</header>
+<div class="p-10 space-y-10 custom-scrollbar overflow-y-auto">
+<!-- Statistics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-[2rem] border border-transparent hover:border-outline-variant/20 transition-all">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Pending Total</p>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-black text-on-surface">128</span>
+<span class="text-primary font-bold text-xs mb-1.5 flex items-center">+12% <span class="material-symbols-outlined text-sm">trending_up</span></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-[2rem] border border-transparent">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Critical Flags</p>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-black text-error">09</span>
+<span class="bg-error-container text-on-error-container px-2 py-0.5 rounded text-[10px] font-bold mb-2">URGENT</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-[2rem] border border-transparent">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Review Time (Avg)</p>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-black text-on-surface">4.2</span>
+<span class="text-on-surface-variant font-bold text-xs mb-1.5">min/item</span>
+</div>
+</div>
+<div class="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-xs font-bold text-primary uppercase tracking-wider mb-2">Eco-Impact Score</p>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-black text-primary">89.4</span>
+<span class="text-on-primary-container font-bold text-xs mb-1.5">A+ Rating</span>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-primary">eco</span>
+</div>
+</div>
+</section>
+<!-- Active Queue Section -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<h2 class="text-xl font-bold tracking-tight">Standard Review Queue</h2>
+<div class="flex gap-2">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-highest text-[10px] font-bold text-on-surface-variant uppercase cursor-pointer hover:bg-primary hover:text-on-primary transition-all">All Items</span>
+<span class="px-4 py-1.5 rounded-full bg-primary-container text-[10px] font-bold text-on-primary-container uppercase cursor-pointer">Textbooks</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-highest text-[10px] font-bold text-on-surface-variant uppercase cursor-pointer hover:bg-primary hover:text-on-primary transition-all">Supplies</span>
+</div>
+</div>
+<!-- Queue Cards Hybrid List -->
+<div class="grid grid-cols-1 gap-4">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest p-5 rounded-[1.5rem] flex items-center gap-8 group hover:bg-surface-bright transition-all shadow-sm">
+<div class="w-24 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Textbook Cover" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="front cover of a clean organic chemistry textbook with vibrant scientific diagrams on a white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoyY_FT9QI0ZoDSuggpBCNxTo1BPQ3p1Td2jyki_1ldZ-f_bjY8pVNfcJ9uZdQAj7ZqgPeRPgcC8ao9Xd_sh_RVw05gblXsqSMS_EjwjOV4myoecVZpv1jKNuj2FACce2qyeUyT8hc7GRrTI5D3r4jSTwxZ7VfaMf8L_JI303NvgEVVztSM8F9xnf5BVI5EMUG9swkWQ4JjIdZpOG4iP5J4k9zyHESLg3TZ-XIAoyco4E_J7HXJseBsqckvmp06LtnIAwh9BlWHDM"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase">Condition: Like New</span>
+<span class="text-on-surface-variant text-[10px] font-medium tracking-tight">Posted 2h ago by @m_chen_2025</span>
+</div>
+<h3 class="text-lg font-bold truncate text-on-surface">Advanced Organic Chemistry (8th Ed)</h3>
+<p class="text-sm text-on-surface-variant line-clamp-1 mb-3">ISBN: 978-0134074665 • No markings or highlights in the first 200 pages. CD included.</p>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 text-xs text-on-surface-variant font-semibold">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span>Proposed: $45.00</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-on-surface-variant font-semibold">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-tertiary">Verified Seller</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="h-12 w-12 rounded-full border border-outline-variant/30 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="h-12 w-12 rounded-full border border-error/20 flex items-center justify-center text-error hover:bg-error-container/40 transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="h-12 px-6 rounded-full bg-primary text-on-primary font-bold flex items-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Approve</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-[1.5rem] flex items-center gap-8 group hover:bg-surface-bright transition-all shadow-sm">
+<div class="w-24 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Calculator and stationery" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Modern high-end scientific calculator and a set of professional architecture pens on a clean studio desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYcUuSAxUXLl6ULyTVxkepnMyBNF9qHz9eKIygPKrPXHe49vCTxG1eqT1uatdCrywuojSnHVOezVowTb6LGglwD9BzPCbsSF5ZgnwvxaFsvA0DngwZyOHt-TqhqWZBlEKiGKTnR7f1hFAh7T50dlwns1px_kzeSioZyjeQzaloTEuIr35az-ZLvQV-u_VcEGirgDMHpw-zMY-44QW8FU5IpuI6sjFkzSyZPZi5Ssz34rnBqmHQ5TAgoSRjZVu-dz7qoM4RoWrYmnY"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-bold uppercase">Condition: Used - Good</span>
+<span class="text-on-surface-variant text-[10px] font-medium tracking-tight">Posted 5h ago by @archi_student_01</span>
+</div>
+<h3 class="text-lg font-bold truncate text-on-surface">Texas Instruments TI-Nspire CX II CAS</h3>
+<p class="text-sm text-on-surface-variant line-clamp-1 mb-3">Fully functional, comes with charging cable. Slight scuff on the back casing.</p>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 text-xs text-on-surface-variant font-semibold">
+<span class="material-symbols-outlined text-sm">payments</span>
+<span>Proposed: $90.00</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-on-surface-variant font-semibold">
+<span class="material-symbols-outlined text-sm">school</span>
+<span>Engineering Dept</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="h-12 w-12 rounded-full border border-outline-variant/30 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="h-12 w-12 rounded-full border border-error/20 flex items-center justify-center text-error hover:bg-error-container/40 transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="h-12 px-6 rounded-full bg-primary text-on-primary font-bold flex items-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Approve</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Flagged Area -->
+<section class="space-y-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">report</span>
+<h2 class="text-xl font-bold tracking-tight">Flagged for Community Review</h2>
+</div>
+<div class="bg-error/5 rounded-[2rem] p-8 border border-error/10">
+<table class="w-full text-left border-separate border-spacing-y-4">
+<thead>
+<tr class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<th class="px-6 pb-2">Listing Asset</th>
+<th class="px-6 pb-2">Flag Reason</th>
+<th class="px-6 pb-2">Reporters</th>
+<th class="px-6 pb-2 text-right">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="bg-surface-container-lowest group cursor-pointer shadow-sm rounded-2xl">
+<td class="px-6 py-4 first:rounded-l-2xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="blurry close up of generic book pages to represent a flagged item" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBom9Jr1m3gM7QGDUQ6KmllTnlcBNwsPEK0vdSNlU3Xuk2WFEV7wrY18wBEyric5XqSsQcEhkWiFw0gKlxmxzhN9redrTX8Hlg4MwT-Ekg7mv9De09M46TiZTWtP_g7aOYrgO6NlfPLnxfO0Go09B2aGDBDgpqjvFqFIGzYTgz5cametDWYjni_-787nNOjb0s5ATeEbRNZZFZWjK-wGcv2kq1FIZZ9_N2JU-lXZgTlp6OYtfbwnxFkyYgWn2sQ1xOB1_z6RLsRQ2I"/>
+</div>
+<div>
+<p class="text-sm font-bold truncate w-40">Intro to Psychology Notes</p>
+<p class="text-[10px] text-on-surface-variant">ID: #PSY-9923</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-semibold text-error px-2 py-1 bg-error-container/30 rounded-lg">Potential Plagiarism</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[8px] font-bold">A</div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-[8px] font-bold">K</div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-surface-container flex items-center justify-center text-[8px] font-bold">+2</div>
+</div>
+</td>
+<td class="px-6 py-4 last:rounded-r-2xl text-right">
+<button class="text-tertiary text-xs font-bold hover:underline">Investigate Case</button>
+</td>
+</tr>
+<tr class="bg-surface-container-lowest group cursor-pointer shadow-sm">
+<td class="px-6 py-4 first:rounded-l-2xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container overflow-hidden">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="a white e-scooter or bicycle wheel to represent campus mobility gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRwxfgNDtQ0sAZWdrHZ8Xk4rxDHZuHvJ9f_Hw71yt_bEbCR-Y817qBFaK6rRSJqNw5t5anQk3LOhlK8eLFHtU8gOWLZsbHEUMDIDyIi1H4L4nQePefl30MMcORnKSXzeCZ5cwYRea8v4RxrpbwrhWEnjsjv0vZdmDJPJv1T5__k6SfeiCkg-ScPGaqPWljiNy2jL8_36lMuYmVzIUwhhIcDqP69RJ4YcMDDEbFouKghkNzgeWTSdgRl3-PXs5HesjWOpADFY2Qa88"/>
+</div>
+<div>
+<p class="text-sm font-bold truncate w-40">Electric Commuter Scooter</p>
+<p class="text-[10px] text-on-surface-variant">ID: #GEAR-4412</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-xs font-semibold text-on-surface-variant px-2 py-1 bg-surface-container-high rounded-lg">Suspicious Pricing</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[8px] font-bold">M</div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-surface-container flex items-center justify-center text-[8px] font-bold">1</div>
+</div>
+</td>
+<td class="px-6 py-4 last:rounded-r-2xl text-right">
+<button class="text-tertiary text-xs font-bold hover:underline">Investigate Case</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- System Status Footer Overlay -->
+<footer class="mt-auto bg-surface-container-low border-t border-outline-variant/10 px-10 py-4 flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<div class="flex items-center gap-6">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    Moderator Node Active
+                </span>
+<span>Latency: 14ms</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="hover:text-primary transition-colors" href="#">Sustainability Report</a>
+<a class="hover:text-primary transition-colors" href="#">Student Safety</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Exchange</a>
+<span>© 2024 EduCycle.</span>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB (Only for specific actions on Dashboard) -->
+<!-- Suppressed on Moderation Queue as per rules for Task-Focused screens -->
+</body></html>

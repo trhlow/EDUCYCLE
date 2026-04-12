@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile | EduCycle</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "primary-container": "#10b981",
+                    "on-tertiary-fixed-variant": "#003ea8",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "on-background": "#121c28",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#4edea3",
+                    "on-secondary-fixed-variant": "#005049",
+                    "primary-fixed": "#6ffbbe",
+                    "secondary-fixed": "#89f5e7",
+                    "outline-variant": "#bbcabf",
+                    "inverse-on-surface": "#eaf1ff",
+                    "primary": "#006c49",
+                    "on-primary-fixed-variant": "#005236",
+                    "tertiary-fixed": "#dbe1ff",
+                    "outline": "#6c7a71",
+                    "on-primary-fixed": "#002113",
+                    "background": "#f8f9ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#00422b",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#eef4ff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#006f66",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#d9e3f4",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-fixed": "#00174b",
+                    "surface-container-highest": "#d9e3f4",
+                    "on-surface": "#121c28",
+                    "surface-tint": "#006c49",
+                    "surface": "#f8f9ff",
+                    "on-secondary-fixed": "#00201d",
+                    "surface-container-high": "#dfe9fa",
+                    "secondary-container": "#86f2e4",
+                    "secondary": "#006a61",
+                    "tertiary-container": "#7f9fff",
+                    "inverse-surface": "#27313e",
+                    "inverse-primary": "#4edea3",
+                    "on-surface-variant": "#3c4a42",
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "on-tertiary-container": "#00328b",
+                    "tertiary": "#0053db",
+                    "surface-dim": "#d1dbec"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(248, 249, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-[#f8f9ff]/80 backdrop-blur-xl docked full-width top-0 sticky z-50">
+<nav class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tight text-[#006c49]">EduCycle</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-[#3c4a42] hover:bg-[#eef4ff] px-3 py-1 rounded-lg transition-colors" href="#">Marketplace</a>
+<a class="text-[#3c4a42] hover:bg-[#eef4ff] px-3 py-1 rounded-lg transition-colors" href="#">Exchange</a>
+<a class="text-[#3c4a42] hover:bg-[#eef4ff] px-3 py-1 rounded-lg transition-colors" href="#">Community</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#3c4a42] hover:bg-[#eef4ff] rounded-full transition-all active:opacity-80 scale-95">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="p-2 text-[#3c4a42] hover:bg-[#eef4ff] rounded-full transition-all active:opacity-80 scale-95">
+<span class="material-symbols-outlined">chat</span>
+</button>
+<button class="p-2 text-[#006c49] font-bold border-b-2 border-[#006c49] flex items-center gap-2">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</nav>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Sidebar / Navigation Cluster -->
+<aside class="lg:col-span-3 space-y-6">
+<div class="bg-surface-container-low rounded-xl p-6">
+<div class="flex flex-col items-center text-center">
+<div class="relative mb-4">
+<img alt="User profile" class="w-32 h-32 rounded-full border-4 border-surface-container-lowest object-cover" data-alt="close-up portrait of a cheerful young university student with short hair, smiling naturally in soft daylight academic setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwOlVssTxYQy1aqwi8UCKsNEII0cRQOKCSi6fhzxc1ArFNp7VPAgpxOApsF9mZrz6bZ1lkS9dkzEXMW53MUR2TGst4DmAMov3ChzrVb4XKyTLlTE7imv6z-ARyslOhdT37ZzGPdghX9cfx4tzQVM09t1AeHdDCrg-mELYjihhWZkw1vIBQ_LIUquQaeunhfl_x0a7qFlfa4h4jMVBN1w8U-RBBHoppmX9p-p81kNVIHF-5MT0Fxb1I0ng7KD7DwoA_vvO1tjtxbNE"/>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<h2 class="text-xl font-bold text-on-surface">Minh Nguyen</h2>
+<p class="text-on-surface-variant text-sm font-medium">@minh_edu_24</p>
+<div class="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Sinh viên xác thực
+                    </div>
+</div>
+<nav class="mt-8 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-surface-container-lowest rounded-xl text-primary font-bold shadow-sm" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+                        Profile
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                        My Listings
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+                        Exchanges
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">security</span>
+                        Security Settings
+                    </a>
+</nav>
+</div>
+<!-- Reputation Quick Glance -->
+<div class="bg-surface-container-low rounded-xl p-6">
+<h3 class="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4">Quick Stats</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant text-sm">Trust Score</span>
+<span class="text-primary font-bold">98/100</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[98%]"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-on-surface-variant text-sm">Carbon Saved</span>
+<span class="text-secondary font-bold">12.4kg</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<section class="lg:col-span-9 space-y-8">
+<!-- Bento Reputation Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2 bg-gradient-to-br from-primary to-primary-container p-8 rounded-xl text-on-primary flex flex-col justify-between min-h-[240px]">
+<div>
+<h3 class="text-2xl font-bold mb-2">Academic Reputation</h3>
+<p class="text-on-primary/80 max-w-md">You are in the top 5% of sustainable students at your university this month.</p>
+</div>
+<div class="flex gap-4 mt-6">
+<div class="bg-white/20 backdrop-blur-md p-4 rounded-xl flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl">star</span>
+<div>
+<p class="text-xs uppercase font-bold opacity-70">Rating</p>
+<p class="text-lg font-bold">4.9 / 5.0</p>
+</div>
+</div>
+<div class="bg-white/20 backdrop-blur-md p-4 rounded-xl flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl">handshake</span>
+<div>
+<p class="text-xs uppercase font-bold opacity-70">Success</p>
+<p class="text-lg font-bold">14 Deals</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-tertiary-container text-on-tertiary-container p-8 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-5xl mb-4" style="font-variation-settings: 'FILL' 1;">eco</span>
+<h4 class="font-bold text-xl leading-tight">Eco Pioneer Badge</h4>
+<p class="text-sm opacity-80 mt-2">Earned for 5 book donations</p>
+</div>
+</div>
+<!-- Profile Info Form -->
+<div class="bg-surface-container-low rounded-xl p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-xl font-bold">Academic Identity</h3>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-sm">save</span>
+                        Save Changes
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant px-1">Full Name</label>
+<input class="w-full bg-surface-container-high border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" type="text" value="Nguyen Minh Tri"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant px-1">University</label>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" type="text" value="Ho Chi Minh City University of Technology"/>
+<span class="material-symbols-outlined absolute right-3 top-3 text-secondary" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant px-1">Phone Number</label>
+<input class="w-full bg-surface-container-high border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" type="tel" value="+84 901 234 567"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant px-1">Major</label>
+<input class="w-full bg-surface-container-high border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all" type="text" value="Environmental Engineering"/>
+</div>
+</div>
+</div>
+<!-- Reputation & Badges Details -->
+<div class="bg-surface-container-low rounded-xl p-8">
+<h3 class="text-xl font-bold mb-6">My Reputation &amp; Badges</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col items-center text-center gap-3 transition-transform hover:scale-105 cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-[#eef4ff] flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">verified_user</span>
+</div>
+<div>
+<p class="font-bold text-sm">Verified ID</p>
+<p class="text-xs text-on-surface-variant">Lvl 3 Security</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col items-center text-center gap-3 transition-transform hover:scale-105 cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-[#f1fdf9] flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl">recycling</span>
+</div>
+<div>
+<p class="font-bold text-sm">Zero Waste</p>
+<p class="text-xs text-on-surface-variant">10+ Exchanges</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col items-center text-center gap-3 transition-transform hover:scale-105 cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-[#fff4f4] flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-3xl">favorite</span>
+</div>
+<div>
+<p class="font-bold text-sm">Top Rated</p>
+<p class="text-xs text-on-surface-variant">By Peers</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col items-center text-center gap-3 transition-transform hover:scale-105 cursor-pointer opacity-50">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-3xl">workspace_premium</span>
+</div>
+<div>
+<p class="font-bold text-sm">Ambassador</p>
+<p class="text-xs text-on-surface-variant">Locked</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Section -->
+<div class="bg-surface-container-low rounded-xl p-8 border border-outline-variant/10">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<div>
+<h3 class="text-xl font-bold">Security Settings</h3>
+<p class="text-sm text-on-surface-variant">Manage your account protection and password</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-4">
+<button class="bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">password</span>
+                        Change password
+                    </button>
+<button class="bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">phonelink_lock</span>
+                        Two-Factor Auth
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="bg-[#eef4ff] w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 mt-16">
+<div class="flex flex-col gap-2">
+<span class="font-plus-jakarta-sans font-bold text-[#006c49] text-xl">EduCycle</span>
+<p class="font-manrope text-sm tracking-wide text-[#3c4a42]">© 2024 EduCycle. Cultivating a sustainable academic ecosystem.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] hover:text-[#0053db] transition-colors" href="#">Sustainability Report</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] hover:text-[#0053db] transition-colors" href="#">Student Safety</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] hover:text-[#0053db] transition-colors" href="#">Terms of Exchange</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] hover:text-[#0053db] transition-colors" href="#">Campus Ambassadors</a>
+</div>
+</footer>
+</body></html>

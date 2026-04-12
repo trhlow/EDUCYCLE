@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction Detail - EduCycle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "primary-container": "#10b981",
+                        "on-tertiary-fixed-variant": "#003ea8",
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "on-background": "#121c28",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed-variant": "#005049",
+                        "primary-fixed": "#6ffbbe",
+                        "secondary-fixed": "#89f5e7",
+                        "outline-variant": "#bbcabf",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary": "#006c49",
+                        "on-primary-fixed-variant": "#005236",
+                        "tertiary-fixed": "#dbe1ff",
+                        "outline": "#6c7a71",
+                        "on-primary-fixed": "#002113",
+                        "background": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#00422b",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#eef4ff",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#006f66",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#d9e3f4",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary-fixed": "#00174b",
+                        "surface-container-highest": "#d9e3f4",
+                        "on-surface": "#121c28",
+                        "surface-tint": "#006c49",
+                        "surface": "#f8f9ff",
+                        "on-secondary-fixed": "#00201d",
+                        "surface-container-high": "#dfe9fa",
+                        "secondary-container": "#86f2e4",
+                        "secondary": "#006a61",
+                        "tertiary-container": "#7f9fff",
+                        "inverse-surface": "#27313e",
+                        "inverse-primary": "#4edea3",
+                        "on-surface-variant": "#3c4a42",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "on-tertiary-container": "#00328b",
+                        "tertiary": "#0053db",
+                        "surface-dim": "#d1dbec"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<nav class="bg-[#f8f9ff]/80 dark:bg-[#121c28]/80 backdrop-blur-xl docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tight text-[#006c49] dark:text-[#10b981]">EduCycle</span>
+<div class="hidden md:flex gap-6">
+<a class="text-[#3c4a42] hover:bg-[#eef4ff] transition-colors duration-300 px-3 py-1 rounded-lg" href="#">Explore</a>
+<a class="text-[#006c49] font-bold border-b-2 border-[#006c49] px-3 py-1" href="#">My Exchanges</a>
+<a class="text-[#3c4a42] hover:bg-[#eef4ff] transition-colors duration-300 px-3 py-1 rounded-lg" href="#">Community</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#3c4a42] p-2 hover:bg-[#eef4ff] rounded-full">favorite</button>
+<button class="material-symbols-outlined text-[#3c4a42] p-2 hover:bg-[#eef4ff] rounded-full">chat</button>
+<button class="material-symbols-outlined text-[#3c4a42] p-2 hover:bg-[#eef4ff] rounded-full">person</button>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-8">
+<div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
+<section class="lg:col-span-7 space-y-6 w-full">
+<div class="bg-surface-container-low rounded-3xl p-6 space-y-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">event_available</span>
+<div>
+<h2 class="text-xl font-bold tracking-tight">Meeting Details</h2>
+<p class="text-on-surface-variant text-sm">Coordinate your handoff</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-2xl flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary">schedule</span>
+<div>
+<p class="text-xs font-bold text-tertiary uppercase tracking-wider">Time</p>
+<p class="font-semibold">Today, 4:30 PM</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary">location_on</span>
+<div>
+<p class="text-xs font-bold text-tertiary uppercase tracking-wider">Location</p>
+<p class="font-semibold">Central Library, Room 204</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-3xl border-outline-variant/20 border flex flex-col h-[600px] overflow-hidden">
+<div class="p-4 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold">JD</div>
+<div>
+<p class="font-bold text-sm">Jane Doe</p>
+<p class="text-xs text-primary font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> Online</p>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant">more_vert</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-4 bg-surface-container-low/30">
+<div class="flex flex-col items-center py-4">
+<span class="text-xs text-on-surface-variant bg-surface-container-high px-3 py-1 rounded-full">Secure chat initiated</span>
+</div>
+<div class="flex gap-3 max-w-[80%]">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex-shrink-0 flex items-center justify-center text-[10px] font-bold">JD</div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl rounded-tl-none shadow-sm">
+<p class="text-sm">Hi! I'm heading to the library now. See you near the entrance?</p>
+<p class="text-[10px] text-on-surface-variant mt-2 text-right">3:15 PM</p>
+</div>
+</div>
+<div class="flex gap-3 max-w-[80%] ml-auto flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-[10px] text-on-primary font-bold">ME</div>
+<div class="bg-primary text-on-primary p-4 rounded-2xl rounded-tr-none shadow-sm">
+<p class="text-sm">Perfect. I'm already here at Room 204. It's quieter!</p>
+<p class="text-[10px] opacity-70 mt-2 text-right">3:17 PM</p>
+</div>
+</div>
+<div class="flex gap-3 max-w-[80%]">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex-shrink-0 flex items-center justify-center text-[10px] font-bold">JD</div>
+<div class="bg-surface-container-lowest p-4 rounded-2xl rounded-tl-none shadow-sm">
+<p class="text-sm">Got it. Be there in 5 mins.</p>
+<p class="text-[10px] text-on-surface-variant mt-2 text-right">3:20 PM</p>
+</div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-lowest border-t border-outline-variant/10">
+<div class="flex items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-2">
+<button class="material-symbols-outlined text-on-surface-variant">add_circle</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm" placeholder="Type your message..." type="text"/>
+<button class="bg-primary text-on-primary p-2 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<aside class="lg:col-span-5 space-y-6 w-full">
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10">
+<h3 class="text-lg font-bold mb-4">Transaction Summary</h3>
+<div class="flex gap-4 p-3 bg-surface-container-low rounded-2xl mb-4">
+<img alt="Book cover" class="w-20 h-20 object-cover rounded-xl" data-alt="Close-up of a well-maintained hardback textbook on a clean white surface with natural morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6l4fpwo3gNXefIXGpmlJp6og6BK5gs_VRssHCmxkfd6qxU0aov3NjQJH-vsY_uTBt9yR9Y1zyd1xxRKP0BR78XjfN0EoQIvCOjl5DaCIzdTEjLzdvcKbVeHN-vt7KRF9pzWkQXpYO5ML1C5JZ8DWRfl-3bYDBu-HJDkZmXyGRgs_6Os1wB3Cs0zB4bQ2DjU86x2YFDBK8GKhDZJOxUmfmDFii5ZYy2lj7xWfmIf9yQ9eCrAaMZQkrIftrfQnLqfUv6qIpjm-Sd0"/>
+<div class="flex-1">
+<p class="font-bold text-[#006c49]">Advanced Calculus Vol. II</p>
+<p class="text-sm text-on-surface-variant">Condition: Like New</p>
+<p class="text-xl font-extrabold mt-1">$45.00</p>
+</div>
+</div>
+<div class="space-y-6 relative ml-3 before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30">
+<div class="relative pl-8">
+<div class="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_0_4px_rgba(0,108,73,0.1)]"></div>
+<p class="text-sm font-bold">Request Sent</p>
+<p class="text-xs text-on-surface-variant">Oct 12, 10:00 AM</p>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_0_4px_rgba(0,108,73,0.1)]"></div>
+<p class="text-sm font-bold">Accepted</p>
+<p class="text-xs text-on-surface-variant">Oct 12, 02:45 PM</p>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_0_6px_rgba(0,83,219,0.2)] animate-pulse"></div>
+<p class="text-sm font-bold text-tertiary">Meeting (Active)</p>
+<p class="text-xs text-on-surface-variant">Today, 4:30 PM</p>
+</div>
+<div class="relative pl-8 opacity-40">
+<div class="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-outline-variant"></div>
+<p class="text-sm font-bold">Completed</p>
+<p class="text-xs text-on-surface-variant">Awaiting Verification</p>
+</div>
+</div>
+</div>
+<div class="bg-gradient-to-br from-primary to-primary-container rounded-3xl p-8 text-on-primary shadow-xl relative overflow-hidden">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+<div class="relative z-10 text-center space-y-6">
+<div>
+<span class="material-symbols-outlined text-5xl mb-2" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<h3 class="text-2xl font-black">Handoff Verification</h3>
+<p class="text-sm opacity-90 mt-2 font-medium">Show this OTP to the seller once you have inspected the item.</p>
+</div>
+<div class="flex justify-center gap-3">
+<div class="w-12 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl font-black border border-white/30">8</div>
+<div class="w-12 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl font-black border border-white/30">4</div>
+<div class="w-12 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl font-black border border-white/30">2</div>
+<div class="w-12 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl font-black border border-white/30">9</div>
+</div>
+<p class="text-[10px] uppercase tracking-widest font-bold opacity-80">Do not share this code until meeting</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="py-4 px-6 rounded-2xl bg-surface-container-high text-on-surface font-bold text-sm hover:bg-error-container hover:text-error transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">cancel</span>
+                        Hủy giao dịch
+                    </button>
+<button class="py-4 px-6 rounded-2xl bg-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">report</span>
+                        Báo cáo vấn đề
+                    </button>
+</div>
+<div class="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/10 opacity-50 grayscale pointer-events-none">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-bold">Transaction Review</h3>
+<span class="text-[10px] font-bold bg-surface-container-high px-2 py-1 rounded-full uppercase">Locked</span>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="material-symbols-outlined text-outline-variant">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+<span class="material-symbols-outlined text-outline-variant">star</span>
+</div>
+<div class="h-12 bg-surface-container-high rounded-xl w-full"></div>
+</div>
+</aside>
+</div>
+</main>
+<footer class="bg-[#eef4ff] dark:bg-[#001f19] w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 mt-12">
+<div class="space-y-2">
+<span class="font-plus-jakarta-sans font-bold text-[#006c49] text-xl">EduCycle</span>
+<p class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf]">© 2024 EduCycle. Cultivating a sustainable academic ecosystem.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Sustainability Report</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Student Safety</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Terms of Exchange</a>
+<a class="font-manrope text-sm tracking-wide text-[#3c4a42] dark:text-[#bbcabf] hover:text-[#0053db] transition-colors" href="#">Campus Ambassadors</a>
+</div>
+</footer>
+</body></html>

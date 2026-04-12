@@ -57,9 +57,9 @@
 }
 
 .edu-card {
-  border: 1px solid var(--border-light);
+  border: 1px solid color-mix(in srgb, var(--border-light) 70%, transparent);
   border-radius: var(--radius-xl);
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, var(--bg-secondary));
   box-shadow: var(--shadow-card-rest);
 }
 
@@ -159,8 +159,8 @@
   gap: var(--space-1);
   padding: var(--space-1);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  background: var(--bg-elevated);
+  border: 1px solid color-mix(in srgb, var(--border-light) 65%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, var(--bg-secondary));
 }
 
 .edu-segmented-btn {
@@ -181,7 +181,7 @@
 }
 
 .edu-segmented-btn.active {
-  background: var(--primary-600);
+  background: var(--gradient-primary);
   color: var(--text-inverse);
   box-shadow: 0 8px 16px color-mix(in srgb, var(--primary-600) 26%, transparent);
 }
@@ -203,9 +203,9 @@
 .edu-select,
 .edu-textarea {
   width: 100%;
-  border: 1.5px solid var(--border-light);
+  border: 1px solid color-mix(in srgb, var(--border-light) 60%, transparent);
   border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, var(--bg-secondary));
   color: var(--text-primary);
   font: inherit;
   padding: var(--space-3) var(--space-4);
@@ -217,7 +217,7 @@
 .edu-select:focus,
 .edu-textarea:focus {
   outline: none;
-  border-color: var(--border-focus);
+  border-color: color-mix(in srgb, var(--primary-500) 70%, var(--primary-600));
   box-shadow: var(--shadow-focus);
 }
 

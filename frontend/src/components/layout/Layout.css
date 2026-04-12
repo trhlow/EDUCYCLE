@@ -19,16 +19,35 @@
 }
 
 .app-footer {
-  background: var(--bg-primary);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--bg-secondary) 92%, var(--primary-50)) 0%,
+    color-mix(in srgb, var(--bg-tertiary) 86%, var(--accent-50)) 100%
+  );
   color: var(--text-secondary);
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid transparent;
   padding: var(--space-12) var(--space-6) var(--space-6);
   margin-top: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--primary-200) 26%, transparent) 0, transparent 40%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-200) 24%, transparent) 0, transparent 45%);
+  opacity: 0.8;
 }
 
 .footer-container {
   max-width: var(--layout-max-width);
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-grid {
@@ -110,9 +129,9 @@ a.footer-link:hover { color: var(--primary-600); }
   padding: var(--space-2) max(var(--space-3), env(safe-area-inset-left, 0))
     calc(var(--space-2) + env(safe-area-inset-bottom, 0))
     max(var(--space-3), env(safe-area-inset-right, 0));
-  background: color-mix(in srgb, var(--bg-elevated) 92%, var(--bg-primary));
-  border-top: 1px solid var(--border-light);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--glass-surface) 100%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-light) 72%, transparent);
+  backdrop-filter: blur(18px);
   box-shadow: var(--shadow-md);
 }
 

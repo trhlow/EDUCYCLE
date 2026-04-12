@@ -23,10 +23,15 @@
 .ec-section-block {
   padding-block: var(--space-12);
   padding-inline: var(--space-6);
+  position: relative;
 }
 
 @media (min-width: 64rem) {
   .ec-section-block {
     padding-block: var(--space-16);
   }
+}
+
+.ec-section-block:nth-of-type(odd) {
+  background: color-mix(in srgb, var(--bg-secondary) 76%, transparent);
 }

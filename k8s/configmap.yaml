@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: educycle-config
+data:
+  SPRING_PROFILES_ACTIVE: production
+  APP_FRONTEND_BASE_URL: https://educycle.example.com
+  SPRING_DATASOURCE_URL: jdbc:postgresql://educycle-postgres:5432/educycledb
+  POSTGRES_DB: educycledb
