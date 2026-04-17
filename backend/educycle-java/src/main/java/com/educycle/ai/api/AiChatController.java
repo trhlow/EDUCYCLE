@@ -1,7 +1,7 @@
 package com.educycle.ai.api;
 
 import com.educycle.shared.config.AiChatRateLimiter;
-import com.educycle.ai.application.AiChatService;
+import com.educycle.ai.application.service.AiChatService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

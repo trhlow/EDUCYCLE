@@ -1,8 +1,8 @@
 package com.educycle.shared.config;
 
 import com.educycle.ai.domain.AiKnowledgeChunk;
-import com.educycle.ai.persistence.AiKnowledgeChunkRepository;
-import com.educycle.ai.application.OpenAiEmbeddingService;
+import com.educycle.ai.infrastructure.persistence.AiKnowledgeChunkRepository;
+import com.educycle.ai.application.service.OpenAiEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

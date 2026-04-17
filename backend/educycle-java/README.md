@@ -16,6 +16,7 @@
 | Password | BCrypt.Net-Next | BCryptPasswordEncoder (compatible) |
 | Docs | Swashbuckle | SpringDoc OpenAPI 3 |
 | Logging | Serilog | Logback + @Slf4j (Lombok) |
+| Observability | OpenTelemetry / vendor SDK | Spring Boot OpenTelemetry Starter + OTLP |
 | Tests | xUnit + Moq | JUnit 5 + Mockito |
 | Boilerplate | (manual) | Lombok |
 
@@ -123,15 +124,34 @@ src/main/java/com/educycle/
 │   ├── config/
 │   ├── security/
 │   ├── exception/
+│   ├── observability/
 │   ├── response/
 │   └── util/
+├── <module>/
+│   ├── api/
+│   │   ├── <Module>Controller.java
+│   │   └── dto/
+│   │       ├── request/
+│   │       └── response/
+│   ├── application/
+│   │   └── service/
+│   │       └── impl/
+│   ├── domain/
+│   └── infrastructure/
+│       ├── persistence/
+│       ├── client/
+│       └── schedule/
 ├── auth/
 ├── user/
 ├── listing/
 ├── transaction/
 ├── review/
 ├── admin/
-└── notification/                   # Persistence support used by core flows; REST API is outside V1 contract
+├── notification/
+├── wishlist/
+├── bookwanted/
+├── media/
+└── ai/
 
 src/main/resources/
 ├── application.yml                 # Config (maps appsettings.json)
@@ -140,13 +160,29 @@ src/main/resources/
 └── db/migration/
     └── V1__baseline.sql            # Clean Backend V1 baseline
 
-src/test/java/com/educycle/service/
-├── AuthServiceTest.java            # Maps C# AuthServiceTests.cs
-├── ProductServiceTest.java         # Maps C# ProductServiceTests.cs
-├── TransactionServiceTest.java     # New: OTP + status tests
-├── ReviewServiceTest.java          # New: CRUD + ownership tests
-└── CategoryServiceTest.java        # New: CRUD tests
+src/test/java/com/educycle/
+├── auth/application/
+│   └── AuthServiceTest.java        # Maps C# AuthServiceTests.cs
+├── listing/application/
+│   ├── ProductServiceTest.java     # Maps C# ProductServiceTests.cs
+│   └── CategoryServiceTest.java    # CRUD tests
+├── transaction/application/
+│   ├── TransactionServiceTest.java # OTP + status tests
+│   └── TransactionExpiryServiceTest.java
+├── review/application/
+├── user/application/
+├── media/application/
+├── media/infrastructure/client/
+├── ai/application/
+└── integration/
 ```
+
+### Spring Boot 4 defaults
+
+- HTTP Service Clients: outbound clients live under `<module>/infrastructure/client` and are registered with `@ImportHttpServices`. Unsplash is configured by `spring.http.serviceclient.unsplash.*`.
+- API versioning: configured with `spring.mvc.apiversion.*`; the default header is `X-API-Version`.
+- Virtual threads: enabled with `spring.threads.virtual.enabled=true`; `spring.main.keep-alive=true` keeps scheduled workloads from letting the JVM exit.
+- OpenTelemetry: uses `spring-boot-starter-opentelemetry`; set `OTEL_SDK_DISABLED=false` and an OTLP endpoint to export telemetry.
 
 ---
 

@@ -1,9 +1,9 @@
 package com.educycle.user.api;
 
-import com.educycle.user.dto.UpdateNotificationPrefsRequest;
-import com.educycle.user.dto.UpdateUserProfileRequest;
-import com.educycle.user.dto.UserMeResponse;
-import com.educycle.user.application.UserProfileService;
+import com.educycle.user.api.dto.request.UpdateNotificationPrefsRequest;
+import com.educycle.user.api.dto.request.UpdateUserProfileRequest;
+import com.educycle.user.api.dto.response.UserMeResponse;
+import com.educycle.user.application.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package com.educycle.notification.api;
 
-import com.educycle.notification.dto.NotificationResponse;
-import com.educycle.notification.application.NotificationService;
+import com.educycle.notification.api.dto.response.NotificationResponse;
+import com.educycle.notification.application.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

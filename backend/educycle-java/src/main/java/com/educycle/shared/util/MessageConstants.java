@@ -22,7 +22,7 @@ public final class MessageConstants {
     public static final String EMAIL_VERIFIED_SUCCESS = "Xác thực email thành công";
     public static final String OTP_RESENT_SUCCESS = "Đã gửi lại mã OTP thành công";
     public static final String OAUTH_TOKEN_REQUIRED = "Bắt buộc phải có mã đăng nhập mạng xã hội.";
-    /** Khi bật {@code app.oauth-require-edu-vn} — khớp chính sách đăng ký {@link com.educycle.auth.dto.RegisterRequest} */
+    /** Khi bật {@code app.oauth-require-edu-vn} — khớp chính sách đăng ký {@link com.educycle.auth.api.dto.request.RegisterRequest} */
     public static final String OAUTH_EMAIL_EDU_VN_REQUIRED =
             "EduCycle chỉ chấp nhận email trường (.edu.vn) cho đăng nhập Google/Microsoft. "
                     + "Hãy dùng tài khoản trường cấp hoặc đăng ký bằng email .edu.vn.";

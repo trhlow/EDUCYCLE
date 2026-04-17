@@ -1,8 +1,8 @@
 package com.educycle.listing.api;
 
-import com.educycle.listing.dto.category.CategoryResponse;
-import com.educycle.listing.dto.category.CreateCategoryRequest;
-import com.educycle.listing.application.CategoryService;
+import com.educycle.listing.api.dto.response.CategoryResponse;
+import com.educycle.listing.api.dto.request.CreateCategoryRequest;
+import com.educycle.listing.application.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,8 @@
 package com.educycle.review.api;
 
-import com.educycle.review.dto.CreateReviewRequest;
-import com.educycle.review.dto.ReviewResponse;
-import com.educycle.review.application.ReviewService;
+import com.educycle.review.api.dto.request.CreateReviewRequest;
+import com.educycle.review.api.dto.response.ReviewResponse;
+import com.educycle.review.application.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

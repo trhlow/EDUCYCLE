@@ -1,7 +1,7 @@
 package com.educycle.user.api;
 
-import com.educycle.user.dto.PublicUserProfileResponse;
-import com.educycle.user.application.UserProfileService;
+import com.educycle.user.api.dto.response.PublicUserProfileResponse;
+import com.educycle.user.application.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

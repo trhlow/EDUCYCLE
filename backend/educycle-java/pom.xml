@@ -15,7 +15,7 @@
     <artifactId>educycle-api</artifactId>
     <version>1.0.0</version>
     <name>educycle-api</name>
-    <description>EduCycle Backend – migrated from ASP.NET Core to Spring Boot 3.x</description>
+    <description>EduCycle Backend – migrated from ASP.NET Core to Spring Boot 4.x</description>
 
     <properties>
         <!-- Project baseline JDK -->
@@ -31,6 +31,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ===== HTTP SERVICE CLIENTS (Spring Boot 4) ===== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
 
         <!-- ===== JPA / HIBERNATE ===== -->
@@ -161,9 +167,8 @@
 
         <!-- OpenTelemetry — bật khi OTEL_SDK_DISABLED=false + OTEL_EXPORTER_OTLP_ENDPOINT -->
         <dependency>
-            <groupId>io.opentelemetry.instrumentation</groupId>
-            <artifactId>opentelemetry-spring-boot-starter</artifactId>
-            <version>2.16.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-opentelemetry</artifactId>
         </dependency>
 
         <!-- JSON log line (profile json-log + logback-spring.xml nếu cần) -->

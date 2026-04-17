@@ -1,9 +1,9 @@
 package com.educycle.transaction.api;
 
-import com.educycle.transaction.dto.message.ChatMessage;
-import com.educycle.transaction.dto.message.MessageResponse;
-import com.educycle.transaction.dto.message.SendMessageRequest;
-import com.educycle.transaction.application.MessageService;
+import com.educycle.transaction.api.dto.request.ChatMessage;
+import com.educycle.transaction.api.dto.response.MessageResponse;
+import com.educycle.transaction.api.dto.request.SendMessageRequest;
+import com.educycle.transaction.application.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;

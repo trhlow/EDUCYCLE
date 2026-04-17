@@ -1,14 +1,14 @@
 package com.educycle.admin.api;
 
-import com.educycle.admin.dto.AdminCreateUserRequest;
-import com.educycle.admin.dto.AdminResolveTransactionRequest;
-import com.educycle.admin.dto.AdminUpdateUserRequest;
-import com.educycle.admin.dto.AdminUserDetailResponse;
-import com.educycle.admin.dto.AdminUserSummaryResponse;
-import com.educycle.admin.dto.DashboardStatsResponse;
-import com.educycle.transaction.dto.transaction.TransactionResponse;
-import com.educycle.admin.application.AdminService;
-import com.educycle.transaction.application.TransactionService;
+import com.educycle.admin.api.dto.request.AdminCreateUserRequest;
+import com.educycle.admin.api.dto.request.AdminResolveTransactionRequest;
+import com.educycle.admin.api.dto.request.AdminUpdateUserRequest;
+import com.educycle.admin.api.dto.response.AdminUserDetailResponse;
+import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
+import com.educycle.admin.api.dto.response.DashboardStatsResponse;
+import com.educycle.transaction.api.dto.response.TransactionResponse;
+import com.educycle.admin.application.service.AdminService;
+import com.educycle.transaction.application.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

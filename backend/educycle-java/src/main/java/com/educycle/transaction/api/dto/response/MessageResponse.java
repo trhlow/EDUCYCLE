@@ -1,0 +1,13 @@
+package com.educycle.transaction.api.dto.response;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record MessageResponse(
+        UUID id,
+        UUID transactionId,
+        UUID senderId,
+        String senderName,
+        String content,
+        Instant createdAt
+) {}

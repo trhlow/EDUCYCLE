@@ -1,7 +1,7 @@
 package com.educycle.shared.security;
 
 import com.educycle.user.domain.User;
-import com.educycle.user.persistence.UserRepository;
+import com.educycle.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

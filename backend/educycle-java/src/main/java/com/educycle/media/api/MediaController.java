@@ -1,7 +1,7 @@
 package com.educycle.media.api;
 
-import com.educycle.media.dto.UnsplashCuratedResponse;
-import com.educycle.media.application.UnsplashMediaService;
+import com.educycle.media.api.dto.response.UnsplashCuratedResponse;
+import com.educycle.media.application.service.UnsplashMediaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

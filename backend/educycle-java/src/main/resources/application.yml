@@ -1,6 +1,22 @@
 spring:
   application:
     name: educycle-api
+  main:
+    keep-alive: true
+  threads:
+    virtual:
+      enabled: ${SPRING_THREADS_VIRTUAL_ENABLED:true}
+  mvc:
+    apiversion:
+      use:
+        header: ${API_VERSION_HEADER:X-API-Version}
+      default: ${API_VERSION_DEFAULT:1.0}
+  http:
+    serviceclient:
+      unsplash:
+        base-url: ${UNSPLASH_API_BASE_URL:https://api.unsplash.com}
+        connect-timeout: 10s
+        read-timeout: 12s
   servlet:
     multipart:
       max-file-size: 5MB

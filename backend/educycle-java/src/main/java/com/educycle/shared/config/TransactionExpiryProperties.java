@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "educycle.transactions.expiry")
 public class TransactionExpiryProperties {
 
-    /** Bật {@link com.educycle.transaction.schedule.TransactionExpiryScheduler}. */
+    /** Bật {@link com.educycle.transaction.infrastructure.schedule.TransactionExpiryScheduler}. */
     private boolean enabled = true;
 
     /** PENDING: hủy nếu yêu cầu tạo trước khoảng thời gian này (giờ). */

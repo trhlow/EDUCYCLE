@@ -1,10 +1,10 @@
 package com.educycle.bookwanted.api;
 
-import com.educycle.bookwanted.dto.BookWantedInquiryMessageResponse;
-import com.educycle.bookwanted.dto.BookWantedInquiryResponse;
-import com.educycle.bookwanted.dto.BookWantedInquirySummaryResponse;
-import com.educycle.transaction.dto.message.SendMessageRequest;
-import com.educycle.bookwanted.application.BookWantedInquiryService;
+import com.educycle.bookwanted.api.dto.response.BookWantedInquiryMessageResponse;
+import com.educycle.bookwanted.api.dto.response.BookWantedInquiryResponse;
+import com.educycle.bookwanted.api.dto.response.BookWantedInquirySummaryResponse;
+import com.educycle.transaction.api.dto.request.SendMessageRequest;
+import com.educycle.bookwanted.application.service.BookWantedInquiryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

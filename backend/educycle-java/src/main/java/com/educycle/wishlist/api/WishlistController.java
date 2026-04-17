@@ -1,7 +1,7 @@
 package com.educycle.wishlist.api;
 
-import com.educycle.wishlist.dto.WishlistCardResponse;
-import com.educycle.wishlist.application.WishlistService;
+import com.educycle.wishlist.api.dto.response.WishlistCardResponse;
+import com.educycle.wishlist.application.service.WishlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

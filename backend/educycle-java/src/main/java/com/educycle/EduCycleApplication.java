@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
                 "com.educycle.transaction",
                 "com.educycle.review",
                 "com.educycle.admin",
+                "com.educycle.media",
                 "com.educycle.notification.application"
         },
         excludeFilters = @ComponentScan.Filter(
@@ -41,11 +42,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "com.educycle.notification.domain"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.educycle.user.persistence",
-        "com.educycle.listing.persistence",
-        "com.educycle.transaction.persistence",
-        "com.educycle.review.persistence",
-        "com.educycle.notification.persistence"
+        "com.educycle.user.infrastructure.persistence",
+        "com.educycle.listing.infrastructure.persistence",
+        "com.educycle.transaction.infrastructure.persistence",
+        "com.educycle.review.infrastructure.persistence",
+        "com.educycle.notification.infrastructure.persistence"
 })
 @EnableScheduling
 @EnableConfigurationProperties({ CorsProperties.class, TransactionExpiryProperties.class, UnsplashProperties.class })

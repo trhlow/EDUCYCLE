@@ -1,11 +1,11 @@
 package com.educycle.listing.api;
 
 import com.educycle.shared.dto.common.PageResponse;
-import com.educycle.listing.dto.product.AdminRejectProductRequest;
-import com.educycle.listing.dto.product.CreateProductRequest;
-import com.educycle.listing.dto.product.ProductResponse;
-import com.educycle.listing.dto.product.UpdateProductRequest;
-import com.educycle.listing.application.ProductService;
+import com.educycle.listing.api.dto.request.AdminRejectProductRequest;
+import com.educycle.listing.api.dto.request.CreateProductRequest;
+import com.educycle.listing.api.dto.response.ProductResponse;
+import com.educycle.listing.api.dto.request.UpdateProductRequest;
+import com.educycle.listing.application.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

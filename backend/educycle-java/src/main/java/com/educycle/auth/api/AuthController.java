@@ -1,7 +1,8 @@
 package com.educycle.auth.api;
 
-import com.educycle.auth.dto.*;
-import com.educycle.auth.application.AuthService;
+import com.educycle.auth.api.dto.request.*;
+import com.educycle.auth.api.dto.response.*;
+import com.educycle.auth.application.service.AuthService;
 import com.educycle.shared.util.MessageConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

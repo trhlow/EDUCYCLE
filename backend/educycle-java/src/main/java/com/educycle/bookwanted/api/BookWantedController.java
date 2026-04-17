@@ -1,10 +1,10 @@
 package com.educycle.bookwanted.api;
 
-import com.educycle.bookwanted.dto.BookWantedPostResponse;
-import com.educycle.bookwanted.dto.CreateBookWantedRequest;
-import com.educycle.bookwanted.dto.UpdateBookWantedRequest;
+import com.educycle.bookwanted.api.dto.response.BookWantedPostResponse;
+import com.educycle.bookwanted.api.dto.request.CreateBookWantedRequest;
+import com.educycle.bookwanted.api.dto.request.UpdateBookWantedRequest;
 import com.educycle.shared.dto.common.PageResponse;
-import com.educycle.bookwanted.application.BookWantedService;
+import com.educycle.bookwanted.application.service.BookWantedService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

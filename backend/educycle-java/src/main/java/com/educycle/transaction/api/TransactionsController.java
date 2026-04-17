@@ -1,10 +1,11 @@
 package com.educycle.transaction.api;
 
-import com.educycle.transaction.dto.message.MessageResponse;
-import com.educycle.transaction.dto.message.SendMessageRequest;
-import com.educycle.transaction.dto.transaction.*;
-import com.educycle.transaction.application.MessageService;
-import com.educycle.transaction.application.TransactionService;
+import com.educycle.transaction.api.dto.response.MessageResponse;
+import com.educycle.transaction.api.dto.request.SendMessageRequest;
+import com.educycle.transaction.api.dto.request.*;
+import com.educycle.transaction.api.dto.response.TransactionResponse;
+import com.educycle.transaction.application.service.MessageService;
+import com.educycle.transaction.application.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
