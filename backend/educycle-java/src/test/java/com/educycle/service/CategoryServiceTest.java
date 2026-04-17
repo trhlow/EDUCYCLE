@@ -1,11 +1,11 @@
 package com.educycle.service;
 
-import com.educycle.dto.category.CategoryResponse;
-import com.educycle.dto.category.CreateCategoryRequest;
-import com.educycle.exception.NotFoundException;
-import com.educycle.model.Category;
-import com.educycle.repository.CategoryRepository;
-import com.educycle.service.impl.CategoryServiceImpl;
+import com.educycle.listing.dto.category.CategoryResponse;
+import com.educycle.listing.dto.category.CreateCategoryRequest;
+import com.educycle.shared.exception.NotFoundException;
+import com.educycle.listing.domain.Category;
+import com.educycle.listing.persistence.CategoryRepository;
+import com.educycle.listing.application.CategoryServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,20 +1,20 @@
 package com.educycle.service;
 
-import com.educycle.dto.common.PageResponse;
-import com.educycle.dto.product.CreateProductRequest;
-import com.educycle.dto.product.ProductResponse;
-import com.educycle.dto.product.UpdateProductRequest;
-import com.educycle.enums.ProductStatus;
-import com.educycle.exception.BadRequestException;
-import com.educycle.exception.NotFoundException;
-import com.educycle.exception.UnauthorizedException;
-import com.educycle.model.Product;
-import com.educycle.model.User;
-import com.educycle.repository.ProductRepository;
-import com.educycle.repository.ReviewRepository;
-import com.educycle.repository.TransactionRepository;
-import com.educycle.repository.UserRepository;
-import com.educycle.service.impl.ProductServiceImpl;
+import com.educycle.shared.dto.common.PageResponse;
+import com.educycle.listing.dto.product.CreateProductRequest;
+import com.educycle.listing.dto.product.ProductResponse;
+import com.educycle.listing.dto.product.UpdateProductRequest;
+import com.educycle.listing.domain.ProductStatus;
+import com.educycle.shared.exception.BadRequestException;
+import com.educycle.shared.exception.NotFoundException;
+import com.educycle.shared.exception.UnauthorizedException;
+import com.educycle.listing.domain.Product;
+import com.educycle.user.domain.User;
+import com.educycle.listing.persistence.ProductRepository;
+import com.educycle.review.persistence.ReviewRepository;
+import com.educycle.transaction.persistence.TransactionRepository;
+import com.educycle.user.persistence.UserRepository;
+import com.educycle.listing.application.ProductServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -80,7 +80,7 @@ class ProductServiceTest {
                 .id(UUID.randomUUID())
                 .username("testuser")
                 .email("test@example.com")
-                .role(com.educycle.enums.Role.USER)
+                .role(com.educycle.user.domain.Role.USER)
                 .emailVerified(false)
                 .phoneVerified(false)
                 .build();

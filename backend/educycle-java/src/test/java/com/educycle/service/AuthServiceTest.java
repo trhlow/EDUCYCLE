@@ -1,14 +1,15 @@
 package com.educycle.service;
 
-import com.educycle.dto.auth.*;
-import com.educycle.enums.Role;
-import com.educycle.exception.BadRequestException;
-import com.educycle.exception.UnauthorizedException;
-import com.educycle.model.User;
-import com.educycle.repository.UserRepository;
-import com.educycle.security.JwtTokenProvider;
-import com.educycle.service.impl.AuthServiceImpl;
-import com.educycle.util.MessageConstants;
+import com.educycle.auth.dto.*;
+import com.educycle.user.domain.Role;
+import com.educycle.shared.exception.BadRequestException;
+import com.educycle.shared.exception.UnauthorizedException;
+import com.educycle.user.domain.User;
+import com.educycle.user.persistence.UserRepository;
+import com.educycle.shared.security.JwtTokenProvider;
+import com.educycle.auth.application.AuthServiceImpl;
+import com.educycle.shared.mail.MailService;
+import com.educycle.shared.util.MessageConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

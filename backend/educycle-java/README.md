@@ -24,7 +24,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Java 26+
+- Java 21+
 - Maven 3.9+
 - PostgreSQL 18+
 
@@ -86,9 +86,11 @@ jwt:
 mvn spring-boot:run
 ```
 
-Flyway chạy các file trong `src/main/resources/db/migration/` theo thứ tự phiên bản. Trong repo hiện có **`V2`–`V15`** (schema + seed đã được tách qua nhiều migration; DB mới sẽ apply lần lượt). Seed thường gặp:
+Flyway chạy `src/main/resources/db/migration/V1__baseline.sql`. Đây là baseline sạch cho Backend V1; nếu DB local/dev đã từng chạy chuỗi migration cũ (`V1__initial_schema.sql` → `V16__...`) thì cần drop/recreate DB hoặc xóa volume Docker trước khi chạy lại.
+
+Seed mặc định:
 - Admin: `admin@educycle.com` / `admin@1`
-- Danh mục mặc định (nếu có trong migration tương ứng)
+- Danh mục mặc định: `Giáo Trình`, `Sách Chuyên Ngành`, `Tài Liệu Ôn Thi`, `Dụng Cụ Học Tập`, `Ngoại Ngữ`, `Khác`
 
 **SBOM (CycloneDX):** sau `mvn package` → `target/classes/META-INF/sbom/application.cdx.json`
 
@@ -116,44 +118,27 @@ mvn test
 
 ```
 src/main/java/com/educycle/
-├── EduCycleApplication.java        # Entry point (maps C# Program.cs)
-├── config/
-│   ├── AppConfig.java              # ObjectMapper bean
-│   ├── JwtProperties.java          # @ConfigurationProperties for jwt.*
-│   ├── OpenApiConfig.java          # Swagger + Bearer auth setup
-│   └── SecurityConfig.java         # Spring Security (replaces C# JWT middleware)
-├── controller/
-│   ├── AuthController.java         # POST /api/auth/*
-│   ├── ProductsController.java     # /api/products
-│   ├── CategoriesController.java   # /api/categories
-│   ├── TransactionsController.java # /api/transactions (+ messages sub-routes)
-│   ├── ReviewsController.java      # /api/reviews
-│   └── AdminController.java        # /api/admin (ADMIN only)
-├── dto/                            # Records (immutable DTOs, replace C# records/POCOs)
-├── enums/                          # Role, ProductStatus, TransactionStatus
-├── exception/
-│   ├── AppException.java           # Base exception (maps C# abstract AppException)
-│   ├── BadRequestException.java    # 400
-│   ├── NotFoundException.java      # 404
-│   ├── UnauthorizedException.java  # 401
-│   └── GlobalExceptionHandler.java # @RestControllerAdvice (maps C# Middleware)
-├── model/                          # @Entity classes (User, Product, Category, etc.)
-├── repository/                     # JpaRepository interfaces (replaces EF Core DbContext)
-├── security/
-│   ├── JwtTokenProvider.java       # Generates & validates JWT (maps C# JwtTokenGenerator)
-│   ├── JwtAuthenticationFilter.java # OncePerRequestFilter (maps C# JwtBearer middleware)
-│   └── UserDetailsServiceImpl.java # Loads user by email for Spring Security
-└── service/
-    ├── AuthService.java            # Interface
-    ├── impl/AuthServiceImpl.java   # Implementation
-    └── impl/...                    # All 6 service implementations
+├── EduCycleApplication.java
+├── shared/
+│   ├── config/
+│   ├── security/
+│   ├── exception/
+│   ├── response/
+│   └── util/
+├── auth/
+├── user/
+├── listing/
+├── transaction/
+├── review/
+├── admin/
+└── notification/                   # Persistence support used by core flows; REST API is outside V1 contract
 
 src/main/resources/
 ├── application.yml                 # Config (maps appsettings.json)
 ├── rag/
-│   └── educycle-knowledge.md       # Bootstrap RAG (tuỳ chọn + OPENAI_API_KEY)
+│   └── educycle-knowledge.md       # Outside V1 runtime scope by default
 └── db/migration/
-    └── V2__…sql … V15__…sql        # Flyway (không sửa file đã apply)
+    └── V1__baseline.sql            # Clean Backend V1 baseline
 
 src/test/java/com/educycle/service/
 ├── AuthServiceTest.java            # Maps C# AuthServiceTests.cs
@@ -268,7 +253,7 @@ spring-boot-starter-security      <!-- JWT Auth -->
 spring-boot-starter-validation     <!-- Bean Validation -->
 spring-boot-starter-actuator       <!-- /actuator/health -->
 postgresql                         <!-- JDBC driver -->
-flyway-core                     <!-- DB migrations (PostgreSQL via JDBC) -->
+spring-boot-starter-flyway      <!-- DB migrations (PostgreSQL via JDBC) -->
 lombok                             <!-- Boilerplate reduction -->
 jjwt-api + jjwt-impl + jjwt-jackson     <!-- JWT generation/validation -->
 springdoc-openapi-starter-webmvc-ui      <!-- Swagger UI -->

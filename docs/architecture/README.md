@@ -12,7 +12,7 @@ EduCycle is a monorepo with:
 - optional Redis support for selected backend features
 - Docker-based local and deployment workflows
 
-The frontend talks to the backend through REST under `/api` and WebSocket traffic under `/ws`.
+The Backend V1 contract uses REST under `/api`. WebSocket traffic under `/ws` is outside the default V1 runtime scope.
 
 ## Runtime modes
 
@@ -42,12 +42,14 @@ The frontend talks to the backend through REST under `/api` and WebSocket traffi
 
 - Users can publish requests for books they want.
 - Other users can respond and continue the discussion through inquiry chat.
+- This flow is outside the default Backend V1 contract and is not included in the V1 baseline migration.
 
 ### AI chat
 
 - The frontend never stores provider keys.
 - The browser calls backend endpoints only.
 - Optional RAG content is loaded from backend resources.
+- This flow is outside the default Backend V1 contract and is not included in the V1 baseline migration.
 
 ## Main code areas
 
@@ -66,5 +68,6 @@ The frontend talks to the backend through REST under `/api` and WebSocket traffi
 - [Backend README](../../backend/educycle-java/README.md)
 - [Frontend README](../../frontend/README.md)
 - [AI chatbot guide](../guides/ai-chatbot.md)
+- [Backend V1 ERD](backend-v1-erd.md)
 - [Production TLS guide](../guides/production-tls.md)
 - [Transaction redesign note](transaction-redesign-2026.md)

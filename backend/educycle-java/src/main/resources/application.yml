@@ -26,10 +26,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-
 # ── SMTP (tuỳ chọn) ─────────────────────────────────────────────────────────
 # Thêm profile "smtp" + biến MAIL_* — xem application-smtp.yml và README (mục Email).
 # Ví dụ local: mvn spring-boot:run "-Dspring-boot.run.profiles=docker,smtp"

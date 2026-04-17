@@ -1,7 +1,8 @@
 package com.educycle.service.impl;
 
-import com.educycle.config.UnsplashProperties;
-import com.educycle.dto.media.UnsplashCuratedResponse;
+import com.educycle.media.application.UnsplashMediaServiceImpl;
+import com.educycle.shared.config.UnsplashProperties;
+import com.educycle.media.dto.UnsplashCuratedResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

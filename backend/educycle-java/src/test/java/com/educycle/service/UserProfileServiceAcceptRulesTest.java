@@ -1,11 +1,11 @@
 package com.educycle.service;
 
-import com.educycle.dto.user.UserMeResponse;
-import com.educycle.enums.Role;
-import com.educycle.model.User;
-import com.educycle.repository.ReviewRepository;
-import com.educycle.repository.UserRepository;
-import com.educycle.service.impl.UserProfileServiceImpl;
+import com.educycle.user.dto.UserMeResponse;
+import com.educycle.user.domain.Role;
+import com.educycle.user.domain.User;
+import com.educycle.review.persistence.ReviewRepository;
+import com.educycle.user.persistence.UserRepository;
+import com.educycle.user.application.UserProfileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

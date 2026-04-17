@@ -1,15 +1,16 @@
 package com.educycle.service;
 
-import com.educycle.config.TransactionExpiryProperties;
-import com.educycle.enums.ProductStatus;
-import com.educycle.enums.Role;
-import com.educycle.enums.TransactionStatus;
-import com.educycle.model.Product;
-import com.educycle.model.Transaction;
-import com.educycle.model.User;
-import com.educycle.repository.TransactionRepository;
-import com.educycle.service.impl.TransactionExpiryServiceImpl;
-import com.educycle.util.MessageConstants;
+import com.educycle.shared.config.TransactionExpiryProperties;
+import com.educycle.listing.domain.ProductStatus;
+import com.educycle.user.domain.Role;
+import com.educycle.transaction.domain.TransactionStatus;
+import com.educycle.listing.domain.Product;
+import com.educycle.transaction.domain.Transaction;
+import com.educycle.user.domain.User;
+import com.educycle.notification.application.NotificationService;
+import com.educycle.transaction.persistence.TransactionRepository;
+import com.educycle.transaction.application.TransactionExpiryServiceImpl;
+import com.educycle.shared.util.MessageConstants;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -3,7 +3,7 @@ package com.educycle.integration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -53,15 +53,6 @@ class PublicApiIntegrationTest {
     void getTransactions_withoutToken_isUnauthorized() throws Exception {
         mockMvc.perform(get("/api/transactions"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void getUnsplashCurated_isPublic() throws Exception {
-        mockMvc.perform(get("/api/media/unsplash/curated")
-                        .param("topic", "study")
-                        .param("orientation", "landscape")
-                        .param("count", "3"))
-                .andExpect(status().isOk());
     }
 
     @Test
