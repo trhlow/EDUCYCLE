@@ -28,27 +28,27 @@ Open [http://localhost](http://localhost).
 ### Backend database
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 docker compose up -d
 ```
 
 ### Backend API
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
 ### Frontend app
 
 ```powershell
-cd frontend
+cd apps/web
 npm ci
 npm run dev
 ```
 
 The default Vite proxy target is `http://localhost:8081`.  
-If the backend runs on `8080`, create `frontend/.env.local` with:
+If the backend runs on `8080`, create `apps/web/.env.local` with:
 
 ```env
 VITE_DEV_PROXY_TARGET=http://localhost:8080

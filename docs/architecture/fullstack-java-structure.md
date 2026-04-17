@@ -4,24 +4,21 @@ Project hiện tại đã theo hướng fullstack production và được chuẩ
 
 ```text
 project-root/
-├── frontend/                  # React / Vite
-├── backend/
-│   └── educycle-java/         # Spring Boot
-├── database/
-│   └── init/                  # SQL bootstrap scripts
-├── docker/
-│   ├── frontend/
-│   ├── backend/
-│   └── nginx/
-├── k8s/
-├── deploy/                    # compose deploy hiện có
+├── apps/
+│   ├── api/                  # Spring Boot
+│   └── web/                  # React / Vite
+├── infra/
+│   ├── docker/               # Dockerfiles, compose deploy, database bootstrap
+│   ├── nginx/                # Reverse proxy config
+│   ├── scripts/              # Verify and release helpers
+│   └── k8s/                  # Kubernetes manifests
 ├── docs/
 └── docker-compose.yml         # compose local hiện có
 ```
 
 ## Backend Java layering
 
-Trong `backend/educycle-java/src/main/java/com/educycle` đã tách theo tầng:
+Trong `apps/api/src/main/java/com/educycle` đã tách theo tầng:
 - `controller/`
 - `service/` và `service/impl/`
 - `repository/`

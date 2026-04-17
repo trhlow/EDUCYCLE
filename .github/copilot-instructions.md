@@ -2,15 +2,15 @@
 
 ## Project structure
 
-- Backend: `backend/educycle-java/`
-- Frontend: `frontend/`
+- Backend: `apps/api/`
+- Frontend: `apps/web/`
 - Shared docs: `docs/`
-- Deployment files: `deploy/`
+- Deployment files: `infra/`
 
 ## Current conventions
 
 - The frontend compares backend statuses in uppercase form.
-- Frontend styling should use tokens from `frontend/src/styles/`.
+- Frontend styling should use tokens from `apps/web/src/styles/`.
 - Backend database changes use new Flyway migrations; do not edit old applied migrations.
 - Prefer small, focused commits and stage specific files instead of `git add .`.
 
@@ -24,11 +24,11 @@
 
 ```powershell
 # Backend
-cd backend\educycle-java
+cd apps\api
 mvn clean verify
 
 # Frontend
-cd frontend
+cd apps/web
 npm ci
 npm run typecheck
 npm run test

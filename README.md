@@ -6,11 +6,17 @@ EduCycle is a peer-to-peer marketplace for students to exchange books and study 
 
 ```text
 EDUCYCLE/
-├── backend/educycle-java/   # Spring Boot API
-├── frontend/                # React + Vite app
-├── docs/                    # Shared project documentation
-├── deploy/                  # Deployment compose files and examples
-├── scripts/                 # Verification and release helpers
+├── apps/
+│   ├── api/                  # Spring Boot API
+│   └── web/                  # React + Vite app
+├── infra/
+│   ├── docker/               # Docker and compose assets
+│   ├── nginx/                # Reverse proxy configuration
+│   └── scripts/              # Verification and release helpers
+├── docs/
+│   ├── adr/                  # Architecture decision records
+│   ├── api/                  # API documentation
+│   └── runbooks/             # Operational runbooks
 ├── docker-compose.yml       # Full stack local/prod-style compose
 ├── .env.example
 ├── README.md
@@ -38,7 +44,7 @@ Then open [http://localhost](http://localhost).
 ### 1. Start PostgreSQL for backend development
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 docker compose up -d
 ```
 
@@ -47,7 +53,7 @@ This starts Postgres on `localhost:5433`.
 ### 2. Run the backend
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
@@ -56,7 +62,7 @@ The `docker` profile runs the API on `http://localhost:8081`.
 ### 3. Run the frontend
 
 ```powershell
-cd frontend
+cd apps/web
 npm ci
 npm run dev
 ```
@@ -65,8 +71,8 @@ The frontend runs on [http://localhost:5173](http://localhost:5173).
 
 Notes:
 
-- `frontend/vite.config.js` defaults the dev proxy to `http://localhost:8081`.
-- If you run the backend without the `docker` profile on port `8080`, create `frontend/.env.local` with `VITE_DEV_PROXY_TARGET=http://localhost:8080`.
+- `apps/web/vite.config.js` defaults the dev proxy to `http://localhost:8081`.
+- If you run the backend without the `docker` profile on port `8080`, create `apps/web/.env.local` with `VITE_DEV_PROXY_TARGET=http://localhost:8080`.
 
 ## Main features
 
@@ -84,9 +90,9 @@ Start here:
 - [Documentation hub](docs/README.md)
 - [Getting started](docs/getting-started/README.md)
 - [Architecture overview](docs/architecture/README.md)
-- [Backend README](backend/educycle-java/README.md)
-- [Frontend README](frontend/README.md)
-- [Scripts README](scripts/README.md)
+- [Backend README](apps/api/README.md)
+- [Frontend README](apps/web/README.md)
+- [Scripts README](infra/scripts/README.md)
 
 Guides:
 

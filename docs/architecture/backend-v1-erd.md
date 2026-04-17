@@ -1,6 +1,6 @@
 # Backend V1 ERD
 
-Baseline migration: `backend/educycle-java/src/main/resources/db/migration/V1__baseline.sql`.
+Baseline migration: `apps/api/src/main/resources/db/migration/V1__baseline.sql`.
 
 Scope follows ADR 0001 and ADR 0002: auth/user/profile, listing/category, transaction HTTP messages, review, admin-lite support, plus persisted notifications used by core flows.
 

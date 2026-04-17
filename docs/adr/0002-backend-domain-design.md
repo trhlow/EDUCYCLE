@@ -2,7 +2,7 @@
 
 | Trường | Giá trị |
 |--------|---------|
-| Trạng thái | Đã áp dụng trên code (`backend/educycle-java`, package `com.educycle.*` domain-first) |
+| Trạng thái | Đã áp dụng trên code (`apps/api`, package `com.educycle.*` domain-first) |
 | Ngày | 2026-04-16 |
 | Phụ thuộc | [ADR 0001 — Phạm vi Backend V1](./0001-backend-scope-v1.md) |
 
@@ -39,7 +39,7 @@ apps/api/src/main/java/com/educycle
 └── admin
 ```
 
-**Ghi chú triển khai repo hiện tại:** code đang nằm trong `backend/educycle-java/`. Việc đổi sang đúng đường dẫn `apps/api/...` là **tách module / dời thư mục** (BE-3+). BE-2 chỉ **chốt cây logic**; khi chưa tách module, giữ nguyên `src/main/java/com/educycle` nhưng **bên trong** bắt chước cây trên (package `com.educycle.listing`, v.v.).
+**Ghi chú triển khai repo hiện tại:** code đang nằm trong `apps/api/`. Việc đổi sang đúng đường dẫn `apps/api/...` là **tách module / dời thư mục** (BE-3+). BE-2 chỉ **chốt cây logic**; khi chưa tách module, giữ nguyên `src/main/java/com/educycle` nhưng **bên trong** bắt chước cây trên (package `com.educycle.listing`, v.v.).
 
 ### Quy ước con trong mỗi domain (gợi ý chuẩn hóa BE-3)
 
@@ -72,7 +72,7 @@ apps/api/src/main/java/com/educycle
 
 ## Enum trạng thái & giá trị API
 
-**Quy tắc serialization:** JSON dùng **chuỗi UPPERCASE** khớp tên enum Java (đã thống nhất với frontend — `EnumType.STRING`).
+**Quy tắc serialization:** JSON dùng **chuỗi UPPERCASE** khớp tên enum Java (đã thống nhất với apps/web — `EnumType.STRING`).
 
 ### V1 lõi
 

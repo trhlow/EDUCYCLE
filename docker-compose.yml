@@ -37,7 +37,7 @@ services:
 
   api:
     build:
-      context: ./backend/educycle-java
+      context: ./apps/api
       dockerfile: Dockerfile
     env_file:
       - path: .env
@@ -80,7 +80,7 @@ services:
 
   web:
     build:
-      context: ./frontend
+      context: ./apps/web
       dockerfile: Dockerfile
     ports:
       - '80:80'

@@ -147,8 +147,8 @@ Nội dung đầy đủ: giữ/không giữ tính năng, đơn giản hóa MEETI
 ## Tài liệu liên quan
 
 - [Architecture overview](README.md) — runtime và cấu trúc hiện tại
-- [Backend README](../../backend/educycle-java/README.md)
-- [Frontend README](../../frontend/README.md)
+- [Backend README](../../apps/api/README.md)
+- [Frontend README](../../apps/web/README.md)
 
 ---
 

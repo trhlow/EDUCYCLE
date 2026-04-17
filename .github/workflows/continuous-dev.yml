@@ -39,8 +39,8 @@ jobs:
 
       - name: Run version bump script
         run: |
-          chmod +x scripts/continuous-dev.sh
-          bash scripts/continuous-dev.sh
+          chmod +x infra/scripts/continuous-dev.sh
+          bash infra/scripts/continuous-dev.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,17 +70,17 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn -B -f backend/educycle-java/pom.xml clean package --no-transfer-progress
+        run: mvn -B -f apps/api/pom.xml clean package --no-transfer-progress
 
       - name: Run tests
-        run: mvn -B -f backend/educycle-java/pom.xml test --no-transfer-progress
+        run: mvn -B -f apps/api/pom.xml test --no-transfer-progress
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports-${{ github.run_number }}
-          path: backend/educycle-java/target/surefire-reports/
+          path: apps/api/target/surefire-reports/
 
   release:
     name: Release — merge dev to main
@@ -104,8 +104,8 @@ jobs:
 
       - name: Run release script
         run: |
-          chmod +x scripts/release.sh
-          bash scripts/release.sh
+          chmod +x infra/scripts/release.sh
+          bash infra/scripts/release.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

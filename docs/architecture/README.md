@@ -6,8 +6,8 @@ This document is the current architecture overview for EduCycle. Use it as the h
 
 EduCycle is a monorepo with:
 
-- a Spring Boot API in `backend/educycle-java/`
-- a React/Vite SPA in `frontend/`
+- a Spring Boot API in `apps/api/`
+- a React/Vite SPA in `apps/web/`
 - PostgreSQL as the main database
 - optional Redis support for selected backend features
 - Docker-based local and deployment workflows
@@ -18,7 +18,7 @@ The Backend V1 contract uses REST under `/api`. WebSocket traffic under `/ws` is
 
 | Mode | Frontend | Backend | Database |
 |------|----------|---------|----------|
-| Local development | Vite on `5173` | Spring Boot on `8081` with profile `docker` | Postgres on `5433` from `backend/educycle-java/docker-compose.yml` |
+| Local development | Vite on `5173` | Spring Boot on `8081` with profile `docker` | Postgres on `5433` from `apps/api/docker-compose.yml` |
 | Full stack Docker | nginx on `80` | Containerized API behind nginx | Postgres inside root compose |
 | Deployment | Reverse proxy / edge TLS | Containerized API | Managed or self-hosted Postgres |
 
@@ -46,7 +46,7 @@ The Backend V1 contract uses REST under `/api`. WebSocket traffic under `/ws` is
 
 ### AI chat
 
-- The frontend never stores provider keys.
+- The apps/web never stores provider keys.
 - The browser calls backend endpoints only.
 - Optional RAG content is loaded from backend resources.
 - This flow is outside the default Backend V1 contract and is not included in the V1 baseline migration.
@@ -55,18 +55,18 @@ The Backend V1 contract uses REST under `/api`. WebSocket traffic under `/ws` is
 
 | Area | Location |
 |------|----------|
-| Backend controllers and services | `backend/educycle-java/src/main/java/com/educycle/` |
-| Backend config and resources | `backend/educycle-java/src/main/resources/` |
-| Frontend routes and pages | `frontend/src/App.jsx`, `frontend/src/pages/` |
-| Frontend API client | `frontend/src/api/` |
-| Frontend state and providers | `frontend/src/contexts/`, `frontend/src/providers/` |
-| Deployment compose | `docker-compose.yml`, `deploy/docker-compose.deploy.yml` |
+| Backend controllers and services | `apps/api/src/main/java/com/educycle/` |
+| Backend config and resources | `apps/api/src/main/resources/` |
+| Frontend routes and pages | `apps/web/src/App.jsx`, `apps/web/src/pages/` |
+| Frontend API client | `apps/web/src/api/` |
+| Frontend state and providers | `apps/web/src/contexts/`, `apps/web/src/providers/` |
+| Deployment compose | `docker-compose.yml`, `infra/docker/docker-compose.deploy.yml` |
 
 ## Related docs
 
 - [Getting started](../getting-started/README.md)
-- [Backend README](../../backend/educycle-java/README.md)
-- [Frontend README](../../frontend/README.md)
+- [Backend README](../../apps/api/README.md)
+- [Frontend README](../../apps/web/README.md)
 - [AI chatbot guide](../guides/ai-chatbot.md)
 - [Backend V1 ERD](backend-v1-erd.md)
 - [Production TLS guide](../guides/production-tls.md)

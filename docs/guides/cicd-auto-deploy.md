@@ -6,7 +6,7 @@ Tai lieu nay mo ta cach van hanh CD tu dong cho EduCycle.
 
 - CI: `.github/workflows/ci.yml`
 - CD: `.github/workflows/cd.yml`
-- Runtime compose tren server: `deploy/docker-compose.deploy.yml`
+- Runtime compose tren server: `infra/docker/docker-compose.deploy.yml`
 - Registry: GHCR (`ghcr.io/<owner>/educycle-api`, `ghcr.io/<owner>/educycle-web`)
 
 ## 2) Luong tu dong

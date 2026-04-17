@@ -6,11 +6,17 @@ EduCycle là nền tảng P2P giúp sinh viên trao đổi sách và tài liệu
 
 ```text
 EDUCYCLE/
-├── backend/educycle-java/   # API Spring Boot
-├── frontend/                # Ứng dụng React + Vite
-├── docs/                    # Tài liệu chung của dự án
-├── deploy/                  # Compose và cấu hình triển khai
-├── scripts/                 # Script verify và release
+├── apps/
+│   ├── api/                  # API Spring Boot
+│   └── web/                  # Ứng dụng React + Vite
+├── infra/
+│   ├── docker/               # Docker và compose
+│   ├── nginx/                # Cấu hình reverse proxy
+│   └── scripts/              # Script verify và release
+├── docs/
+│   ├── adr/                  # Architecture decision records
+│   ├── api/                  # Tài liệu API
+│   └── runbooks/             # Runbook vận hành
 ├── docker-compose.yml       # Compose full stack
 ├── .env.example
 ├── README.md
@@ -38,7 +44,7 @@ Sau đó mở [http://localhost](http://localhost).
 ### 1. Chạy PostgreSQL cho backend
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 docker compose up -d
 ```
 
@@ -47,7 +53,7 @@ Postgres sẽ mở ở `localhost:5433`.
 ### 2. Chạy backend
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 mvn spring-boot:run "-Dspring-boot.run.profiles=docker"
 ```
 
@@ -56,7 +62,7 @@ Profile `docker` chạy API ở `http://localhost:8081`.
 ### 3. Chạy frontend
 
 ```powershell
-cd frontend
+cd apps/web
 npm ci
 npm run dev
 ```
@@ -65,8 +71,8 @@ Frontend chạy ở [http://localhost:5173](http://localhost:5173).
 
 Lưu ý:
 
-- `frontend/vite.config.js` mặc định proxy dev sang `http://localhost:8081`.
-- Nếu backend chạy profile thường ở cổng `8080`, tạo `frontend/.env.local` với `VITE_DEV_PROXY_TARGET=http://localhost:8080`.
+- `apps/web/vite.config.js` mặc định proxy dev sang `http://localhost:8081`.
+- Nếu backend chạy profile thường ở cổng `8080`, tạo `apps/web/.env.local` với `VITE_DEV_PROXY_TARGET=http://localhost:8080`.
 
 ## Tính năng chính
 
@@ -84,9 +90,9 @@ Bắt đầu tại:
 - [Hub tài liệu](docs/README.md)
 - [Getting started](docs/getting-started/README.md)
 - [Kiến trúc hệ thống](docs/architecture/README.md)
-- [Backend README](backend/educycle-java/README.md)
-- [Frontend README](frontend/README.md)
-- [Scripts README](scripts/README.md)
+- [Backend README](apps/api/README.md)
+- [Frontend README](apps/web/README.md)
+- [Scripts README](infra/scripts/README.md)
 
 Hướng dẫn chi tiết:
 

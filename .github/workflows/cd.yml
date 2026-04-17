@@ -113,8 +113,8 @@ jobs:
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend/educycle-java
-          file: ./backend/educycle-java/Dockerfile
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/educycle-api:${{ steps.meta.outputs.image_tag }}
@@ -125,8 +125,8 @@ jobs:
       - name: Build and push Web image
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./apps/web
+          file: ./apps/web/Dockerfile
           push: true
           build-args: |
             VITE_API_URL=/api
@@ -154,7 +154,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.deploy.yml"
+          source: "infra/docker/docker-compose.deploy.yml"
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 1
 
@@ -209,7 +209,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: "deploy/docker-compose.deploy.yml"
+          source: "infra/docker/docker-compose.deploy.yml"
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 1
 

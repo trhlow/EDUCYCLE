@@ -28,7 +28,7 @@ services:
     environment:
       EDUCYCLE_DOMAIN: ${EDUCYCLE_DOMAIN:?đặt ví dụ app.example.edu.vn}
     volumes:
-      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./infra/nginx/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -40,7 +40,7 @@ volumes:
   caddy_config:
 ```
 
-**`deploy/caddy/Caddyfile`** — biến `EDUCYCLE_DOMAIN` truyền từ Compose (ví dụ `app.example.edu.vn`):
+**`infra/nginx/caddy/Caddyfile`** — biến `EDUCYCLE_DOMAIN` truyền từ Compose (ví dụ `app.example.edu.vn`):
 
 ```caddyfile
 {$EDUCYCLE_DOMAIN} {
@@ -73,14 +73,14 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./deploy/nginx/tls.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+      - ./infra/nginx/tls.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./infra/nginx/certs:/etc/nginx/certs:ro
     depends_on:
       web:
         condition: service_started
 ```
 
-**`deploy/nginx/tls.conf`:**
+**`infra/nginx/tls.conf`:**
 
 ```nginx
 server {
@@ -114,7 +114,7 @@ server {
 }
 ```
 
-Đặt file PEM vào `deploy/nginx/certs/` trên server (không commit).
+Đặt file PEM vào `infra/nginx/certs/` trên server (không commit).
 
 ---
 

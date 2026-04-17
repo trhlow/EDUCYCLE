@@ -16,7 +16,7 @@ EduCycle keeps all LLM provider keys on the backend. The browser only calls back
 
 Bootstrap content lives in:
 
-- `backend/educycle-java/src/main/resources/rag/educycle-knowledge.md`
+- `apps/api/src/main/resources/rag/educycle-knowledge.md`
 
 ## Docker
 
@@ -30,7 +30,7 @@ OPENAI_API_KEY=...
 ## Local backend run
 
 ```powershell
-cd backend\educycle-java
+cd apps\api
 $env:ANTHROPIC_API_KEY="..."
 mvn spring-boot:run
 ```

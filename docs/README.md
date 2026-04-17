@@ -1,14 +1,14 @@
 # EduCycle Documentation
 
-This folder contains the shared project documentation for EduCycle. Module-specific READMEs stay with their code in `backend/educycle-java/`, `frontend/`, and `scripts/`.
+This folder contains the shared project documentation for EduCycle. Module-specific READMEs stay with their code in `apps/api/`, `apps/web/`, and `infra/scripts/`.
 
 ## Start here
 
 - [Getting started](getting-started/README.md)
 - [Architecture overview](architecture/README.md)
-- [Backend README](../backend/educycle-java/README.md)
-- [Frontend README](../frontend/README.md)
-- [Scripts README](../scripts/README.md)
+- [Backend README](../apps/api/README.md)
+- [Frontend README](../apps/web/README.md)
+- [Scripts README](../infra/scripts/README.md)
 
 ## Guides
 
