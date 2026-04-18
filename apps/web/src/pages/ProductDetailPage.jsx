@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { getApiErrorMessage } from '../utils/apiError';
+import { getApiErrorMessage } from '../lib/api-error';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi, productsApi, reviewsApi } from '../api/endpoints';
-import { maskUsername } from '../utils/maskUsername';
+import { transactionsApi, productsApi, reviewsApi } from '../lib/api';
+import { maskUsername } from '../lib/mask-username';
 import { IconHeart, IconHeartFilled, IconTrash } from '../components/icons/Icons';
 import { StatusBadge } from '../components/ui';
 import './ProductDetailPage.css';
@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
     try {
       await productsApi.delete(product.id);
       toast.success('Đã xóa tin đăng.');
-      navigate('/dashboard');
+      navigate('/products');
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Không xóa được tin. Có thể sản phẩm đã có giao dịch.'));
     } finally {

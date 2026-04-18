@@ -1,10 +1,12 @@
 package com.educycle.admin.application.service;
 
 import com.educycle.admin.api.dto.request.AdminCreateUserRequest;
+import com.educycle.admin.api.dto.request.AdminResolveTransactionRequest;
 import com.educycle.admin.api.dto.request.AdminUpdateUserRequest;
 import com.educycle.admin.api.dto.response.AdminUserDetailResponse;
 import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
 import com.educycle.admin.api.dto.response.DashboardStatsResponse;
+import com.educycle.transaction.api.dto.response.TransactionResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,4 +24,8 @@ public interface AdminService {
     AdminUserDetailResponse createUser(AdminCreateUserRequest request);
 
     AdminUserDetailResponse updateUser(UUID id, AdminUpdateUserRequest request, UUID actingAdminId);
+
+    List<TransactionResponse> listDisputedTransactions();
+
+    TransactionResponse resolveDisputedTransaction(UUID id, AdminResolveTransactionRequest request);
 }

@@ -8,9 +8,6 @@ import com.educycle.listing.api.dto.request.UpdateProductRequest;
 import com.educycle.listing.application.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -58,23 +54,7 @@ public class ProductsController {
             @RequestParam(required = false) BigDecimal priceMax,
             @RequestParam(defaultValue = "newest") String sort) {
 
-        Sort sortObj = resolvePublicCatalogSort(sort, direction);
-        int safeSize = Math.min(Math.max(size, 1), 100);
-        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sortObj);
-        return ResponseEntity.ok(productService.getAll(p, q, category, priceMin, priceMax));
-    }
-
-    /** sort: newest | price-low | price-high — khớp HomePage / ProductListingPage */
-    private static Sort resolvePublicCatalogSort(String sort, String direction) {
-        String s = sort == null ? "newest" : sort.trim().toLowerCase(Locale.ROOT);
-        return switch (s) {
-            case "price-low" -> Sort.by("price").ascending().and(Sort.by("createdAt").descending());
-            case "price-high" -> Sort.by("price").descending().and(Sort.by("createdAt").descending());
-            case "rating" -> Sort.by("createdAt").descending();
-            default -> "asc".equalsIgnoreCase(direction)
-                    ? Sort.by("createdAt").ascending()
-                    : Sort.by("createdAt").descending();
-        };
+        return ResponseEntity.ok(productService.getAll(page, size, direction, q, category, priceMin, priceMax, sort));
     }
 
     // GET /api/products/mine  [Authorize]
@@ -85,12 +65,7 @@ public class ProductsController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "desc") String direction) {
 
-        Sort sort = "asc".equalsIgnoreCase(direction)
-                ? Sort.by("createdAt").ascending()
-                : Sort.by("createdAt").descending();
-        int safeSize = Math.min(Math.max(size, 1), 100);
-        Pageable p = PageRequest.of(Math.max(page, 0), safeSize, sort);
-        return ResponseEntity.ok(productService.getMyProducts(UUID.fromString(userId), p));
+        return ResponseEntity.ok(productService.getMyProducts(UUID.fromString(userId), page, size, direction));
     }
 
     // GET /api/products/pending  [Authorize(Roles="Admin")]

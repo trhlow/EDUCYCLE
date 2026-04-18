@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { transactionsApi, usersApi } from '../api/endpoints';
+import { transactionsApi, usersApi } from '../lib/api';
 import {
   EmptyState,
   PageHeader,

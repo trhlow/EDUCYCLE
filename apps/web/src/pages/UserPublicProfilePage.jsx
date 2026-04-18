@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { publicProfileApi } from '../api/endpoints';
-import { maskUsername } from '../utils/maskUsername';
+import { publicProfileApi } from '../lib/api';
+import { maskUsername } from '../lib/mask-username';
 import './UserPublicProfilePage.css';
 
 export default function UserPublicProfilePage() {

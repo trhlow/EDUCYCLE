@@ -2,10 +2,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { useBackendHealth } from './useBackendHealth';
-import { publicApi } from '../../api/endpoints';
+import { publicApi } from '../../lib/api';
 
-vi.mock('../../api/endpoints', async () => {
-  const actual = await vi.importActual('../../api/endpoints');
+vi.mock('../../lib/api', async () => {
+  const actual = await vi.importActual('../../lib/api');
   return {
     ...actual,
     publicApi: {

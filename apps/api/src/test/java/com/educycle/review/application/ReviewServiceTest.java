@@ -9,6 +9,10 @@ import com.educycle.listing.domain.Product;
 import com.educycle.review.domain.Review;
 import com.educycle.user.domain.User;
 import com.educycle.listing.infrastructure.persistence.ProductRepository;
+import com.educycle.review.application.support.ReviewResponseMapper;
+import com.educycle.review.application.usecase.CreateReviewUseCase;
+import com.educycle.review.application.usecase.DeleteReviewUseCase;
+import com.educycle.review.application.usecase.ReviewQueryUseCase;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.review.application.service.impl.ReviewServiceImpl;
@@ -17,7 +21,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,7 +42,6 @@ class ReviewServiceTest {
     @Mock private UserRepository    userRepository;
     @Mock private ProductRepository productRepository;
 
-    @InjectMocks
     private ReviewServiceImpl reviewService;
 
     private User reviewer;
@@ -57,6 +59,12 @@ class ReviewServiceTest {
                 .id(UUID.randomUUID()).name("Product").price(BigDecimal.TEN)
                 .user(reviewer).createdAt(Instant.now())
                 .build();
+
+        ReviewResponseMapper mapper = new ReviewResponseMapper();
+        reviewService = new ReviewServiceImpl(
+                new CreateReviewUseCase(reviewRepository, userRepository, productRepository, mapper),
+                new ReviewQueryUseCase(reviewRepository, mapper),
+                new DeleteReviewUseCase(reviewRepository));
     }
 
     @Nested

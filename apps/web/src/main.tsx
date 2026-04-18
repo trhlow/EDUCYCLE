@@ -1,14 +1,7 @@
 import './global-shim.js';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { WishlistProvider } from './context/WishlistContext';
-import { ToastProvider } from './components/Toast';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { QueryProvider } from './context/QueryProvider';
+import { AppProviders } from './app/providers/AppProviders';
 import './index.css';
 import App from './App';
 
@@ -19,23 +12,9 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <QueryProvider>
-      <ErrorBoundary>
-        <BrowserRouter>
-          <ThemeProvider>
-            <AuthProvider>
-              <NotificationProvider>
-                <WishlistProvider>
-                  <ToastProvider>
-                    <App />
-                  </ToastProvider>
-                </WishlistProvider>
-              </NotificationProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </QueryProvider>
+    <AppProviders>
+      <App />
+    </AppProviders>
   </StrictMode>,
 );
 

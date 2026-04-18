@@ -2,9 +2,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from './Toast';
-import { aiApi } from '../api/endpoints';
-import { streamAiChat } from '../api/aiStream';
-import { getApiErrorMessage } from '../utils/apiError';
+import { aiApi } from '../lib/api';
+import { streamAiChat } from '../lib/ai-stream';
+import { getApiErrorMessage } from '../lib/api-error';
 import { IconLock, IconMessageCircle, IconSend, IconTrash, IconX } from './icons/Icons';
 import './ChatbotWidget.css';
 

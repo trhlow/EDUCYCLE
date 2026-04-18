@@ -1,10 +1,10 @@
-import { formatPrice } from '../utils/format';
+import { formatPrice } from '../lib/format';
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { productsApi, categoriesApi, uploadProductImage } from '../api/endpoints';
-import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layout/navbarCatalogConfig';
+import { productsApi, categoriesApi, uploadProductImage } from '../lib/api';
+import { NAV_CATALOG, getCategoryDisplayLabel } from '../components/layouts/navbarCatalogConfig';
 import './PostProductPage.css';
 
 const FALLBACK_CATEGORIES = [
@@ -102,7 +102,7 @@ export default function PostProductPage() {
       } catch {
         if (!cancelled) {
           toast.error('Không tải được sản phẩm để sửa.');
-          navigate('/dashboard');
+          navigate('/products');
         }
       } finally {
         if (!cancelled) setLoadingEdit(false);
@@ -200,7 +200,7 @@ export default function PostProductPage() {
         const res = await productsApi.create(payload);
         toast.success('Đăng sản phẩm thành công.');
         const newId = res.data?.id || res.data?.Id;
-        navigate(newId ? `/products/${newId}` : '/dashboard');
+        navigate(newId ? `/products/${newId}` : '/products');
       }
     } catch (err) {
       const msg =

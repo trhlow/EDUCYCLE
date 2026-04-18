@@ -6,8 +6,8 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import { authApi, usersApi } from '../api/endpoints';
-import { clearAuthStorage, loadAuthSession } from '../utils/safeSession';
+import { authApi, usersApi } from '../lib/api';
+import { clearAuthStorage, loadAuthSession } from '../lib/safe-session';
 
 const AuthContext = createContext(null);
 

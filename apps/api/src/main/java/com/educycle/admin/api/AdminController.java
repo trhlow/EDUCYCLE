@@ -8,7 +8,6 @@ import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
 import com.educycle.admin.api.dto.response.DashboardStatsResponse;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.educycle.admin.application.service.AdminService;
-import com.educycle.transaction.application.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AdminService        adminService;
-    private final TransactionService transactionService;
+    private final AdminService adminService;
 
     @GetMapping("/stats")
     public ResponseEntity<DashboardStatsResponse> getDashboardStats() {
@@ -62,7 +60,7 @@ public class AdminController {
 
     @GetMapping("/transactions/disputed")
     public ResponseEntity<List<TransactionResponse>> listDisputedTransactions() {
-        return ResponseEntity.ok(transactionService.listDisputedTransactions());
+        return ResponseEntity.ok(adminService.listDisputedTransactions());
     }
 
     @PatchMapping("/transactions/{id}/resolve")
@@ -70,6 +68,6 @@ public class AdminController {
             @PathVariable UUID id,
             @Valid @RequestBody AdminResolveTransactionRequest request) {
 
-        return ResponseEntity.ok(transactionService.adminResolveDispute(id, request));
+        return ResponseEntity.ok(adminService.resolveDisputedTransaction(id, request));
     }
 }

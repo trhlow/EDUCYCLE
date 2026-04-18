@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { transactionsApi } from '../../api/endpoints';
-import { queryKeys } from '../../services/query/queryKeys';
+import { transactionsApi } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
 
 type VerifyOtpInput = {
   otp: string;

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { messagesApi } from '../../api/endpoints';
-import { queryKeys } from '../../services/query/queryKeys';
-import { messageSchema, type MessageDTO } from '../../services/schemas/entities';
+import { messagesApi } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
+import { messageSchema, type MessageDTO } from '../../lib/entity-schemas';
 import { upsertMessage } from './useTransactionMessages';
 
 type SendMessageInput = {

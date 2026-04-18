@@ -4,11 +4,13 @@ import com.educycle.transaction.api.dto.request.ChatMessage;
 import com.educycle.transaction.api.dto.response.MessageResponse;
 import com.educycle.transaction.api.dto.request.SendMessageRequest;
 import com.educycle.transaction.application.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 
 import java.security.Principal;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Controller
+@Validated
 @RequiredArgsConstructor
 public class ChatController {
 
@@ -27,7 +30,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat.send")
-    public void sendMessage(ChatMessage message, Principal principal) {
+    public void sendMessage(@Valid ChatMessage message, Principal principal) {
         if (principal == null) {
             log.warn("WebSocket message without authenticated principal");
             return;

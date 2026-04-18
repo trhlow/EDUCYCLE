@@ -43,29 +43,42 @@ Default dev proxy behavior:
 
 | Path | Purpose |
 |------|---------|
-| `src/api/` | API client and endpoint wrappers |
-| `src/components/` | Reusable UI and layout components |
-| `src/contexts/` | Auth and other app-level contexts |
-| `src/features/` | Feature-level UI logic |
+| `src/app/` | App shell, route groups, root layout, router, and providers |
+| `src/app/(auth)/` | Auth route group |
+| `src/app/(dashboard)/` | Protected app route group |
+| `src/app/api/` | Reserved BFF route-handler boundary for future backend-for-frontend work |
+| `src/app/router/` | React Router composition and route guards |
+| `src/app/providers/` | Root provider stack |
+| `src/components/ui/` | Shared UI primitives |
+| `src/components/forms/` | Shared form components |
+| `src/components/layouts/` | Layout and navigation components |
+| `src/components/` | Reusable non-route widgets and product components |
+| `src/context/` | Existing app-level contexts during migration |
+| `src/features/` | Feature-owned route modules and future feature logic |
+| `src/lib/` | API client, endpoint wrappers, query client, schemas, and utilities |
+| `src/hooks/` | Custom React hooks |
 | `src/pages/` | Route pages |
-| `src/providers/` | Query and app providers |
+| `src/stores/` | Reserved global store boundary |
 | `src/styles/` | Shared styling tokens and CSS |
-| `src/test/` | Frontend tests |
-| `e2e/` | Playwright tests |
+| `src/types/` | Shared type declarations |
+| `tests/unit/` | Vitest unit tests |
+| `tests/integration/` | Testing Library integration tests |
+| `tests/e2e/` | Playwright tests |
 
 ## Main routes
 
-The app currently includes flows for:
+V1 frontend scope is intentionally narrow. Keep the core marketplace loop:
 
 - auth
-- product listing and product detail
-- post/edit product
-- transactions and transaction detail
-- wishlist, profile, dashboard, admin
-- public user profiles
-- book-wanted listing, detail, create/edit, mine, and inquiry chat
+- listing
+- transaction
+- review
+- minimal profile
+- admin lite
 
-Route definitions live in `src/App.jsx`.
+Defer book-wanted, standalone inquiry chat, secondary static/support screens, cart, wishlist as a route, dashboard as a route, and broad UI redesign.
+
+`src/App.jsx` is now only the app shell entry. Route ownership lives in feature route modules under `src/features/*/*.routes.jsx`, and `src/app/router/routes.jsx` separates public, private, and admin-only route groups. This remains a React/Vite app, so there is no fake `next.config.ts` or `tailwind.config.ts` until the stack actually migrates to Next.js or Tailwind. The FE-1 target route map and sitemap decisions are documented in [Frontend V1 route map](docs/frontend-v1-route-map.md).
 
 ## Running locally
 

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { mediaApi } from '../api/endpoints';
-import { queryKeys } from '../services/query/queryKeys';
-import { unsplashCuratedSchema, type UnsplashCuratedResponse } from '../services/schemas/entities';
+import { mediaApi } from '../lib/api';
+import { queryKeys } from '../lib/query-keys';
+import { unsplashCuratedSchema, type UnsplashCuratedResponse } from '../lib/entity-schemas';
 
 type UnsplashOrientation = 'landscape' | 'portrait';
 

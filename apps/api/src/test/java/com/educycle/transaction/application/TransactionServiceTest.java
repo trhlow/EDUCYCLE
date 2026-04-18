@@ -17,7 +17,14 @@ import com.educycle.shared.config.JwtProperties;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.notification.application.service.NotificationService;
+import com.educycle.transaction.application.support.ProductSoldMarker;
+import com.educycle.transaction.application.support.TransactionResponseMapper;
 import com.educycle.transaction.application.service.impl.TransactionServiceImpl;
+import com.educycle.transaction.application.usecase.CreateTransactionUseCase;
+import com.educycle.transaction.application.usecase.TransactionDisputeUseCase;
+import com.educycle.transaction.application.usecase.TransactionOtpUseCase;
+import com.educycle.transaction.application.usecase.TransactionQueryUseCase;
+import com.educycle.transaction.application.usecase.TransactionStatusUseCase;
 import com.educycle.shared.util.OtpHasher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,8 +70,14 @@ class TransactionServiceTest {
         JwtProperties jwtProperties = new JwtProperties();
         jwtProperties.setSecret("test-jwt-secret-at-least-32-characters-long!");
         otpHasher = new OtpHasher("", jwtProperties);
+        TransactionResponseMapper mapper = new TransactionResponseMapper();
+        ProductSoldMarker productSoldMarker = new ProductSoldMarker(productRepository);
         transactionService = new TransactionServiceImpl(
-                transactionRepository, productRepository, userRepository, notificationService, otpHasher);
+                new CreateTransactionUseCase(transactionRepository, productRepository, userRepository, notificationService, mapper),
+                new TransactionQueryUseCase(transactionRepository, mapper),
+                new TransactionStatusUseCase(transactionRepository, notificationService, productSoldMarker, mapper),
+                new TransactionOtpUseCase(transactionRepository, productSoldMarker, otpHasher),
+                new TransactionDisputeUseCase(transactionRepository, notificationService, productSoldMarker, mapper));
     }
 
     @Nested

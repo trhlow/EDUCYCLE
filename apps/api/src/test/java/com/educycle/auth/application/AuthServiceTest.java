@@ -8,7 +8,14 @@ import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.shared.security.JwtTokenProvider;
+import com.educycle.auth.application.support.AuthRefreshTokens;
+import com.educycle.auth.application.support.AuthResponses;
+import com.educycle.auth.application.support.OtpCodeGenerator;
 import com.educycle.auth.application.service.impl.AuthServiceImpl;
+import com.educycle.auth.application.usecase.AuthAccountUseCase;
+import com.educycle.auth.application.usecase.AuthRegistrationUseCase;
+import com.educycle.auth.application.usecase.AuthSessionUseCase;
+import com.educycle.auth.application.usecase.PasswordRecoveryUseCase;
 import com.educycle.shared.mail.MailService;
 import com.educycle.shared.util.MessageConstants;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +23,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,8 +55,23 @@ class AuthServiceTest {
     @Mock
     private MailService mailService;
 
-    @InjectMocks
     private AuthServiceImpl authService;
+
+    @BeforeEach
+    void initService() {
+        AuthRefreshTokens refreshTokens = new AuthRefreshTokens(jwtTokenProvider);
+        AuthResponses authResponses = new AuthResponses(jwtTokenProvider);
+        OtpCodeGenerator otpCodeGenerator = new OtpCodeGenerator("");
+        AuthRegistrationUseCase registrationUseCase = new AuthRegistrationUseCase(
+                userRepository, passwordEncoder, mailService, otpCodeGenerator, refreshTokens, authResponses);
+        AuthSessionUseCase sessionUseCase = new AuthSessionUseCase(
+                userRepository, passwordEncoder, refreshTokens, authResponses);
+        AuthAccountUseCase accountUseCase = new AuthAccountUseCase(userRepository, passwordEncoder, refreshTokens);
+        PasswordRecoveryUseCase passwordRecoveryUseCase = new PasswordRecoveryUseCase(
+                userRepository, passwordEncoder, mailService, refreshTokens);
+        authService = new AuthServiceImpl(
+                registrationUseCase, sessionUseCase, accountUseCase, passwordRecoveryUseCase);
+    }
 
     @Nested
     @DisplayName("register()")

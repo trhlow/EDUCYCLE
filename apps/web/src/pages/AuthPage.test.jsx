@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi, test, expect } from 'vitest';
 import AuthPage from './AuthPage';
 import { AuthProvider } from '../context/AuthContext';
-import { authApi } from '../api/endpoints';
+import { authApi } from '../lib/api';
 
 const mockToast = {
   success: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('../components/Toast', () => ({
   ToastProvider: ({ children }) => children,
 }));
 
-vi.mock('../api/endpoints', () => ({
+vi.mock('../lib/api', () => ({
   authApi: {
     login: vi.fn(),
     register: vi.fn(),

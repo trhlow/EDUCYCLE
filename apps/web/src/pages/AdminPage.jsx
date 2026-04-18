@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { formatPrice, formatDate } from '../utils/format';
+import { formatPrice, formatDate } from '../lib/format';
 import { useState, useEffect, useCallback } from 'react';
 import EduCycleLogo from '../components/branding/EduCycleLogo';
 import { useToast } from '../components/Toast';
-import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api/endpoints';
-import { getApiErrorMessage } from '../utils/apiError';
+import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../lib/api';
+import { getApiErrorMessage } from '../lib/api-error';
 import './AdminPage.css';
 
 /** Sprint 3: từ chối tin kèm lý do (notify seller từ BE) */

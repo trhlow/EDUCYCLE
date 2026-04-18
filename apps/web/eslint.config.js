@@ -40,7 +40,7 @@ export default defineConfig([
       'vitest.config.js',
       'eslint.config.js',
       '*.config.mjs',
-      'e2e/**/*.{js,jsx,ts,tsx,mjs}',
+      'tests/e2e/**/*.{js,jsx,ts,tsx,mjs}',
     ],
     languageOptions: {
       globals: globals.node,

@@ -5,7 +5,10 @@ import com.educycle.user.domain.Role;
 import com.educycle.user.domain.User;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
+import com.educycle.user.application.support.UserProfileMapper;
 import com.educycle.user.application.service.impl.UserProfileServiceImpl;
+import com.educycle.user.application.usecase.CurrentUserProfileUseCase;
+import com.educycle.user.application.usecase.PublicUserProfileUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +37,9 @@ class UserProfileServiceAcceptRulesTest {
 
     @BeforeEach
     void setUp() {
-        userProfileService = new UserProfileServiceImpl(userRepository, reviewRepository);
+        userProfileService = new UserProfileServiceImpl(
+                new CurrentUserProfileUseCase(userRepository, new UserProfileMapper()),
+                new PublicUserProfileUseCase(userRepository, reviewRepository));
         user = User.builder()
                 .id(UUID.randomUUID())
                 .username("u")

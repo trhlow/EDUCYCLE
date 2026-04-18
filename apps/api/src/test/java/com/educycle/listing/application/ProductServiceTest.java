@@ -10,7 +10,14 @@ import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.listing.domain.Product;
 import com.educycle.user.domain.User;
+import com.educycle.listing.application.support.ProductImages;
+import com.educycle.listing.application.support.ProductPageMapper;
+import com.educycle.listing.application.support.ProductResponseMapper;
+import com.educycle.listing.application.usecase.ProductCatalogUseCase;
+import com.educycle.listing.application.usecase.ProductModerationUseCase;
+import com.educycle.listing.application.usecase.ProductOwnerUseCase;
 import com.educycle.listing.infrastructure.persistence.ProductRepository;
+import com.educycle.notification.application.service.NotificationService;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -21,7 +28,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,10 +72,12 @@ class ProductServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
     private ProductServiceImpl productService;
 
     private User testUser;
@@ -88,6 +96,14 @@ class ProductServiceTest {
         // Default: reviews always return empty (matches C# constructor setup)
         lenient().when(reviewRepository.findByProductId(any())).thenReturn(Collections.emptyList());
         lenient().when(transactionRepository.existsByProduct_Id(any())).thenReturn(false);
+
+        ProductImages productImages = new ProductImages(objectMapper);
+        ProductResponseMapper responseMapper = new ProductResponseMapper(productImages);
+        ProductPageMapper pageMapper = new ProductPageMapper(reviewRepository, responseMapper);
+        productService = new ProductServiceImpl(
+                new ProductOwnerUseCase(productRepository, transactionRepository, userRepository, productImages, responseMapper),
+                new ProductCatalogUseCase(productRepository, reviewRepository, pageMapper, responseMapper),
+                new ProductModerationUseCase(productRepository, notificationService, responseMapper));
     }
 
     // ===================================================================

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { transactionsApi } from '../../api/endpoints';
-import { queryKeys } from '../../services/query/queryKeys';
-import { transactionSchema } from '../../services/schemas/entities';
+import { transactionsApi } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
+import { transactionSchema } from '../../lib/entity-schemas';
 
 export const useTransaction = (id: string | number | undefined) =>
   useQuery({

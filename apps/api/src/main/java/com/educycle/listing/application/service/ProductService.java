@@ -25,11 +25,23 @@ public interface ProductService {
             BigDecimal priceMin,
             BigDecimal priceMax);
 
+    PageResponse<ProductResponse> getAll(
+            int page,
+            int size,
+            String direction,
+            String q,
+            String category,
+            BigDecimal priceMin,
+            BigDecimal priceMax,
+            String sort);
+
     List<ProductResponse> getAllForAdmin();
 
     List<ProductResponse> getPending();
 
     PageResponse<ProductResponse> getMyProducts(UUID userId, Pageable pageable);
+
+    PageResponse<ProductResponse> getMyProducts(UUID userId, int page, int size, String direction);
 
     ProductResponse update(UUID id, UpdateProductRequest request, UUID userId);
 

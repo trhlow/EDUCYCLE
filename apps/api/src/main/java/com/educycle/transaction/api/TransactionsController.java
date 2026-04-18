@@ -81,7 +81,7 @@ public class TransactionsController {
     public ResponseEntity<TransactionResponse> cancelTransaction(
             @PathVariable UUID id,
             @AuthenticationPrincipal String userId,
-            @RequestBody(required = false) CancelTransactionRequest body) {
+            @Valid @RequestBody(required = false) CancelTransactionRequest body) {
 
         return ResponseEntity.ok(
                 transactionService.cancelTransaction(id, UUID.fromString(userId), body));
@@ -122,7 +122,7 @@ public class TransactionsController {
     public ResponseEntity<TransactionResponse> openDispute(
             @PathVariable UUID id,
             @AuthenticationPrincipal String userId,
-            @RequestBody(required = false) DisputeTransactionRequest body) {
+            @Valid @RequestBody(required = false) DisputeTransactionRequest body) {
 
         return ResponseEntity.ok(
                 transactionService.openDispute(id, UUID.fromString(userId), body));

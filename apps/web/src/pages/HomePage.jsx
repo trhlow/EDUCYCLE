@@ -3,11 +3,11 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
-import { productsApi } from '../api/endpoints';
-import { HOME_CATEGORY_CHIPS } from '../components/layout/navbarCatalogConfig';
-import { extractPage } from '../utils/pageApi';
+import { productsApi } from '../lib/api';
+import { HOME_CATEGORY_CHIPS } from '../components/layouts/navbarCatalogConfig';
+import { extractPage } from '../lib/page-api';
 import { useUnsplashCurated } from '../hooks/useUnsplashCurated';
-import { isEducationalListing } from '../utils/academicMarketplace';
+import { isEducationalListing } from '../lib/academic-marketplace';
 import ProductGridSkeleton from '../components/ProductGridSkeleton';
 import {
   IconHeart,
@@ -518,9 +518,7 @@ export default function HomePage() {
                 : `${products.length} đã tải${totalElements ? ` · ${totalElements} khớp bộ lọc` : ''}`}
             </p>
             <p className="hp-products-note">
-              <Link to="/book-wanted" className="hp-products-note-link">
-                Đang cần mua / tìm sách? Xem tin nhu cầu từ sinh viên →
-              </Link>
+              Cần thêm thông tin giao dịch? Xem hướng dẫn trước khi gửi yêu cầu mua.
             </p>
           </Reveal>
 

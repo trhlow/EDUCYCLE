@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { productsApi } from '../../api/endpoints';
-import { queryKeys } from '../../services/query/queryKeys';
-import { productSchema } from '../../services/schemas/entities';
-import { buildPageSchema, normalizePagePayload } from '../../services/schemas/page';
+import { productsApi } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
+import { productSchema } from '../../lib/entity-schemas';
+import { buildPageSchema, normalizePagePayload } from '../../lib/page-schema';
 
 export type ProductsQueryParams = {
   page?: number;

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { authApi } from '../api/endpoints';
+import { authApi } from '../lib/api';
 import EduCycleLogo from '../components/branding/EduCycleLogo';
 import './AuthPage.css';
 

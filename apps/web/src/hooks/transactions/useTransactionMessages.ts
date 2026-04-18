@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { messagesApi } from '../../api/endpoints';
-import { queryKeys } from '../../services/query/queryKeys';
-import { messageSchema } from '../../services/schemas/entities';
+import { messagesApi } from '../../lib/api';
+import { queryKeys } from '../../lib/query-keys';
+import { messageSchema } from '../../lib/entity-schemas';
 
 export const upsertMessage = <T extends { id?: string | number }>(
   previous: T[] | undefined,

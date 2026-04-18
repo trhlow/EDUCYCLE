@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { notificationsApi } from '../api/endpoints';
+import { notificationsApi } from '../lib/api';
 import { useAuth } from './AuthContext';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { resolveWsOrigin } from '../utils/apiBase';
+import { resolveWsOrigin } from '../lib/api-base';
 import { IconX } from '../components/icons/Icons';
 
 const NotificationContext = createContext(null);
@@ -21,7 +21,7 @@ function resolveNotifRoute(notif) {
       return refId ? `/transactions/${refId}` : '/transactions';
     case 'PRODUCT_APPROVED':
     case 'PRODUCT_REJECTED':
-      return refId ? `/products/${refId}` : '/dashboard';
+      return refId ? `/products/${refId}` : '/products';
     default:
       return '/transactions';
   }
