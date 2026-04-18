@@ -4,23 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --config config/vite.config.js",
+    "build": "vite build --config config/vite.config.js",
     "typecheck": "tsc -b",
-    "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:api": "playwright test -c playwright.api-ci.config.mjs",
-    "preview": "vite preview",
+    "lint": "eslint --config config/eslint.config.js .",
+    "format": "prettier --config config/prettier.config.json --write \"src/**/*.{js,jsx,ts,tsx}\"",
+    "test": "vitest run --config config/vitest.config.js",
+    "test:watch": "vitest --config config/vitest.config.js",
+    "test:coverage": "vitest run --coverage --config config/vitest.config.js",
+    "test:e2e": "playwright test -c config/playwright.config.mjs",
+    "test:e2e:api": "playwright test -c config/playwright.api-ci.config.mjs",
+    "preview": "vite preview --config config/vite.config.js",
     "prepare": "husky",
     "gitnexus:analyze": "gitnexus analyze . --skills"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": [
-      "prettier --write",
+      "prettier --config config/prettier.config.json --write",
       "eslint --fix"
     ]
   },

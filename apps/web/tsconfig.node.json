@@ -9,7 +9,8 @@
     "strict": true,
     "verbatimModuleSyntax": true,
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.node.tsbuildinfo"
   },
-  "include": ["vite.config.js", "vitest.config.js", "eslint.config.js"]
+  "include": ["config/vite.config.js", "config/vitest.config.js", "config/eslint.config.js"]
 }

@@ -36,10 +36,8 @@ export default defineConfig([
   },
   {
     files: [
-      'vite.config.js',
-      'vitest.config.js',
-      'eslint.config.js',
-      '*.config.mjs',
+      'config/**/*.js',
+      'config/**/*.mjs',
       'tests/e2e/**/*.{js,jsx,ts,tsx,mjs}',
     ],
     languageOptions: {

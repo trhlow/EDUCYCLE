@@ -36,13 +36,14 @@ Useful apps/web env vars:
 
 Default dev proxy behavior:
 
-- `vite.config.js` proxies `/api` and `/ws` to `http://localhost:8081`
+- `config/vite.config.js` proxies `/api` and `/ws` to `http://localhost:8081`
 - if the backend runs on `8080`, add `VITE_DEV_PROXY_TARGET=http://localhost:8080` to `.env.local`
 
 ## Main folders
 
 | Path | Purpose |
 |------|---------|
+| `config/` | Tooling, test, deployment, and formatting configuration |
 | `src/app/` | App shell, route groups, root layout, router, and providers |
 | `src/app/(auth)/` | Auth route group |
 | `src/app/(dashboard)/` | Protected app route group |

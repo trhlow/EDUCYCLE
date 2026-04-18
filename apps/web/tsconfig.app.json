@@ -20,7 +20,8 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.app.tsbuildinfo"
   },
   "include": ["src"]
 }
