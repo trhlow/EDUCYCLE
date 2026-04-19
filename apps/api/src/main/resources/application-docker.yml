@@ -3,7 +3,12 @@ server:
   port: 8081
 
 spring:
+  config:
+    import: optional:file:.env.local[.properties]
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/educycledb}
     username: ${SPRING_DATASOURCE_USERNAME:educycle}
-    password: ${SPRING_DATASOURCE_PASSWORD:educycle123}
+    password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD:}}
+
+jwt:
+  secret: ${JWT_SECRET:}

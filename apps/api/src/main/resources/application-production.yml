@@ -4,6 +4,9 @@
 # OpenTelemetry: mặc định tắt qua OTEL_SDK_DISABLED=true trong application.yml gốc.
 # Bật trace/metric prod: đặt OTEL_SDK_DISABLED=false và OTLP endpoint (vd. OTEL_EXPORTER_OTLP_ENDPOINT).
 
+cors:
+  allowed-origins-csv: ${CORS_ALLOWED_ORIGINS:}
+
 springdoc:
   api-docs:
     enabled: false

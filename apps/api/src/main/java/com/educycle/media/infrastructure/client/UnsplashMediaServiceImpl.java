@@ -7,6 +7,7 @@ import com.educycle.media.api.dto.response.UnsplashImageResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -29,6 +30,7 @@ public class UnsplashMediaServiceImpl implements UnsplashMediaService {
     private final Clock clock;
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
 
+    @Autowired
     public UnsplashMediaServiceImpl(UnsplashProperties properties, UnsplashClient unsplashClient) {
         this(properties, unsplashClient, Clock.systemUTC());
     }

@@ -58,6 +58,8 @@ public final class MessageConstants {
     public static final String UNEXPECTED_ERROR = "Đã xảy ra lỗi không mong muốn";
     public static final String TOO_MANY_REQUESTS = "Bạn thao tác quá nhiều lần. Vui lòng thử lại sau.";
     public static final String JWT_SECRET_REQUIRED = "JWT secret bắt buộc phải được cấu hình bằng biến môi trường JWT_SECRET";
+    public static final String JWT_SECRET_TOO_SHORT = "JWT_SECRET phải có ít nhất 32 ký tự";
+    public static final String REQUIRED_CONFIG_MISSING_PREFIX = "Thiếu cấu hình bắt buộc: ";
 
     public static final String CURRENT_PASSWORD_WRONG = "Mật khẩu hiện tại không đúng";
     public static final String OTP_GENERATE_BUYER_ONLY = "Chỉ người mua mới được tạo mã OTP cho giao dịch này.";

@@ -1,3 +1,3 @@
-export { listingPrivateRoutes } from '../../features/listing/listing.routes';
-export { profilePrivateRoutes } from '../../features/profile/profile.routes';
-export { transactionPrivateRoutes } from '../../features/transaction/transaction.routes';
+export { listingPrivateRoutes } from '../../features/listing/routes/listing.routes';
+export { profilePrivateRoutes } from '../../features/profile/routes/profile.routes';
+export { transactionPrivateRoutes } from '../../features/transaction/routes/transaction.routes';

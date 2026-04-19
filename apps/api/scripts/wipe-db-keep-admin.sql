@@ -4,7 +4,7 @@
 -- PostgreSQL (EduCycle). Không đụng bảng flyway_schema_history.
 --
 -- Chạy (Docker backend compose — port 5433):
---   set PGPASSWORD=educycle123
+--   set PGPASSWORD=<local-db-password>
 --   psql -h localhost -p 5433 -U educycle -d educycledb -v ON_ERROR_STOP=1 -f scripts/wipe-db-keep-admin.sql
 --
 -- Hoặc: docker compose exec -T db psql -U educycle -d educycledb -v ON_ERROR_STOP=1 < scripts/wipe-db-keep-admin.sql

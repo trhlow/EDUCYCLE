@@ -1,7 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import MobileQuickActions from './MobileQuickActions';
-import ChatbotWidget from '../ChatbotWidget';
 import EduCycleLogo from '../branding/EduCycleLogo';
 import BackendStatusBanner from '../system/BackendStatusBanner';
 import './AppLayout.css';
@@ -52,7 +51,6 @@ export default function AppLayout() {
         </div>
       </footer>
 
-      <ChatbotWidget />
     </div>
   );
 }

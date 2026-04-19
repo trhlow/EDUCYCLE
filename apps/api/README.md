@@ -29,30 +29,49 @@
 - Maven 3.9+
 - PostgreSQL 18+
 
-### 1. Database (chọn một)
+### 1. Local secrets / env
 
-**A — Postgres cài trên máy (port 5432), khớp `application.yml` mặc định**
+`application.yml` không chứa DB password hoặc JWT secret mặc định. Tạo file local riêng:
 
-Kết nối bằng superuser (`postgres`), chạy:
+```powershell
+Copy-Item .env.local.example .env.local
+```
+
+Sửa `.env.local` và đặt ít nhất:
+
+```properties
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/educycledb
+SPRING_DATASOURCE_USERNAME=educycle
+SPRING_DATASOURCE_PASSWORD=<mat-khau-local-cua-ban>
+JWT_SECRET=<chuoi-ngau-nhien-it-nhat-32-ky-tu>
+```
+
+Production phải set các biến này bằng secret manager / env vars thật. App sẽ fail-fast nếu thiếu `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, hoặc `JWT_SECRET`.
+
+### 2. Database (chọn một)
+
+**A — Postgres cài trên máy (port 5432), dùng profile `local`)**
+
+Kết nối bằng superuser (`postgres`), dùng đúng password bạn đặt trong `.env.local`:
 
 ```sql
-CREATE USER educycle WITH PASSWORD 'educycle123';
+CREATE USER educycle WITH PASSWORD '<mat-khau-local-cua-ban>';
 CREATE DATABASE educycledb OWNER educycle;
 ```
 
 Nếu DB đã tồn tại và thuộc `postgres`:
 
 ```sql
-CREATE USER educycle WITH PASSWORD 'educycle123';
+CREATE USER educycle WITH PASSWORD '<mat-khau-local-cua-ban>';
 GRANT ALL PRIVILEGES ON DATABASE educycledb TO educycle;
 \c educycledb
 GRANT ALL ON SCHEMA public TO educycle;
 ALTER SCHEMA public OWNER TO educycle;
 ```
 
-Đổi mật khẩu user có sẵn: `ALTER USER educycle WITH PASSWORD 'educycle123';`
+Đổi mật khẩu user có sẵn: `ALTER USER educycle WITH PASSWORD '<mat-khau-local-cua-ban>';`
 
-**B — Docker Compose** (Postgres host **5433**, user/pass như trên): từ thư mục `apps/api` chạy `docker compose up -d`, rồi start BE với profile **`docker`** (xem mục 4 bên dưới).
+**B — Docker Compose** (Postgres host **5433**): đặt `POSTGRES_PASSWORD` trong `.env.local`, chạy `docker compose up -d`, rồi start BE với profile **`docker`** (xem mục Swagger bên dưới).
 
 **C — Mật khẩu / URL khác** (không sửa file trong repo): PowerShell trước khi `mvn spring-boot:run`:
 
@@ -60,21 +79,7 @@ ALTER SCHEMA public OWNER TO educycle;
 $env:SPRING_DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/educycledb'
 $env:SPRING_DATASOURCE_USERNAME = 'postgres'
 $env:SPRING_DATASOURCE_PASSWORD = 'mat_khau_cua_ban'
-```
-
-### 2. Configure `application.yml`
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/educycledb
-    username: educycle
-    password: educycle123
-
-jwt:
-  secret: YOUR_SECRET_KEY_AT_LEAST_32_CHARACTERS_LONG
-  issuer: EduCycle
-  audience: EduCycleUsers
-  expiration-hours: 2
+$env:JWT_SECRET = 'chuoi_ngau_nhien_it_nhat_32_ky_tu'
 ```
 
 **Ảnh sản phẩm (Sprint 3)** — mặc định lưu đĩa cục bộ, không nhét base64 vào DB:
@@ -84,7 +89,7 @@ jwt:
 
 ### 3. Run
 ```bash
-mvn spring-boot:run
+mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
 Flyway chạy `src/main/resources/db/migration/V1__baseline.sql`. Đây là baseline sạch cho Backend V1; nếu DB local/dev đã từng chạy chuỗi migration cũ (`V1__initial_schema.sql` → `V16__...`) thì cần drop/recreate DB hoặc xóa volume Docker trước khi chạy lại.
@@ -112,6 +117,11 @@ Click **Authorize** and enter: `Bearer <your-jwt-token>`
 ```bash
 mvn test
 ```
+
+Integration tests chạy cùng `mvn test`:
+- Ưu tiên Postgres Testcontainers để kiểm tra migration từ DB rỗng.
+- Nếu Docker không chạy nhưng máy có `initdb`/`pg_ctl`/`createdb`, test tự tạo Postgres tạm trong `target`.
+- Nếu Postgres binaries không nằm trong `PATH`, đặt `POSTGRES_BIN` trỏ tới thư mục `bin` của PostgreSQL.
 
 ---
 

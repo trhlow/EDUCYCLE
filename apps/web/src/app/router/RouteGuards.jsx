@@ -1,16 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LoadingState } from '../../components/ui';
 
 export function ProtectedRoute({ children, adminOnly = false }) {
   const { isAuthenticated, isAdmin, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div className="loading-spinner" />
-      </div>
-    );
+    return <LoadingState label="Đang kiểm tra phiên đăng nhập..." />;
   }
 
   if (!isAuthenticated) {
@@ -29,11 +26,7 @@ export function GuestRoute({ children }) {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div className="loading-spinner" />
-      </div>
-    );
+    return <LoadingState label="Đang kiểm tra phiên đăng nhập..." />;
   }
 
   // Cho phép mở /auth?resetToken=... kể cả khi đã đăng nhập (link từ email quên mật khẩu)

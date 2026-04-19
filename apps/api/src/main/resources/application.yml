@@ -23,9 +23,9 @@ spring:
       max-request-size: 6MB
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/educycledb}
-    username: ${SPRING_DATASOURCE_USERNAME:educycle}
-    password: ${SPRING_DATASOURCE_PASSWORD:educycle123}
+    url: ${SPRING_DATASOURCE_URL:}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -51,7 +51,7 @@ server:
   forward-headers-strategy: framework
 
 app:
-  apps/web-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
+  frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:5173}
   mail-from: ${APP_MAIL_FROM:EduCycle <noreply@educycle.local>}
   # Ảnh sản phẩm (local). Production: dùng object storage + URL công khai.
   upload-dir: ${APP_UPLOAD_DIR:./data/uploads}
@@ -61,10 +61,10 @@ cors:
   allowed-origins-csv: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost,http://127.0.0.1}
 
 jwt:
-  secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_AT_LEAST_32_CHARS_LONG}
-  issuer: EduCycle
-  audience: EduCycleUsers
-  expiration-hours: 2
+  secret: ${JWT_SECRET:}
+  issuer: ${JWT_ISSUER:EduCycle}
+  audience: ${JWT_AUDIENCE:EduCycleUsers}
+  expiration-hours: ${JWT_EXPIRATION_HOURS:2}
 
 # ── Anthropic AI Chatbot ────────────────────────────────────────────────────
 # Lấy API key tại: https://console.anthropic.com/

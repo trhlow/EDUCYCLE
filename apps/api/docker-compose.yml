@@ -2,10 +2,11 @@
 services:
   db:
     image: postgres:18-alpine
+    env_file:
+      - .env.local
     environment:
-      POSTGRES_DB: educycledb
-      POSTGRES_USER: educycle
-      POSTGRES_PASSWORD: educycle123
+      POSTGRES_DB: ${POSTGRES_DB:-educycledb}
+      POSTGRES_USER: ${POSTGRES_USER:-educycle}
     ports:
       - "5433:5432"
     volumes:

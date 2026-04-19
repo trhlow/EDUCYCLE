@@ -53,12 +53,12 @@ Default dev proxy behavior:
 | `src/components/ui/` | Shared UI primitives |
 | `src/components/forms/` | Shared form components |
 | `src/components/layouts/` | Layout and navigation components |
-| `src/components/` | Reusable non-route widgets and product components |
+| `src/components/` | Shared UI, form, layout, system, and non-domain widgets |
 | `src/context/` | Existing app-level contexts during migration |
-| `src/features/` | Feature-owned route modules and future feature logic |
+| `src/features/` | Feature-owned API facades, schemas, hooks, routes, pages, and private components |
 | `src/lib/` | API client, endpoint wrappers, query client, schemas, and utilities |
-| `src/hooks/` | Custom React hooks |
-| `src/pages/` | Route pages |
+| `src/hooks/` | Shared custom React hooks that are not owned by one feature |
+| `src/pages/` | App/system pages only, such as 404 during the migration |
 | `src/stores/` | Reserved global store boundary |
 | `src/styles/` | Shared styling tokens and CSS |
 | `src/types/` | Shared type declarations |
@@ -79,7 +79,7 @@ V1 frontend scope is intentionally narrow. Keep the core marketplace loop:
 
 Defer book-wanted, standalone inquiry chat, secondary static/support screens, cart, wishlist as a route, dashboard as a route, and broad UI redesign.
 
-`src/App.jsx` is now only the app shell entry. Route ownership lives in feature route modules under `src/features/*/*.routes.jsx`, and `src/app/router/routes.jsx` separates public, private, and admin-only route groups. This remains a React/Vite app, so there is no fake `next.config.ts` or `tailwind.config.ts` until the stack actually migrates to Next.js or Tailwind. The FE-1 target route map and sitemap decisions are documented in [Frontend V1 route map](docs/frontend-v1-route-map.md).
+`src/App.tsx` is now only the app shell entry. Route ownership lives in feature route modules under `src/features/*/routes/*.routes.jsx`, and `src/app/router/routes.jsx` only composes public, private, and admin-only route groups. Each V1 feature now has explicit `api/`, `components/`, `hooks/`, `schemas/`, `routes/`, and `pages/` boundaries. This remains a React/Vite app, so there is no fake `next.config.ts` or `tailwind.config.ts` until the stack actually migrates to Next.js or Tailwind. The FE-1 target route map and sitemap decisions are documented in [Frontend V1 route map](docs/frontend-v1-route-map.md).
 
 ## Running locally
 

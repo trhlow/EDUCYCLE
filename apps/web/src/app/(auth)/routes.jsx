@@ -1,1 +1,1 @@
-export { authPublicRoutes, authRoutes } from '../../features/auth/auth.routes';
+export { authPublicRoutes, authRoutes } from '../../features/auth/routes/auth.routes';

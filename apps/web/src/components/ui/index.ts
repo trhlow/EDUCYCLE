@@ -3,3 +3,8 @@ export { default as SurfaceCard } from './SurfaceCard';
 export { default as StatusBadge } from './StatusBadge';
 export { default as EmptyState } from './EmptyState';
 export { default as SegmentedControl } from './SegmentedControl';
+export { default as LoadingState } from './LoadingState';
+export { default as ErrorState } from './ErrorState';
+export { default as FormMessage } from './FormMessage';
+export { fieldErrorId, invalidFieldProps } from './form-message-utils';
+export { default as PermissionGate } from './PermissionGate';

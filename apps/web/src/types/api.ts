@@ -1,8 +1,12 @@
 export type {
   UserDTO,
+  CategoryDTO,
   ProductDTO,
   TransactionDTO,
   MessageDTO,
+  ReviewDTO,
+  NotificationDTO,
+  PublicProfileDTO,
   UnsplashImage,
   UnsplashCuratedResponse,
   PublicHealthDTO,
