@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../components/Toast';
+import { getToastMessage, toastMessages } from '../../../lib/toast-patterns';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
@@ -44,8 +45,7 @@ export default function ProfilePage() {
         await refreshUser();
       } catch (err) {
         if (!cancelled) {
-          const msg = err?.response?.data?.message || err?.message || 'Không tải được hồ sơ từ server.';
-          toast.error(typeof msg === 'string' ? msg : 'Không tải được hồ sơ.');
+          toast.error(getToastMessage(err, 'Không tải được hồ sơ.'));
         }
       } finally {
         if (!cancelled) setProfileLoading(false);
@@ -82,10 +82,9 @@ export default function ProfilePage() {
     setSavingNotifPrefs(true);
     try {
       await saveNotificationPrefsToServer(next);
-      toast.success('Đã lưu cài đặt thông báo.');
+      toast.success(toastMessages.saved);
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message;
-      toast.error(typeof msg === 'string' ? msg : 'Không lưu được cài đặt.');
+      toast.error(getToastMessage(err, 'Không lưu được cài đặt.'));
       setNotifPrefs(prev);
     } finally {
       setSavingNotifPrefs(false);
@@ -107,8 +106,7 @@ export default function ProfilePage() {
       });
       toast.success('Đã cập nhật hồ sơ thành công!');
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data?.errors?.join?.(', ') || err?.message;
-      toast.error(typeof msg === 'string' ? msg : 'Cập nhật hồ sơ thất bại.');
+      toast.error(getToastMessage(err, 'Cập nhật hồ sơ thất bại.'));
     } finally {
       setSavingProfile(false);
     }
@@ -134,8 +132,7 @@ export default function ProfilePage() {
       toast.success('Đã đổi mật khẩu thành công!');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message;
-      toast.error(typeof msg === 'string' ? msg : 'Đổi mật khẩu thất bại.');
+      toast.error(getToastMessage(err, 'Đổi mật khẩu thất bại.'));
     } finally {
       setChangingPw(false);
     }
@@ -165,8 +162,7 @@ export default function ProfilePage() {
       setPhoneVerifyStep('idle');
       setVerifyPhoneNumber('');
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Xác thực thất bại. Vui lòng thử lại.';
-      toast.error(msg);
+      toast.error(getToastMessage(err, 'Xác thực thất bại. Vui lòng thử lại.'));
     } finally {
       setVerifySending(false);
     }

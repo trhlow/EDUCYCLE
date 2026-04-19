@@ -81,6 +81,8 @@ Defer book-wanted, standalone inquiry chat, secondary static/support screens, ca
 
 `src/App.tsx` is now only the app shell entry. Route ownership lives in feature route modules under `src/features/*/routes/*.routes.jsx`, and `src/app/router/routes.jsx` only composes public, private, and admin-only route groups. Each V1 feature now has explicit `api/`, `components/`, `hooks/`, `schemas/`, `routes/`, and `pages/` boundaries. This remains a React/Vite app, so there is no fake `next.config.ts` or `tailwind.config.ts` until the stack actually migrates to Next.js or Tailwind. The FE-1 target route map and sitemap decisions are documented in [Frontend V1 route map](docs/frontend-v1-route-map.md).
 
+FE-5 UI patterns are intentionally conservative: loading/error/empty states live in `src/components/ui`, auth and admin permissions use the same guard primitives, form validation messages use shared accessible helpers, and toast copy should go through `src/lib/toast-patterns.ts` when handling API failures.
+
 ## Running locally
 
 ```powershell

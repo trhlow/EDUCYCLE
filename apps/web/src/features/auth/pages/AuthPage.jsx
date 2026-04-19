@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../components/Toast';
 import { authApi } from '../api';
 import EduCycleLogo from '../../../components/branding/EduCycleLogo';
+import { FormMessage, fieldErrorId, invalidFieldProps } from '../../../components/ui';
 import './AuthPage.css';
 
 /* Đăng ký: chỉ .edu.vn (khớp BE). Đăng nhập / quên MK: email hợp lệ — chi tiết tài khoản nội bộ chỉ ghi trong README/NOTES. */
@@ -222,8 +223,9 @@ export default function AuthPage() {
                 <label className="auth-label" htmlFor="login-email">Email</label>
                 <input type="email" id="login-email" className={`auth-input ${errors.loginEmail ? 'error' : ''}`}
                   placeholder="ten@truong.edu.vn"
-                  value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })} />
-                <div className={`auth-error ${errors.loginEmail ? 'show' : ''}`}>{errors.loginEmail}</div>
+                  value={loginForm.email} onChange={e => setLoginForm({ ...loginForm, email: e.target.value })}
+                  {...invalidFieldProps('login-email', errors.loginEmail)} />
+                <FormMessage id={fieldErrorId('login-email')} message={errors.loginEmail} className="auth-error show" />
               </div>
 
               <div className="auth-form-group">
@@ -233,8 +235,9 @@ export default function AuthPage() {
                 </div>
                 <input type="password" id="login-password" className={`auth-input ${errors.loginPassword ? 'error' : ''}`}
                   placeholder="••••••••"
-                  value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })} />
-                <div className={`auth-error ${errors.loginPassword ? 'show' : ''}`}>{errors.loginPassword}</div>
+                  value={loginForm.password} onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
+                  {...invalidFieldProps('login-password', errors.loginPassword)} />
+                <FormMessage id={fieldErrorId('login-password')} message={errors.loginPassword} className="auth-error show" />
               </div>
 
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
@@ -254,39 +257,43 @@ export default function AuthPage() {
                 <label className="auth-label" htmlFor="reg-username">Tên người dùng</label>
                 <input type="text" id="reg-username" className={`auth-input ${errors.username ? 'error' : ''}`}
                   placeholder="Nguyễn Văn A"
-                  value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })} />
-                <div className={`auth-error ${errors.username ? 'show' : ''}`}>{errors.username}</div>
+                  value={registerForm.username} onChange={e => setRegisterForm({ ...registerForm, username: e.target.value })}
+                  {...invalidFieldProps('reg-username', errors.username)} />
+                <FormMessage id={fieldErrorId('reg-username')} message={errors.username} className="auth-error show" />
               </div>
 
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reg-email">Email sinh viên <span style={{ color: 'var(--primary-500)', fontSize: 'var(--text-xs)' }}>(.edu.vn)</span></label>
                 <input type="email" id="reg-email" className={`auth-input ${errors.email ? 'error' : ''}`}
                   placeholder="ten@truong.edu.vn"
-                  value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} />
-                <div className={`auth-error ${errors.email ? 'show' : ''}`}>{errors.email}</div>
+                  value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })}
+                  {...invalidFieldProps('reg-email', errors.email)} />
+                <FormMessage id={fieldErrorId('reg-email')} message={errors.email} className="auth-error show" />
               </div>
 
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reg-password">Mật khẩu</label>
                 <input type="password" id="reg-password" className={`auth-input ${errors.password ? 'error' : ''}`}
                   placeholder="Ít nhất 8 ký tự"
-                  value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
-                <div className={`auth-error ${errors.password ? 'show' : ''}`}>{errors.password}</div>
+                  value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })}
+                  {...invalidFieldProps('reg-password', errors.password)} />
+                <FormMessage id={fieldErrorId('reg-password')} message={errors.password} className="auth-error show" />
               </div>
 
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reg-confirm">Xác nhận mật khẩu</label>
                 <input type="password" id="reg-confirm" className={`auth-input ${errors.confirmPassword ? 'error' : ''}`}
                   placeholder="••••••••"
-                  value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
-                <div className={`auth-error ${errors.confirmPassword ? 'show' : ''}`}>{errors.confirmPassword}</div>
+                  value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+                  {...invalidFieldProps('reg-confirm', errors.confirmPassword)} />
+                <FormMessage id={fieldErrorId('reg-confirm')} message={errors.confirmPassword} className="auth-error show" />
               </div>
 
               <div className="auth-checkbox-group">
                 <input type="checkbox" id="terms" checked={registerForm.agreeTerms} onChange={e => setRegisterForm({ ...registerForm, agreeTerms: e.target.checked })} />
                 <label htmlFor="terms">Tôi đồng ý với Điều khoản & Điều kiện</label>
               </div>
-              <div className={`auth-error ${errors.agreeTerms ? 'show' : ''}`} style={{ marginBottom: 'var(--space-3)' }}>{errors.agreeTerms}</div>
+              <FormMessage message={errors.agreeTerms} className="auth-error show" />
 
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                 {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo Tài Khoản'}
@@ -306,8 +313,8 @@ export default function AuthPage() {
                 <input type="text" id="otp-code" className={`auth-input auth-otp-input ${errors.otp ? 'error' : ''}`}
                   placeholder="● ● ● ● ● ●"
                   value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                  maxLength={6} autoFocus />
-                <div className={`auth-error ${errors.otp ? 'show' : ''}`}>{errors.otp}</div>
+                  maxLength={6} autoFocus {...invalidFieldProps('otp-code', errors.otp)} />
+                <FormMessage id={fieldErrorId('otp-code')} message={errors.otp} className="auth-error show" />
               </div>
               <div className="auth-otp-note">Nhập đúng mã trong email .edu.vn. Sau khi xác nhận, bạn được đăng nhập tự động.</div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
@@ -335,8 +342,9 @@ export default function AuthPage() {
                 <label className="auth-label" htmlFor="forgot-email">Email</label>
                 <input type="email" id="forgot-email" className={`auth-input ${errors.forgotEmail ? 'error' : ''}`}
                   placeholder="ten@truong.edu.vn" autoFocus
-                  value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} />
-                <div className={`auth-error ${errors.forgotEmail ? 'show' : ''}`}>{errors.forgotEmail}</div>
+                  value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                  {...invalidFieldProps('forgot-email', errors.forgotEmail)} />
+                <FormMessage id={fieldErrorId('forgot-email')} message={errors.forgotEmail} className="auth-error show" />
               </div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                 {isSubmitting ? 'Đang gửi...' : 'Gửi link đặt lại'}
@@ -375,22 +383,25 @@ export default function AuthPage() {
                 <label className="auth-label" htmlFor="reset-token">Token từ email</label>
                 <input type="text" id="reset-token" className={`auth-input ${errors.resetToken ? 'error' : ''}`}
                   placeholder="Dán token vào đây..." autoFocus
-                  value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })} />
-                <div className={`auth-error ${errors.resetToken ? 'show' : ''}`}>{errors.resetToken}</div>
+                  value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })}
+                  {...invalidFieldProps('reset-token', errors.resetToken)} />
+                <FormMessage id={fieldErrorId('reset-token')} message={errors.resetToken} className="auth-error show" />
               </div>
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reset-password">Mật khẩu mới</label>
                 <input type="password" id="reset-password" className={`auth-input ${errors.resetPassword ? 'error' : ''}`}
                   placeholder="Ít nhất 8 ký tự"
-                  value={resetForm.password} onChange={e => setResetForm({ ...resetForm, password: e.target.value })} />
-                <div className={`auth-error ${errors.resetPassword ? 'show' : ''}`}>{errors.resetPassword}</div>
+                  value={resetForm.password} onChange={e => setResetForm({ ...resetForm, password: e.target.value })}
+                  {...invalidFieldProps('reset-password', errors.resetPassword)} />
+                <FormMessage id={fieldErrorId('reset-password')} message={errors.resetPassword} className="auth-error show" />
               </div>
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="reset-confirm">Xác nhận mật khẩu mới</label>
                 <input type="password" id="reset-confirm" className={`auth-input ${errors.resetConfirm ? 'error' : ''}`}
                   placeholder="••••••••"
-                  value={resetForm.confirmPassword} onChange={e => setResetForm({ ...resetForm, confirmPassword: e.target.value })} />
-                <div className={`auth-error ${errors.resetConfirm ? 'show' : ''}`}>{errors.resetConfirm}</div>
+                  value={resetForm.confirmPassword} onChange={e => setResetForm({ ...resetForm, confirmPassword: e.target.value })}
+                  {...invalidFieldProps('reset-confirm', errors.resetConfirm)} />
+                <FormMessage id={fieldErrorId('reset-confirm')} message={errors.resetConfirm} className="auth-error show" />
               </div>
               <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                 {isSubmitting ? 'Đang đặt lại...' : 'Đặt lại mật khẩu'}

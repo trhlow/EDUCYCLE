@@ -5,7 +5,7 @@ import EduCycleLogo from '../../../components/branding/EduCycleLogo';
 import { useToast } from '../../../components/Toast';
 import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api';
 import { getApiErrorMessage } from '../../../lib/api-error';
-import { LoadingState } from '../../../components/ui';
+import { LoadingState, PermissionGate } from '../../../components/ui';
 import './AdminPage.css';
 
 /** Sprint 3: từ chối tin kèm lý do (notify seller từ BE) */
@@ -84,10 +84,11 @@ export default function AdminPage() {
   const handleViewChange = (view) => { setCurrentView(view); setSidebarOpen(false); };
 
   return (
-    <div className="admin-page edu-page">
-      <div className="edu-container">
-        <div className="admin-layout">
-          <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+    <PermissionGate adminOnly>
+      <div className="admin-page edu-page">
+        <div className="edu-container">
+          <div className="admin-layout">
+            <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-brand">
           <Link to="/" className="admin-sidebar-brand-home" aria-label="EduCycle — về trang chủ">
             <EduCycleLogo size={34} variant="inverse" />
@@ -107,9 +108,9 @@ export default function AdminPage() {
             Đóng menu
           </button>
         )}
-          </aside>
+            </aside>
 
-          <div className="admin-main">
+            <div className="admin-main">
         <button className="admin-mobile-menu-btn" onClick={() => setSidebarOpen(true)}>Menu quản trị</button>
         {currentView === 'overview'   && <AdminOverview onNavigate={handleViewChange} />}
         {currentView === 'moderation' && <AdminModeration />}
@@ -118,10 +119,11 @@ export default function AdminPage() {
         {currentView === 'categories' && <AdminCategories />}
         {currentView === 'orders'     && <AdminOrders />}
         {currentView === 'reviews'    && <AdminReviews />}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PermissionGate>
   );
 }
 
