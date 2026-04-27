@@ -70,6 +70,15 @@ public final class MessageConstants {
     public static final String OTP_ALREADY_ACTIVE =
             "Mã OTP cho giao dịch này đã được tạo và chưa hết hạn. Hãy dùng mã hiện tại hoặc chờ hết hạn rồi tạo lại.";
 
+    public static final String TRANSACTION_OTP_LOCKED =
+            "Tạm khóa nhập OTP. Vui lòng thử lại sau hoặc nhờ người mua tạo mã OTP mới.";
+
+    public static final String TRANSACTION_OTP_BRUTE_FORCE =
+            "Đã thử sai OTP quá nhiều lần. Người mua cần tạo mã OTP mới sau khi hết thời gian khóa.";
+
+    public static final String CONCURRENT_UPDATE =
+            "Dữ liệu đã được cập nhật. Vui lòng tải lại và thử lại.";
+
     public static final String CONFIRM_RECEIPT_BUYER_ONLY = "Chỉ người mua mới xác nhận nhận hàng.";
 
     public static final String CONFIRM_RECEIPT_INVALID_STATUS =
