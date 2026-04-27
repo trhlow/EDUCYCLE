@@ -59,15 +59,6 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/media/unsplash/curated").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/book-wanted/mine").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/api/book-wanted").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/book-wanted/*").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/wishlist").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/wishlist/**").authenticated()
-                    .requestMatchers(HttpMethod.DELETE, "/api/wishlist/**").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/ai/chat").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/ai/chat/stream").authenticated()
-                    .requestMatchers("/ws/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
                 if (prometheusEndpointPublic) {
                     auth.requestMatchers("/actuator/prometheus").permitAll();
