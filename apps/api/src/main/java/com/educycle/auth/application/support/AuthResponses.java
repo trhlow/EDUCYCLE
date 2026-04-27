@@ -12,7 +12,10 @@ public class AuthResponses {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthResponse auth(User user, String message) {
+    /**
+     * @param plainRefreshToken token returned to the client (never the DB hash)
+     */
+    public AuthResponse auth(User user, String message, String plainRefreshToken) {
         return new AuthResponse(
                 user.getId(),
                 user.getUsername(),
@@ -21,7 +24,7 @@ public class AuthResponses {
                 user.getRole().name(),
                 user.isEmailVerified(),
                 message,
-                user.getRefreshToken(),
+                plainRefreshToken,
                 user.getRefreshTokenExpiry()
         );
     }

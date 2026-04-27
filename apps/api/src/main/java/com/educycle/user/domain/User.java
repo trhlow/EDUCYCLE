@@ -90,6 +90,7 @@ public class User {
     @Builder.Default
     private boolean phoneVerified = false;
 
+    /** SHA-256 hex (64 chars) of opaque refresh token — never store plaintext. */
     @Column(name = "refresh_token", length = 200)
     private String refreshToken;
 

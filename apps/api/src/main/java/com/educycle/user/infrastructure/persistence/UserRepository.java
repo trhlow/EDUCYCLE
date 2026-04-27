@@ -28,7 +28,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByMicrosoftId(String microsoftId);
 
-    Optional<User> findByRefreshToken(String refreshToken);
+    /**
+     * Lookup by SHA-256 hex of the opaque refresh token ({@code users.refresh_token}).
+     */
+    Optional<User> findByRefreshToken(String refreshTokenHash);
 
     Optional<User> findByPasswordResetToken(String passwordResetToken);
 }

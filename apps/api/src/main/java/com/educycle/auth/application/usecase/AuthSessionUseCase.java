@@ -7,6 +7,7 @@ import com.educycle.auth.application.support.AuthResponses;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.shared.util.MessageConstants;
+import com.educycle.shared.security.RefreshTokenHasher;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,9 @@ public class AuthSessionUseCase {
         }
 
         user.setTradingAllowed(isTradingAllowedFor(user));
-        refreshTokens.startNewChain(user);
+        String plainRt = refreshTokens.startNewChain(user);
         userRepository.save(user);
-        return authResponses.auth(user, null);
+        return authResponses.auth(user, null, plainRt);
     }
 
     public AuthResponse refreshToken(String refreshToken) {
@@ -52,7 +53,8 @@ public class AuthSessionUseCase {
             throw new BadRequestException(MessageConstants.REFRESH_TOKEN_REQUIRED);
         }
 
-        User user = userRepository.findByRefreshToken(refreshToken)
+        String hash = RefreshTokenHasher.sha256Hex(refreshToken);
+        User user = userRepository.findByRefreshToken(hash)
                 .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_REFRESH_TOKEN));
 
         if (!user.isEmailVerified()) {
@@ -68,17 +70,18 @@ public class AuthSessionUseCase {
             throw new UnauthorizedException(MessageConstants.REFRESH_TOKEN_EXPIRED);
         }
 
-        refreshTokens.rotate(user);
+        String plainRt = refreshTokens.rotate(user);
         user.setTradingAllowed(isTradingAllowedFor(user));
         userRepository.save(user);
-        return authResponses.auth(user, null);
+        return authResponses.auth(user, null, plainRt);
     }
 
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return;
         }
-        userRepository.findByRefreshToken(refreshToken).ifPresent(user -> {
+        String hash = RefreshTokenHasher.sha256Hex(refreshToken);
+        userRepository.findByRefreshToken(hash).ifPresent(user -> {
             refreshTokens.clear(user);
             userRepository.save(user);
         });

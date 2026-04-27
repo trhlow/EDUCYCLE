@@ -82,7 +82,7 @@ class AuthServiceTest {
         void shouldReturnPending_whenEmailIsNew() {
             RegisterRequest request = new RegisterRequest("testuser", "test@student.edu.vn", "Password123");
 
-            given(userRepository.existsByEmail("test@student.edu.vn")).willReturn(false);
+            given(userRepository.findByEmail("test@student.edu.vn")).willReturn(Optional.empty());
             given(passwordEncoder.encode("Password123")).willReturn("hashed_password");
             given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -99,10 +99,20 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("should throw BadRequestException when email already exists")
-        void shouldThrow_whenEmailAlreadyExists() {
+        @DisplayName("should throw BadRequestException when email already exists and verified")
+        void shouldThrow_whenEmailAlreadyExistsAndVerified() {
             RegisterRequest request = new RegisterRequest("testuser", "existing@student.edu.vn", "Password123");
-            given(userRepository.existsByEmail("existing@student.edu.vn")).willReturn(true);
+            User verified = User.builder()
+                    .id(UUID.randomUUID())
+                    .username("old")
+                    .email("existing@student.edu.vn")
+                    .passwordHash("hash")
+                    .role(Role.USER)
+                    .emailVerified(true)
+                    .phoneVerified(false)
+                    .createdAt(Instant.now())
+                    .build();
+            given(userRepository.findByEmail("existing@student.edu.vn")).willReturn(Optional.of(verified));
 
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(BadRequestException.class)

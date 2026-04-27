@@ -20,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -41,10 +43,12 @@ public class AuthRegistrationUseCase {
 
     public RegisterPendingResponse register(RegisterRequest request) {
         String email = normalize(request.email());
-        if (userRepository.existsByEmail(email)) {
-            throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
-        }
+        return userRepository.findByEmail(email)
+                .map(existing -> reregisterUnverifiedIfNeeded(request, email, existing))
+                .orElseGet(() -> registerNewUser(request, email));
+    }
 
+    private RegisterPendingResponse registerNewUser(RegisterRequest request, String email) {
         String otpToken = otpCodeGenerator.next();
         User user = User.builder()
                 .username(request.username())
@@ -59,9 +63,26 @@ public class AuthRegistrationUseCase {
                 .build();
 
         userRepository.save(user);
-        log.warn("Dang ky thanh cong: {} - OTP xac thuc email: {}", email, otpToken);
+        log.info("Dang ky thanh cong, da gui OTP: email={} userId={}", email, user.getId());
         sendVerificationOtpEmail(user, otpToken);
         return new RegisterPendingResponse(MessageConstants.REGISTER_OTP_SENT, email, user.getUsername());
+    }
+
+    private RegisterPendingResponse reregisterUnverifiedIfNeeded(
+            RegisterRequest request, String email, User existing) {
+        if (existing.isEmailVerified()) {
+            throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
+        }
+        String otpToken = otpCodeGenerator.next();
+        existing.setUsername(request.username());
+        existing.setPasswordHash(passwordEncoder.encode(request.password()));
+        existing.setEmailVerificationToken(otpToken);
+        existing.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
+        existing.setTradingAllowed(isEduVnInstitutionEmail(email));
+        userRepository.save(existing);
+        log.info("Dang ky lai (email chua verify), da gui OTP moi: email={} userId={}", email, existing.getId());
+        sendVerificationOtpEmail(existing, otpToken);
+        return new RegisterPendingResponse(MessageConstants.REGISTER_OTP_SENT, email, existing.getUsername());
     }
 
     public AuthResponse verifyOtp(VerifyOtpRequest request) {
@@ -71,13 +92,13 @@ public class AuthRegistrationUseCase {
 
         String storedToken = user.getEmailVerificationToken();
         Instant expiry = user.getEmailVerificationTokenExpiry();
-        boolean valid = storedToken != null
-                && storedToken.equals(request.otp())
-                && expiry != null
-                && expiry.isAfter(Instant.now());
+        String submitted = request.otp() == null ? "" : request.otp().trim();
+        boolean valid = expiry != null
+                && expiry.isAfter(Instant.now())
+                && emailOtpEquals(storedToken, submitted);
 
         if (!valid) {
-            log.warn("OTP khong hop le cho {}: expected={}, got={}", email, storedToken, request.otp());
+            log.warn("OTP khong hop le (khong ghi ma): email={} userId={}", email, user.getId());
             throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
         }
 
@@ -85,11 +106,11 @@ public class AuthRegistrationUseCase {
         user.setEmailVerificationToken(null);
         user.setEmailVerificationTokenExpiry(null);
         user.setTradingAllowed(isEduVnInstitutionEmail(user.getEmail()));
-        refreshTokens.startNewChain(user);
+        String plainRt = refreshTokens.startNewChain(user);
         userRepository.save(user);
 
-        log.info("Da xac thuc email va cap phien cho: {}", email);
-        return authResponses.auth(user, MessageConstants.EMAIL_VERIFIED_SUCCESS);
+        log.info("Da xac thuc email va cap phien: email={} userId={}", email, user.getId());
+        return authResponses.auth(user, MessageConstants.EMAIL_VERIFIED_SUCCESS, plainRt);
     }
 
     public boolean resendOtp(ResendOtpRequest request) {
@@ -106,9 +127,21 @@ public class AuthRegistrationUseCase {
         user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
         userRepository.save(user);
 
-        log.warn("Gui lai OTP cho {} - ma moi: {}", email, otp);
+        log.info("Gui lai OTP (khong ghi ma): email={} userId={}", email, user.getId());
         sendVerificationOtpEmail(user, otp);
         return true;
+    }
+
+    private static boolean emailOtpEquals(String stored, String provided) {
+        if (stored == null || provided == null) {
+            return false;
+        }
+        byte[] a = stored.getBytes(StandardCharsets.UTF_8);
+        byte[] b = provided.getBytes(StandardCharsets.UTF_8);
+        if (a.length != b.length) {
+            return false;
+        }
+        return MessageDigest.isEqual(a, b);
     }
 
     private void sendVerificationOtpEmail(User user, String otp) {
