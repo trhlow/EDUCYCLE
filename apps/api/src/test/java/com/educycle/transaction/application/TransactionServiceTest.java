@@ -229,16 +229,18 @@ class TransactionServiceTest {
         }
 
         @Test
-        @DisplayName("should throw BadRequestException when OTP already active and not expired")
-        void shouldThrow_whenOtpAlreadyActive() {
+        @DisplayName("should overwrite OTP when a previous OTP is still active (buyer can request new code)")
+        void shouldRegenerateOtp_whenPreviousStillActive() {
             Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
             t.setOtpCode(otpHasher.hash("111111"));
             t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
             given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
 
-            assertThatThrownBy(() -> transactionService.generateOtp(t.getId(), buyer.getId()))
-                    .isInstanceOf(BadRequestException.class)
-                    .hasMessageContaining("Mã OTP cho giao dịch này đã được tạo");
+            Map<String, String> result = transactionService.generateOtp(t.getId(), buyer.getId());
+
+            assertThat(result).containsKey("otp");
+            assertThat(result.get("otp")).hasSize(6).containsOnlyDigits();
+            assertThat(t.getOtpExpiresAt()).isAfter(Instant.now());
         }
     }
 

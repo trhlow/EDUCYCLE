@@ -27,6 +27,8 @@ import java.util.UUID;
 public class TransactionOtpUseCase {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int OTP_MAX_FAILED = 5;
+    private static final int OTP_LOCK_MINUTES = 30;
 
     private final TransactionRepository transactionRepository;
     private final ProductSoldMarker productSoldMarker;
@@ -39,16 +41,20 @@ public class TransactionOtpUseCase {
             throw new ForbiddenException(MessageConstants.OTP_GENERATE_BUYER_ONLY);
         }
         requireAccepted(transaction);
-
-        if (transaction.getOtpCode() != null
-                && transaction.getOtpExpiresAt() != null
-                && transaction.getOtpExpiresAt().isAfter(Instant.now())) {
-            throw new BadRequestException(MessageConstants.OTP_ALREADY_ACTIVE);
+        Instant lockUntil = transaction.getOtpLockedUntil();
+        if (lockUntil != null) {
+            if (lockUntil.isAfter(Instant.now())) {
+                throw new BadRequestException(MessageConstants.TRANSACTION_OTP_LOCKED);
+            }
+            transaction.setOtpLockedUntil(null);
+            transaction.setOtpFailedAttempts(0);
         }
 
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         transaction.setOtpCode(otpHasher.hash(otp));
         transaction.setOtpExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
+        transaction.setOtpFailedAttempts(0);
+        transaction.setOtpLockedUntil(null);
         transactionRepository.save(transaction);
 
         log.info("OTP generated for transaction {}", id);
@@ -61,20 +67,48 @@ public class TransactionOtpUseCase {
         if (transaction.getSeller() == null || !transaction.getSeller().getId().equals(actorUserId)) {
             throw new ForbiddenException(MessageConstants.OTP_VERIFY_SELLER_ONLY);
         }
+        TransactionStatus st = transaction.getStatus();
+        if (st == TransactionStatus.COMPLETED || st == TransactionStatus.AUTO_COMPLETED) {
+            return;
+        }
+        if (isLockedForVerify(transaction)) {
+            throw new BadRequestException(MessageConstants.TRANSACTION_OTP_LOCKED);
+        }
         requireAccepted(transaction);
 
-        if (transaction.getOtpCode() == null
-                || !otpHasher.verify(otp, transaction.getOtpCode())
-                || transaction.getOtpExpiresAt() == null
-                || transaction.getOtpExpiresAt().isBefore(Instant.now())) {
-            throw new BadRequestException(MessageConstants.OTP_INVALID_OR_EXPIRED);
+        boolean otpValid = transaction.getOtpCode() != null
+                && transaction.getOtpExpiresAt() != null
+                && transaction.getOtpExpiresAt().isAfter(Instant.now())
+                && otpHasher.verify(otp, transaction.getOtpCode());
+
+        if (!otpValid) {
+            int fails = transaction.getOtpFailedAttempts() + 1;
+            transaction.setOtpFailedAttempts(fails);
+            if (fails >= OTP_MAX_FAILED) {
+                transaction.setOtpLockedUntil(Instant.now().plus(OTP_LOCK_MINUTES, ChronoUnit.MINUTES));
+                transaction.setOtpCode(null);
+                transaction.setOtpExpiresAt(null);
+                transaction.setOtpFailedAttempts(0);
+            }
+            transactionRepository.save(transaction);
+            throw new BadRequestException(
+                    fails >= OTP_MAX_FAILED
+                            ? MessageConstants.TRANSACTION_OTP_BRUTE_FORCE
+                            : MessageConstants.OTP_INVALID_OR_EXPIRED);
         }
 
         transaction.setOtpCode(null);
         transaction.setOtpExpiresAt(null);
+        transaction.setOtpFailedAttempts(0);
+        transaction.setOtpLockedUntil(null);
         transaction.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(transaction);
         productSoldMarker.markSold(transaction.getProduct().getId());
+    }
+
+    private static boolean isLockedForVerify(Transaction t) {
+        Instant lockUntil = t.getOtpLockedUntil();
+        return lockUntil != null && lockUntil.isAfter(Instant.now());
     }
 
     private Transaction load(UUID id) {

@@ -61,6 +61,8 @@ public class TransactionExpiryServiceImpl implements TransactionExpiryService {
         t.setCancelledAt(Instant.now());
         t.setOtpCode(null);
         t.setOtpExpiresAt(null);
+        t.setOtpFailedAttempts(0);
+        t.setOtpLockedUntil(null);
         transactionRepository.save(t);
 
         meterRegistry.counter("educycle.transactions.expired", "kind", metricKind).increment();

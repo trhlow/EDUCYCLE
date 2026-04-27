@@ -82,4 +82,16 @@ public class Transaction {
 
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    @Builder.Default
+    private long version = 0L;
+
+    @Column(name = "otp_failed_attempts", nullable = false)
+    @Builder.Default
+    private int otpFailedAttempts = 0;
+
+    @Column(name = "otp_locked_until")
+    private Instant otpLockedUntil;
 }

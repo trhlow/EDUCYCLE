@@ -81,6 +81,8 @@ public class TransactionStatusUseCase {
         transaction.setCancelledAt(Instant.now());
         transaction.setOtpCode(null);
         transaction.setOtpExpiresAt(null);
+        transaction.setOtpFailedAttempts(0);
+        transaction.setOtpLockedUntil(null);
         transactionRepository.save(transaction);
 
         UUID otherPartyId = transaction.getBuyer().getId().equals(actorUserId)
@@ -103,6 +105,9 @@ public class TransactionStatusUseCase {
             throw new ForbiddenException(MessageConstants.CONFIRM_RECEIPT_BUYER_ONLY);
         }
         TransactionStatus status = transaction.getStatus();
+        if (status == TransactionStatus.COMPLETED || status == TransactionStatus.AUTO_COMPLETED) {
+            return mapper.toResponse(transaction);
+        }
         if (status != TransactionStatus.ACCEPTED && status != TransactionStatus.MEETING) {
             throw new BadRequestException(MessageConstants.CONFIRM_RECEIPT_INVALID_STATUS);
         }
@@ -110,6 +115,8 @@ public class TransactionStatusUseCase {
         transaction.setBuyerConfirmed(true);
         transaction.setOtpCode(null);
         transaction.setOtpExpiresAt(null);
+        transaction.setOtpFailedAttempts(0);
+        transaction.setOtpLockedUntil(null);
         transaction.setStatus(TransactionStatus.COMPLETED);
         transactionRepository.save(transaction);
 

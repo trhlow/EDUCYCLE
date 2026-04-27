@@ -17,6 +17,9 @@ public class ProductSoldMarker {
 
     public void markSold(UUID productId) {
         productRepository.findById(productId).ifPresent(product -> {
+            if (product.getStatus() == ProductStatus.SOLD) {
+                return;
+            }
             product.setStatus(ProductStatus.SOLD);
             productRepository.save(product);
             log.info("Product {} marked as SOLD", productId);

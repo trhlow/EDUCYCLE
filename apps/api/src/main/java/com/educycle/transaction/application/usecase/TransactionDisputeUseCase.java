@@ -47,6 +47,8 @@ public class TransactionDisputeUseCase {
         transaction.setDisputedAt(Instant.now());
         transaction.setOtpCode(null);
         transaction.setOtpExpiresAt(null);
+        transaction.setOtpFailedAttempts(0);
+        transaction.setOtpLockedUntil(null);
         transactionRepository.save(transaction);
 
         notificationService.create(
@@ -83,10 +85,16 @@ public class TransactionDisputeUseCase {
             transaction.setStatus(TransactionStatus.COMPLETED);
             transaction.setOtpCode(null);
             transaction.setOtpExpiresAt(null);
+            transaction.setOtpFailedAttempts(0);
+            transaction.setOtpLockedUntil(null);
             transactionRepository.save(transaction);
             productSoldMarker.markSold(transaction.getProduct().getId());
         } else {
             transaction.setStatus(TransactionStatus.CANCELLED);
+            transaction.setOtpCode(null);
+            transaction.setOtpExpiresAt(null);
+            transaction.setOtpFailedAttempts(0);
+            transaction.setOtpLockedUntil(null);
             transactionRepository.save(transaction);
         }
 
