@@ -6,6 +6,7 @@ This folder contains the shared project documentation for EduCycle. Module-speci
 
 - [Getting started](getting-started/README.md)
 - [Architecture overview](architecture/README.md)
+- [Work management plan](project-management.md)
 - [Backend README](../apps/api/README.md)
 - [Frontend README](../apps/web/README.md)
 - [Scripts README](../infra/scripts/README.md)
