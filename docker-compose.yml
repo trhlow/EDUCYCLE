@@ -47,7 +47,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/educycledb
       SPRING_DATASOURCE_USERNAME: educycle
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Đặt POSTGRES_PASSWORD trong .env}
-      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_USE_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS}
+      JWT_SECRET: ${JWT_SECRET:?Đặt JWT_SECRET trong .env — tối thiểu 32 ký tự (xem .env.example)}
       APP_FRONTEND_BASE_URL: ${APP_FRONTEND_BASE_URL:-http://localhost}
       APP_UPLOAD_DIR: /app/data/uploads
       # SMTP: đặt MAIL_* + SPRING_PROFILES_ACTIVE=production,smtp trong .env (env_file phía trên).
