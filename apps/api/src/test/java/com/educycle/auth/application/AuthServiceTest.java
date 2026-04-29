@@ -8,6 +8,7 @@ import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.shared.security.JwtTokenProvider;
+import com.educycle.shared.security.RefreshTokenHasher;
 import com.educycle.auth.application.support.AuthRefreshTokens;
 import com.educycle.auth.application.support.AuthResponses;
 import com.educycle.auth.application.support.OtpCodeGenerator;
@@ -83,6 +84,7 @@ class AuthServiceTest {
             RegisterRequest request = new RegisterRequest("testuser", "test@student.edu.vn", "Password123");
 
             given(userRepository.findByEmail("test@student.edu.vn")).willReturn(Optional.empty());
+            given(userRepository.existsByUsername("testuser")).willReturn(false);
             given(passwordEncoder.encode("Password123")).willReturn("hashed_password");
             given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -117,6 +119,72 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("Email đã tồn tại");
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should throw when username already taken (new email)")
+        void shouldThrow_whenUsernameTaken() {
+            RegisterRequest request = new RegisterRequest("taken", "fresh@student.edu.vn", "Password123");
+            given(userRepository.findByEmail("fresh@student.edu.vn")).willReturn(Optional.empty());
+            given(userRepository.existsByUsername("taken")).willReturn(true);
+
+            assertThatThrownBy(() -> authService.register(request))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.USERNAME_TAKEN);
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should re-register and send OTP when email exists but not verified")
+        void shouldReregister_whenEmailUnverified() {
+            UUID id = UUID.randomUUID();
+            User existing = User.builder()
+                    .id(id)
+                    .username("oldname")
+                    .email("pending@student.edu.vn")
+                    .passwordHash("oldhash")
+                    .role(Role.USER)
+                    .emailVerified(false)
+                    .phoneVerified(false)
+                    .createdAt(Instant.now())
+                    .build();
+            RegisterRequest request = new RegisterRequest("newuser", "pending@student.edu.vn", "Password123");
+            given(userRepository.findByEmail("pending@student.edu.vn")).willReturn(Optional.of(existing));
+            given(userRepository.existsByUsernameAndIdNot("newuser", id)).willReturn(false);
+            given(passwordEncoder.encode("Password123")).willReturn("hashed_password");
+
+            RegisterPendingResponse result = authService.register(request);
+
+            assertThat(result.email()).isEqualTo("pending@student.edu.vn");
+            assertThat(result.username()).isEqualTo("newuser");
+            verify(userRepository, times(1)).save(existing);
+            verify(mailService, times(1)).sendPlain(anyString(), anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("should throw when username taken during re-register")
+        void shouldThrow_whenUsernameTaken_onReregister() {
+            UUID id = UUID.randomUUID();
+            User existing = User.builder()
+                    .id(id)
+                    .username("oldname")
+                    .email("pending@student.edu.vn")
+                    .passwordHash("oldhash")
+                    .role(Role.USER)
+                    .emailVerified(false)
+                    .phoneVerified(false)
+                    .createdAt(Instant.now())
+                    .build();
+            RegisterRequest request = new RegisterRequest("otheruser", "pending@student.edu.vn", "Password123");
+            given(userRepository.findByEmail("pending@student.edu.vn")).willReturn(Optional.of(existing));
+            given(userRepository.existsByUsernameAndIdNot("otheruser", id)).willReturn(true);
+
+            assertThatThrownBy(() -> authService.register(request))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.USERNAME_TAKEN);
 
             verify(userRepository, never()).save(any());
         }
@@ -236,6 +304,24 @@ class AuthServiceTest {
             assertThat(res.emailVerified()).isTrue();
             assertThat(res.refreshToken()).isEqualTo("rt-after-otp");
             verify(userRepository, times(1)).save(user);
+        }
+    }
+
+    @Nested
+    @DisplayName("refreshToken()")
+    class RefreshToken {
+
+        @Test
+        @DisplayName("should reject opaque refresh token that does not match stored hash")
+        void shouldThrow_whenRefreshTokenUnknown() {
+            String plain = "not-a-stored-refresh-token";
+            given(userRepository.findByRefreshToken(RefreshTokenHasher.sha256Hex(plain))).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.refreshToken(plain))
+                    .isInstanceOf(UnauthorizedException.class)
+                    .hasMessage(MessageConstants.INVALID_REFRESH_TOKEN);
+
+            verify(jwtTokenProvider, never()).generateRefreshToken();
         }
     }
 }

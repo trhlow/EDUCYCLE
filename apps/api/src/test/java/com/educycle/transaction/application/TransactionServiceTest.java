@@ -14,6 +14,8 @@ import com.educycle.transaction.domain.Transaction;
 import com.educycle.user.domain.User;
 import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.shared.config.JwtProperties;
+import com.educycle.shared.config.TransactionOtpProperties;
+import com.educycle.shared.util.MessageConstants;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.notification.application.service.NotificationService;
@@ -72,11 +74,12 @@ class TransactionServiceTest {
         otpHasher = new OtpHasher("", jwtProperties);
         TransactionResponseMapper mapper = new TransactionResponseMapper();
         ProductSoldMarker productSoldMarker = new ProductSoldMarker(productRepository);
+        TransactionOtpProperties otpProps = new TransactionOtpProperties();
         transactionService = new TransactionServiceImpl(
                 new CreateTransactionUseCase(transactionRepository, productRepository, userRepository, notificationService, mapper),
                 new TransactionQueryUseCase(transactionRepository, mapper),
                 new TransactionStatusUseCase(transactionRepository, notificationService, productSoldMarker, mapper),
-                new TransactionOtpUseCase(transactionRepository, productSoldMarker, otpHasher),
+                new TransactionOtpUseCase(transactionRepository, productSoldMarker, otpHasher, otpProps),
                 new TransactionDisputeUseCase(transactionRepository, notificationService, productSoldMarker, mapper));
     }
 
@@ -196,6 +199,26 @@ class TransactionServiceTest {
             assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "123456", buyer.getId()))
                     .isInstanceOf(ForbiddenException.class)
                     .hasMessageContaining("Chỉ người bán");
+        }
+
+        @Test
+        @DisplayName("wrong OTP four times stays invalid; fifth failure locks and returns brute-force message")
+        void shouldLockAfterRepeatedWrongOtps() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            t.setOtpCode(otpHasher.hash("123456"));
+            t.setOtpExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES));
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            for (int i = 0; i < 4; i++) {
+                assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "999999", seller.getId()))
+                        .isInstanceOf(BadRequestException.class)
+                        .hasMessage(MessageConstants.OTP_INVALID_OR_EXPIRED);
+            }
+            assertThat(t.getOtpFailedAttempts()).isEqualTo(4);
+
+            assertThatThrownBy(() -> transactionService.verifyOtp(t.getId(), "999999", seller.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.TRANSACTION_OTP_BRUTE_FORCE);
         }
     }
 
