@@ -2,6 +2,7 @@ package com.educycle.shared.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ class RateLimitFilterOtpTest {
         props.setHttpVerifyPerMinute(2);
         props.setHttpGeneratePerWindow(2);
         props.setHttpGenerateWindowMinutes(5);
-        filter = new RateLimitFilter(props);
+        filter = new RateLimitFilter(props, new ObjectMapper());
     }
 
     @Test

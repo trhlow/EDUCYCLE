@@ -30,6 +30,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -137,6 +143,79 @@ class CoreFlowIntegrationTest {
         assertThat(review.productId()).isEqualTo(approved.id());
         assertThat(review.targetUserId()).isEqualTo(seller.userId());
         assertThat(review.transactionId()).isEqualTo(accepted.id());
+    }
+
+    @Test
+    void concurrentRegister_sameUsernameDifferentEmails_oneConflicts() throws Exception {
+        String username = "dupuser-" + UUID.randomUUID().toString().substring(0, 8);
+        String email1 = uniqueEmail("conc1");
+        String email2 = uniqueEmail("conc2");
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch start = new CountDownLatch(1);
+        RegisterRequest body1 = new RegisterRequest(username, email1, "Password123");
+        RegisterRequest body2 = new RegisterRequest(username, email2, "Password123");
+        Callable<Integer> reg1 = () -> {
+            start.await(30, TimeUnit.SECONDS);
+            return postJson("/api/auth/register", body1, null)
+                    .andReturn()
+                    .getResponse()
+                    .getStatus();
+        };
+        Callable<Integer> reg2 = () -> {
+            start.await(30, TimeUnit.SECONDS);
+            return postJson("/api/auth/register", body2, null)
+                    .andReturn()
+                    .getResponse()
+                    .getStatus();
+        };
+        Future<Integer> f1 = pool.submit(reg1);
+        Future<Integer> f2 = pool.submit(reg2);
+        start.countDown();
+        int a = f1.get(45, TimeUnit.SECONDS);
+        int b = f2.get(45, TimeUnit.SECONDS);
+        pool.shutdown();
+        assertThat(List.of(a, b)).containsExactlyInAnyOrder(200, 400);
+        assertThat(a == 200 || b == 200).isTrue();
+    }
+
+    @Test
+    void concurrentSellerAcceptTransaction_secondMayFailWithout500() throws Exception {
+        UserSession seller = registerVerifiedUser("conc-seller");
+        UserSession buyer = registerVerifiedUser("conc-buyer");
+        UserSession admin = loginAdmin();
+        ProductResponse product = createProduct(
+                seller,
+                "Conc Book",
+                "desc",
+                new BigDecimal("70000"));
+        ProductResponse approved = approveProduct(admin, product.id());
+        TransactionResponse tx = createTransaction(buyer, approved, seller);
+        assertThat(tx.status()).isEqualTo("PENDING");
+
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch start = new CountDownLatch(1);
+        Callable<Integer> patch = () -> {
+            start.await(30, TimeUnit.SECONDS);
+            try {
+                return patchJson("/api/transactions/" + tx.id() + "/status",
+                                new UpdateTransactionStatusRequest("ACCEPTED"),
+                                seller.token())
+                        .andReturn()
+                        .getResponse()
+                        .getStatus();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        Future<Integer> f1 = pool.submit(patch);
+        Future<Integer> f2 = pool.submit(patch);
+        start.countDown();
+        int s1 = f1.get(45, TimeUnit.SECONDS);
+        int s2 = f2.get(45, TimeUnit.SECONDS);
+        pool.shutdown();
+        assertThat(s1).isNotEqualTo(500);
+        assertThat(s2).isNotEqualTo(500);
+        assertThat(s1 == 200 || s2 == 200).isTrue();
     }
 
     private UserSession registerVerifiedUser(String prefix) throws Exception {

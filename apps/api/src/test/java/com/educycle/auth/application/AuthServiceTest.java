@@ -17,6 +17,7 @@ import com.educycle.auth.application.usecase.AuthAccountUseCase;
 import com.educycle.auth.application.usecase.AuthRegistrationUseCase;
 import com.educycle.auth.application.usecase.AuthSessionUseCase;
 import com.educycle.auth.application.usecase.PasswordRecoveryUseCase;
+import com.educycle.shared.config.RegistrationOtpProperties;
 import com.educycle.shared.mail.MailService;
 import com.educycle.shared.util.MessageConstants;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,8 +64,10 @@ class AuthServiceTest {
         AuthRefreshTokens refreshTokens = new AuthRefreshTokens(jwtTokenProvider);
         AuthResponses authResponses = new AuthResponses(jwtTokenProvider);
         OtpCodeGenerator otpCodeGenerator = new OtpCodeGenerator("");
+        RegistrationOtpProperties registrationOtpProperties = new RegistrationOtpProperties();
         AuthRegistrationUseCase registrationUseCase = new AuthRegistrationUseCase(
-                userRepository, passwordEncoder, mailService, otpCodeGenerator, refreshTokens, authResponses);
+                userRepository, passwordEncoder, mailService, otpCodeGenerator, refreshTokens, authResponses,
+                registrationOtpProperties);
         AuthSessionUseCase sessionUseCase = new AuthSessionUseCase(
                 userRepository, passwordEncoder, refreshTokens, authResponses);
         AuthAccountUseCase accountUseCase = new AuthAccountUseCase(userRepository, passwordEncoder, refreshTokens);
