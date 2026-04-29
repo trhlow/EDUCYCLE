@@ -92,7 +92,7 @@ $env:JWT_SECRET = 'chuoi_ngau_nhien_it_nhat_32_ky_tu'
 mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
-Flyway chạy `src/main/resources/db/migration/V1__baseline.sql`. Đây là baseline sạch cho Backend V1; nếu DB local/dev đã từng chạy chuỗi migration cũ (`V1__initial_schema.sql` → `V16__...`) thì cần drop/recreate DB hoặc xóa volume Docker trước khi chạy lại.
+Flyway chạy các file trong `src/main/resources/db/migration/` (baseline `V1__baseline.sql`, sau đó `V2__…`, `V3__users_username_unique.sql`, …). Nếu DB local/dev đã từng chạy chuỗi migration cũ không khớp repo thì cần drop/recreate DB hoặc xóa volume Docker trước khi chạy lại.
 
 Seed mặc định:
 - Admin: `admin@educycle.com` / `admin@1`
@@ -117,6 +117,12 @@ Click **Authorize** and enter: `Bearer <your-jwt-token>`
 ```bash
 mvn test
 ```
+
+- Integration-heavy tests (`CoreFlowIntegrationTest`, Postgres via Testcontainers hoặc Postgres binary trong `PATH`) được gắn `@Tag("integration")`. Bỏ qua khi không có Docker / không muốn chạy DB tạm:
+  ```bash
+  mvn test -DexcludedGroups=integration
+  ```
+  (GitHub Actions `ubuntu-latest` có Docker — `mvn clean verify` chạy đầy đủ module.)
 
 Integration tests chạy cùng `mvn test`:
 - Ưu tiên Postgres Testcontainers để kiểm tra migration từ DB rỗng.
@@ -168,7 +174,9 @@ src/main/resources/
 ├── rag/
 │   └── educycle-knowledge.md       # Outside V1 runtime scope by default
 └── db/migration/
-    └── V1__baseline.sql            # Clean Backend V1 baseline
+    ├── V1__baseline.sql
+    ├── V2__transaction_otp_hardening_and_refresh_token_invalidate.sql
+    └── V3__users_username_unique.sql
 
 src/test/java/com/educycle/
 ├── auth/application/
