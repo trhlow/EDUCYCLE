@@ -102,8 +102,12 @@ public class GlobalExceptionHandler {
         log.warn("Data integrity violation: {}", detail);
 
         String message = MessageConstants.DUPLICATE_DATA;
-        if (detail != null && detail.contains("uq_users_email")) {
-            message = MessageConstants.EMAIL_ALREADY_EXISTS;
+        if (detail != null) {
+            if (detail.contains("uq_users_email")) {
+                message = MessageConstants.EMAIL_ALREADY_EXISTS;
+            } else if (detail.contains("uq_users_username")) {
+                message = MessageConstants.USERNAME_TAKEN;
+            }
         }
 
         return ResponseEntity
