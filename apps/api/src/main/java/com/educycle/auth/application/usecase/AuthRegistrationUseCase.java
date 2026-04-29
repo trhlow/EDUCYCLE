@@ -49,6 +49,9 @@ public class AuthRegistrationUseCase {
     }
 
     private RegisterPendingResponse registerNewUser(RegisterRequest request, String email) {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
+        }
         String otpToken = otpCodeGenerator.next();
         User user = User.builder()
                 .username(request.username())
@@ -72,6 +75,9 @@ public class AuthRegistrationUseCase {
             RegisterRequest request, String email, User existing) {
         if (existing.isEmailVerified()) {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
+        }
+        if (userRepository.existsByUsernameAndIdNot(request.username(), existing.getId())) {
+            throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
         }
         String otpToken = otpCodeGenerator.next();
         existing.setUsername(request.username());

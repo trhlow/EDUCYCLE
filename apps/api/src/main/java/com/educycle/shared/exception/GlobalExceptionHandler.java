@@ -9,8 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -59,20 +61,39 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorBody.of(MessageConstants.CONCURRENT_UPDATE));
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiErrorBody> handleAuth(AuthenticationException ex) {
-        log.debug("Unauthenticated: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiErrorBody.of(MessageConstants.INVALID_CREDENTIALS));
-    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorBody> handleAccessDenied(AccessDeniedException ex) {
         log.debug("Access denied: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(ApiErrorBody.of("Bạn không có quyền thực hiện thao tác này."));
+                .body(ApiErrorBody.of(MessageConstants.FORBIDDEN_GENERIC));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiErrorBody> handleBadCredentials(BadCredentialsException ex) {
+        log.debug("Bad credentials: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorBody.of(MessageConstants.INVALID_CREDENTIALS));
+    }
+
+    @ExceptionHandler({
+            InsufficientAuthenticationException.class,
+            AuthenticationCredentialsNotFoundException.class
+    })
+    public ResponseEntity<ApiErrorBody> handleAuthRequired(RuntimeException ex) {
+        log.debug("Authentication required: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorBody.of(MessageConstants.AUTH_REQUIRED));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorBody> handleAuthentication(AuthenticationException ex) {
+        log.debug("Authentication failed: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorBody.of(MessageConstants.AUTH_REQUIRED));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

@@ -6,6 +6,11 @@ public final class MessageConstants {
     }
 
     public static final String INVALID_CREDENTIALS = "Thông tin đăng nhập không đúng";
+    /** Khi thiếu JWT / chưa đăng nhập nhưng endpoint yêu cầu xác thực */
+    public static final String AUTH_REQUIRED = "Cần đăng nhập để thực hiện thao tác này.";
+    /** Truy cập bị từ chối (không đủ quyền) */
+    public static final String FORBIDDEN_GENERIC = "Bạn không có quyền thực hiện thao tác này.";
+    public static final String USERNAME_TAKEN = "Tên người dùng đã được sử dụng.";
     public static final String EMAIL_ALREADY_EXISTS = "Email đã tồn tại";
     public static final String USER_NOT_FOUND = "Không tìm thấy người dùng";
     public static final String EMAIL_NOT_FOUND = "Không tìm thấy email";
