@@ -1,5 +1,7 @@
 package com.educycle.user.application.usecase;
 
+import com.educycle.auth.application.support.AuthUsernamePolicy;
+import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.util.MessageConstants;
 import com.educycle.user.api.dto.request.UpdateNotificationPrefsRequest;
@@ -30,7 +32,14 @@ public class CurrentUserProfileUseCase {
 
     public UserMeResponse updateMe(UUID userId, UpdateUserProfileRequest request) {
         User user = loadUser(userId);
-        user.setUsername(request.username().trim());
+        String normalized = AuthUsernamePolicy.normalize(request.username());
+        if (normalized.isEmpty()) {
+            throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
+        }
+        if (userRepository.existsByUsernameAndIdNot(normalized, userId)) {
+            throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
+        }
+        user.setUsername(normalized);
         if (request.bio() != null) {
             String bio = request.bio().trim();
             user.setBio(bio.isEmpty() ? null : bio);

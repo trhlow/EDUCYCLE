@@ -1,6 +1,7 @@
 package com.educycle;
 
 import com.educycle.shared.config.CorsProperties;
+import com.educycle.shared.config.RegistrationOtpProperties;
 import com.educycle.shared.config.TransactionExpiryProperties;
 import com.educycle.shared.config.TransactionOtpProperties;
 import com.educycle.shared.config.UnsplashProperties;
@@ -54,7 +55,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         CorsProperties.class,
         TransactionExpiryProperties.class,
         UnsplashProperties.class,
-        TransactionOtpProperties.class
+        TransactionOtpProperties.class,
+        RegistrationOtpProperties.class
 })
 public class EduCycleApplication {
 

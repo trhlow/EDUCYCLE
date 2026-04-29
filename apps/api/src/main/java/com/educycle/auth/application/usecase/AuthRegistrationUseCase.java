@@ -7,7 +7,9 @@ import com.educycle.auth.api.dto.response.AuthResponse;
 import com.educycle.auth.api.dto.response.RegisterPendingResponse;
 import com.educycle.auth.application.support.AuthRefreshTokens;
 import com.educycle.auth.application.support.AuthResponses;
+import com.educycle.auth.application.support.AuthUsernamePolicy;
 import com.educycle.auth.application.support.OtpCodeGenerator;
+import com.educycle.shared.config.RegistrationOtpProperties;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.mail.MailService;
 import com.educycle.shared.util.MessageConstants;
@@ -40,6 +42,7 @@ public class AuthRegistrationUseCase {
     private final OtpCodeGenerator otpCodeGenerator;
     private final AuthRefreshTokens refreshTokens;
     private final AuthResponses authResponses;
+    private final RegistrationOtpProperties registrationOtpProperties;
 
     public RegisterPendingResponse register(RegisterRequest request) {
         String email = normalize(request.email());
@@ -49,19 +52,23 @@ public class AuthRegistrationUseCase {
     }
 
     private RegisterPendingResponse registerNewUser(RegisterRequest request, String email) {
-        if (userRepository.existsByUsername(request.username())) {
+        String normalizedUsername = AuthUsernamePolicy.normalize(request.username());
+        if (normalizedUsername.isEmpty()) {
+            throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
+        }
+        if (userRepository.existsByUsername(normalizedUsername)) {
             throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
         }
         String otpToken = otpCodeGenerator.next();
         User user = User.builder()
-                .username(request.username())
+                .username(normalizedUsername)
                 .email(email)
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .role(Role.USER)
                 .emailVerified(false)
                 .phoneVerified(false)
                 .emailVerificationToken(otpToken)
-                .emailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES))
+                .emailVerificationTokenExpiry(registrationOtpExpiry())
                 .tradingAllowed(isEduVnInstitutionEmail(email))
                 .build();
 
@@ -76,14 +83,18 @@ public class AuthRegistrationUseCase {
         if (existing.isEmailVerified()) {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
-        if (userRepository.existsByUsernameAndIdNot(request.username(), existing.getId())) {
+        String normalizedUsername = AuthUsernamePolicy.normalize(request.username());
+        if (normalizedUsername.isEmpty()) {
+            throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
+        }
+        if (userRepository.existsByUsernameAndIdNot(normalizedUsername, existing.getId())) {
             throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
         }
         String otpToken = otpCodeGenerator.next();
-        existing.setUsername(request.username());
+        existing.setUsername(normalizedUsername);
         existing.setPasswordHash(passwordEncoder.encode(request.password()));
         existing.setEmailVerificationToken(otpToken);
-        existing.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
+        existing.setEmailVerificationTokenExpiry(registrationOtpExpiry());
         existing.setTradingAllowed(isEduVnInstitutionEmail(email));
         userRepository.save(existing);
         log.info("Dang ky lai (email chua verify), da gui OTP moi: email={} userId={}", email, existing.getId());
@@ -130,7 +141,7 @@ public class AuthRegistrationUseCase {
 
         String otp = otpCodeGenerator.next();
         user.setEmailVerificationToken(otp);
-        user.setEmailVerificationTokenExpiry(Instant.now().plus(30, ChronoUnit.MINUTES));
+        user.setEmailVerificationTokenExpiry(registrationOtpExpiry());
         userRepository.save(user);
 
         log.info("Gui lai OTP (khong ghi ma): email={} userId={}", email, user.getId());
@@ -151,9 +162,14 @@ public class AuthRegistrationUseCase {
     }
 
     private void sendVerificationOtpEmail(User user, String otp) {
+        int mins = Math.max(1, registrationOtpProperties.getExpireMinutes());
         String body = String.format(
-                "Xin chao %s,%n%nMa OTP xac thuc email EduCycle cua ban: %s%nHieu luc 30 phut.%n",
-                user.getUsername(), otp);
+                "Xin chao %s,%n%nMa OTP xac thuc email EduCycle cua ban: %s%nHieu luc %d phut.%n",
+                user.getUsername(), otp, mins);
         mailService.sendPlain(user.getEmail(), "EduCycle - ma xac thuc email", body);
+    }
+
+    private Instant registrationOtpExpiry() {
+        return Instant.now().plus(Math.max(1, registrationOtpProperties.getExpireMinutes()), ChronoUnit.MINUTES);
     }
 }

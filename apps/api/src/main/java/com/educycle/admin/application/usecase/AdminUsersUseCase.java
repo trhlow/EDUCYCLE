@@ -5,6 +5,7 @@ import com.educycle.admin.api.dto.request.AdminUpdateUserRequest;
 import com.educycle.admin.api.dto.response.AdminUserDetailResponse;
 import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
 import com.educycle.admin.application.support.AdminUserMapper;
+import com.educycle.auth.application.support.AuthUsernamePolicy;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.util.MessageConstants;
@@ -50,7 +51,10 @@ public class AdminUsersUseCase {
 
     public AdminUserDetailResponse createUser(AdminCreateUserRequest request) {
         String email = normalizeEmail(request.email());
-        String username = request.username().trim();
+        String username = AuthUsernamePolicy.normalize(request.username());
+        if (username.isEmpty()) {
+            throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
+        }
         if (userRepository.existsByEmail(email)) {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
@@ -81,7 +85,10 @@ public class AdminUsersUseCase {
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
 
         if (request.username() != null && StringUtils.hasText(request.username())) {
-            String username = request.username().trim();
+            String username = AuthUsernamePolicy.normalize(request.username());
+            if (username.isEmpty()) {
+                throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
+            }
             if (userRepository.existsByUsernameAndIdNot(username, id)) {
                 throw new BadRequestException(MessageConstants.ADMIN_USERNAME_TAKEN);
             }
