@@ -1,6 +1,8 @@
 package com.educycle.shared.config;
 
+import com.educycle.shared.response.RateLimitJsonResponse;
 import com.educycle.shared.util.MessageConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
@@ -43,6 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/transactions/([0-9a-fA-F-]{36})/otp$");
 
     private final TransactionOtpProperties transactionOtpProperties;
+    private final ObjectMapper objectMapper;
 
     @Value("${educycle.rate-limit.prefer-x-real-ip:false}")
     private boolean preferXRealIp;
@@ -181,14 +184,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
-    private static void writeTooManyRequests(HttpServletResponse response, int retryAfterSeconds)
+    private void writeTooManyRequests(HttpServletResponse response, int retryAfterSeconds)
             throws IOException {
         response.setStatus(429);
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(
-                "{\"error\":\"" + MessageConstants.TOO_MANY_REQUESTS + "\",\"retryAfter\":" + retryAfterSeconds + "}"
-        );
+        objectMapper.writeValue(
+                response.getWriter(),
+                new RateLimitJsonResponse(MessageConstants.TOO_MANY_REQUESTS, retryAfterSeconds));
     }
 
     /**
