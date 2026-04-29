@@ -2,6 +2,7 @@ package com.educycle;
 
 import com.educycle.shared.config.CorsProperties;
 import com.educycle.shared.config.TransactionExpiryProperties;
+import com.educycle.shared.config.TransactionOtpProperties;
 import com.educycle.shared.config.UnsplashProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -49,7 +50,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "com.educycle.notification.infrastructure.persistence"
 })
 @EnableScheduling
-@EnableConfigurationProperties({ CorsProperties.class, TransactionExpiryProperties.class, UnsplashProperties.class })
+@EnableConfigurationProperties({
+        CorsProperties.class,
+        TransactionExpiryProperties.class,
+        UnsplashProperties.class,
+        TransactionOtpProperties.class
+})
 public class EduCycleApplication {
 
     public static void main(String[] args) {

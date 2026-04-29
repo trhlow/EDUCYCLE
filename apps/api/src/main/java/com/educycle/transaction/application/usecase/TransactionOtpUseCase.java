@@ -1,5 +1,6 @@
 package com.educycle.transaction.application.usecase;
 
+import com.educycle.shared.config.TransactionOtpProperties;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.ForbiddenException;
 import com.educycle.shared.exception.NotFoundException;
@@ -27,12 +28,11 @@ import java.util.UUID;
 public class TransactionOtpUseCase {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int OTP_MAX_FAILED = 5;
-    private static final int OTP_LOCK_MINUTES = 30;
 
     private final TransactionRepository transactionRepository;
     private final ProductSoldMarker productSoldMarker;
     private final OtpHasher otpHasher;
+    private final TransactionOtpProperties otpProperties;
 
     public Map<String, String> generateOtp(UUID id, UUID actorUserId) {
         Transaction transaction = load(id);
@@ -52,7 +52,8 @@ public class TransactionOtpUseCase {
 
         String otp = String.format("%06d", 100000 + SECURE_RANDOM.nextInt(900000));
         transaction.setOtpCode(otpHasher.hash(otp));
-        transaction.setOtpExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES));
+        transaction.setOtpExpiresAt(
+                Instant.now().plus(Math.max(1, otpProperties.getExpiryMinutes()), ChronoUnit.MINUTES));
         transaction.setOtpFailedAttempts(0);
         transaction.setOtpLockedUntil(null);
         transactionRepository.save(transaction);
@@ -84,15 +85,17 @@ public class TransactionOtpUseCase {
         if (!otpValid) {
             int fails = transaction.getOtpFailedAttempts() + 1;
             transaction.setOtpFailedAttempts(fails);
-            if (fails >= OTP_MAX_FAILED) {
-                transaction.setOtpLockedUntil(Instant.now().plus(OTP_LOCK_MINUTES, ChronoUnit.MINUTES));
+            int maxFails = Math.max(1, otpProperties.getMaxFailedAttempts());
+            if (fails >= maxFails) {
+                transaction.setOtpLockedUntil(
+                        Instant.now().plus(Math.max(1, otpProperties.getLockMinutes()), ChronoUnit.MINUTES));
                 transaction.setOtpCode(null);
                 transaction.setOtpExpiresAt(null);
                 transaction.setOtpFailedAttempts(0);
             }
             transactionRepository.save(transaction);
             throw new BadRequestException(
-                    fails >= OTP_MAX_FAILED
+                    fails >= maxFails
                             ? MessageConstants.TRANSACTION_OTP_BRUTE_FORCE
                             : MessageConstants.OTP_INVALID_OR_EXPIRED);
         }

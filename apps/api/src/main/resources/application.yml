@@ -89,6 +89,13 @@ educycle:
   # OTP giao dịch: HMAC-SHA256; để trống → dùng jwt.secret (dev). Production: EDUCYCLE_OTP_HMAC_SECRET riêng.
   otp:
     hmac-secret: ${EDUCYCLE_OTP_HMAC_SECRET:}
+    transaction:
+      max-failed-attempts: 5
+      lock-minutes: 30
+      expiry-minutes: 30
+      http-verify-per-minute: 5
+      http-generate-per-window: 3
+      http-generate-window-minutes: 5
   rate-limit:
     enabled: true
     prefer-x-real-ip: false
