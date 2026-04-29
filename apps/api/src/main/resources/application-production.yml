@@ -17,6 +17,11 @@ educycle:
   rate-limit:
     prefer-x-real-ip: true
 
+logging:
+  level:
+    root: INFO
+    com.educycle: INFO
+
 management:
   endpoints:
     web:

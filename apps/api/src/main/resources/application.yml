@@ -157,5 +157,6 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %clr(%5p){faint} [%X{requestId:-}] %clr(%-40.40logger{39}){cyan} : %m%n%wEx"
   level:
     root: INFO
-    com.educycle: DEBUG
+    # Dev profiles `local` / `docker` override to DEBUG — avoid verbose logs by default (staging/prod-safe).
+    com.educycle: INFO
     org.springframework.security: WARN
