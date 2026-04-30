@@ -11,6 +11,7 @@ import com.educycle.auth.application.support.AuthUsernamePolicy;
 import com.educycle.auth.application.support.OtpCodeGenerator;
 import com.educycle.shared.config.RegistrationOtpProperties;
 import com.educycle.shared.exception.BadRequestException;
+import com.educycle.shared.exception.ConflictException;
 import com.educycle.shared.mail.MailService;
 import com.educycle.shared.util.MessageConstants;
 import com.educycle.user.domain.Role;
@@ -53,11 +54,11 @@ public class AuthRegistrationUseCase {
 
     private RegisterPendingResponse registerNewUser(RegisterRequest request, String email) {
         String normalizedUsername = AuthUsernamePolicy.normalize(request.username());
-        if (normalizedUsername.isEmpty()) {
+        if (!AuthUsernamePolicy.isValidNormalized(normalizedUsername)) {
             throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
         }
         if (userRepository.existsByUsername(normalizedUsername)) {
-            throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
+            throw new ConflictException(MessageConstants.USERNAME_TAKEN);
         }
         String otpToken = otpCodeGenerator.next();
         User user = User.builder()
@@ -84,11 +85,11 @@ public class AuthRegistrationUseCase {
             throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
         String normalizedUsername = AuthUsernamePolicy.normalize(request.username());
-        if (normalizedUsername.isEmpty()) {
+        if (!AuthUsernamePolicy.isValidNormalized(normalizedUsername)) {
             throw new BadRequestException(MessageConstants.VALIDATION_FAILED);
         }
         if (userRepository.existsByUsernameAndIdNot(normalizedUsername, existing.getId())) {
-            throw new BadRequestException(MessageConstants.USERNAME_TAKEN);
+            throw new ConflictException(MessageConstants.USERNAME_TAKEN);
         }
         String otpToken = otpCodeGenerator.next();
         existing.setUsername(normalizedUsername);

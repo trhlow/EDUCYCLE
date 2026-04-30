@@ -8,6 +8,9 @@ import java.util.Locale;
  */
 public final class AuthUsernamePolicy {
 
+    public static final int MIN_LENGTH = 3;
+    public static final int MAX_LENGTH = 50;
+
     private AuthUsernamePolicy() {
     }
 
@@ -17,5 +20,11 @@ public final class AuthUsernamePolicy {
             return "";
         }
         return raw.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public static boolean isValidNormalized(String normalized) {
+        return normalized != null
+                && normalized.length() >= MIN_LENGTH
+                && normalized.length() <= MAX_LENGTH;
     }
 }

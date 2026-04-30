@@ -104,6 +104,8 @@ Seed mặc định:
 
 **CORS:** biến môi trường **`CORS_ALLOWED_ORIGINS`** (danh sách origin cách nhau bởi dấu phẩy) — xem `application.yml` / `.env.example` gốc repo.
 
+**Rate limit:** `RateLimitFilter` hiện dùng Caffeine + Bucket4j in-memory, nên quota chỉ đảm bảo đúng khi chạy **một API instance**. Nếu production chạy nhiều instance/pod, đặt rate limit tập trung bằng Redis-backed Bucket4j hoặc tại gateway/reverse proxy như Nginx, Kong, Cloudflare, API Gateway.
+
 ### 4. Swagger UI
 ```
 http://localhost:8080/swagger-ui.html
@@ -128,6 +130,11 @@ Integration tests chạy cùng `mvn test`:
 - Ưu tiên Postgres Testcontainers để kiểm tra migration từ DB rỗng.
 - Nếu Docker không chạy nhưng máy có `initdb`/`pg_ctl`/`createdb`, test tự tạo Postgres tạm trong `target`.
 - Nếu Postgres binaries không nằm trong `PATH`, đặt `POSTGRES_BIN` trỏ tới thư mục `bin` của PostgreSQL.
+
+Chạy riêng core flow integration test trên máy có Docker:
+```bash
+mvn -q test -Dtest=CoreFlowIntegrationTest
+```
 
 ---
 
@@ -255,25 +262,28 @@ UPDATE products SET status = UPPER(status);
 UPDATE transactions SET status = UPPER(status);
 ```
 
-### 3. JWT Claims
+### 3. Username Normalize Migration
+`V4__username_normalize_lowercase.sql` chuẩn hóa username bằng `trim + lower-case` và gắn suffix theo `id` cho các bản ghi bị trùng sau normalize. Trước khi chạy trên staging/prod đã có dữ liệu thật: backup DB, chạy trên bản copy, đo thời gian migration, và kiểm tra các username bị đổi suffix. Với bảng `users` lớn, nên chuyển sang batch theo id range thay vì update toàn bảng trong một lần.
+
+### 4. JWT Claims
 JWT payload is identical to C# original:
 - `sub` = userId (UUID string)
 - `email` = user's email
 - `role` = `"USER"` or `"ADMIN"` (uppercase)
 
-### 4. @AuthenticationPrincipal
+### 5. @AuthenticationPrincipal
 In controllers, `@AuthenticationPrincipal String userId` replaces:
 ```csharp
 var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 ```
 The principal is the userId (UUID string) set in `JwtAuthenticationFilter`.
 
-### 5. Async → Sync
+### 6. Async → Sync
 All `Task<T>` async operations were converted to synchronous.
 Spring MVC uses a thread-per-request model — synchronous code is correct here.
 Add `@Async` + `CompletableFuture` only if you need true non-blocking I/O.
 
-### 6. FluentValidation → Bean Validation
+### 7. FluentValidation → Bean Validation
 - `[Required]` → `@NotNull` / `@NotBlank`
 - `[StringLength(max)]` → `@Size(max = ...)`
 - `[Range(1, 5)]` → `@Min(1)` + `@Max(5)`

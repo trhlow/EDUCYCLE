@@ -102,16 +102,19 @@ public class GlobalExceptionHandler {
         log.warn("Data integrity violation: {}", detail);
 
         String message = MessageConstants.DUPLICATE_DATA;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         if (detail != null) {
             if (detail.contains("uq_users_email")) {
                 message = MessageConstants.EMAIL_ALREADY_EXISTS;
+                status = HttpStatus.CONFLICT;
             } else if (detail.contains("uq_users_username")) {
                 message = MessageConstants.USERNAME_TAKEN;
+                status = HttpStatus.CONFLICT;
             }
         }
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(status)
                 .body(ApiErrorBody.of(message));
     }
 

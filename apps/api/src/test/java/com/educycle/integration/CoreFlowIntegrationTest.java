@@ -174,7 +174,7 @@ class CoreFlowIntegrationTest {
         int a = f1.get(45, TimeUnit.SECONDS);
         int b = f2.get(45, TimeUnit.SECONDS);
         pool.shutdown();
-        assertThat(List.of(a, b)).containsExactlyInAnyOrder(200, 400);
+        assertThat(List.of(a, b)).containsExactlyInAnyOrder(200, 409);
         assertThat(a == 200 || b == 200).isTrue();
     }
 
@@ -213,9 +213,7 @@ class CoreFlowIntegrationTest {
         int s1 = f1.get(45, TimeUnit.SECONDS);
         int s2 = f2.get(45, TimeUnit.SECONDS);
         pool.shutdown();
-        assertThat(s1).isNotEqualTo(500);
-        assertThat(s2).isNotEqualTo(500);
-        assertThat(s1 == 200 || s2 == 200).isTrue();
+        assertThat(List.of(s1, s2)).containsExactlyInAnyOrder(200, 409);
     }
 
     private UserSession registerVerifiedUser(String prefix) throws Exception {

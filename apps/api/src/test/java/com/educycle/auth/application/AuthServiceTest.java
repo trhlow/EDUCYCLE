@@ -4,6 +4,7 @@ import com.educycle.auth.api.dto.request.*;
 import com.educycle.auth.api.dto.response.*;
 import com.educycle.user.domain.Role;
 import com.educycle.shared.exception.BadRequestException;
+import com.educycle.shared.exception.ConflictException;
 import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -134,9 +135,23 @@ class AuthServiceTest {
             given(userRepository.existsByUsername("taken")).willReturn(true);
 
             assertThatThrownBy(() -> authService.register(request))
-                    .isInstanceOf(BadRequestException.class)
+                    .isInstanceOf(ConflictException.class)
                     .hasMessage(MessageConstants.USERNAME_TAKEN);
 
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should validate username after normalization")
+        void shouldValidateUsernameAfterNormalization() {
+            RegisterRequest request = new RegisterRequest(" ab ", "fresh@student.edu.vn", "Password123");
+            given(userRepository.findByEmail("fresh@student.edu.vn")).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.register(request))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.VALIDATION_FAILED);
+
+            verify(userRepository, never()).existsByUsername(anyString());
             verify(userRepository, never()).save(any());
         }
 
@@ -186,7 +201,7 @@ class AuthServiceTest {
             given(userRepository.existsByUsernameAndIdNot("otheruser", id)).willReturn(true);
 
             assertThatThrownBy(() -> authService.register(request))
-                    .isInstanceOf(BadRequestException.class)
+                    .isInstanceOf(ConflictException.class)
                     .hasMessage(MessageConstants.USERNAME_TAKEN);
 
             verify(userRepository, never()).save(any());
