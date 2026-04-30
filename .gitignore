@@ -24,7 +24,9 @@ build/
 infra/k8s/secret.yaml
 
 # === IDE ===
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/*.mdc
 .cursorrules
 .idea/
 *.iml

@@ -1,0 +1,28 @@
+---
+description: General EDUCYCLE project rules for all AI coding work
+alwaysApply: true
+---
+
+# EDUCYCLE Project Rules
+
+You are working on the EDUCYCLE project.
+
+Core rules:
+
+- Read existing code before making changes.
+- Do not rewrite entire modules unless the user explicitly asks.
+- Keep changes small, consistent, and easy to review.
+- Prefer clean architecture over quick hacks.
+- Do not invent business requirements.
+- Do not add new dependencies unless clearly justified.
+- Explain important architectural decisions.
+- Preserve existing behavior unless the task requires changing it.
+- Do not hardcode secrets or environment-specific values.
+
+Expected response after changes:
+
+1. What changed
+2. Why it changed
+3. Files touched
+4. How to test
+5. Risks or limitations

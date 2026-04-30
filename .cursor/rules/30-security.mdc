@@ -1,0 +1,51 @@
+---
+description: Security rules for authentication, authorization, secrets, input validation, and sensitive data
+globs:
+  - "**/*.java"
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.vue"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.properties"
+  - "**/*.env*"
+alwaysApply: false
+---
+
+# Security Rules
+
+Authentication and authorization:
+
+- Every protected resource must check authenticated identity.
+- Do not rely on client-provided userId for authorization.
+- Public endpoints must be intentional and documented.
+- Admin endpoints must require admin authority.
+- Avoid "init", "debug", or "setup" endpoints that can issue tokens in production.
+
+Secrets:
+
+- Never commit secrets, tokens, passwords, private keys, or API keys.
+- Use environment variables or secret managers.
+- Do not log authorization headers, refresh tokens, access tokens, passwords, or OTP codes.
+
+Input validation:
+
+- Validate all request bodies.
+- Validate path variables and query parameters.
+- Validate uploaded files by size, MIME type, extension, and path.
+- Prevent path traversal when handling files.
+
+Web security:
+
+- Configure CORS narrowly.
+- Avoid wildcard CORS with credentials.
+- Use CSRF protection when cookie-based auth is used.
+- Sanitize user-generated HTML or avoid rendering it as HTML.
+
+Error handling:
+
+- Do not expose stack traces to clients.
+- Do not return internal exception messages directly.
+- Use consistent safe error responses.

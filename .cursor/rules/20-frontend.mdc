@@ -1,0 +1,39 @@
+---
+description: Frontend rules for UI, API calls, state, validation, and responsive design
+globs:
+  - "frontend/**/*.{ts,tsx,js,jsx,vue}"
+  - "web/**/*.{ts,tsx,js,jsx,vue}"
+  - "src/**/*.{ts,tsx,js,jsx,vue}"
+alwaysApply: false
+---
+
+# Frontend Rules
+
+Structure:
+
+- Separate pages, components, services, hooks/composables, stores, and utilities.
+- Keep components small and readable.
+- Avoid duplicating API logic across pages.
+- Do not put complex business logic directly inside templates or JSX.
+
+API:
+
+- Centralize API client configuration.
+- Handle authentication headers consistently.
+- Handle 401, 403, 404, 422, and 500 responses clearly.
+- Never expose secrets in frontend code.
+
+UX:
+
+- Every async screen must handle loading, empty, error, and success states.
+- Forms must show clear validation errors.
+- Buttons should prevent duplicate submits.
+- UI must work on mobile, tablet, and desktop.
+- Do not rely only on hover behavior.
+
+Accessibility:
+
+- Use semantic HTML.
+- Add labels for form fields.
+- Ensure keyboard navigation works.
+- Use readable contrast.

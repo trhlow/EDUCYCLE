@@ -1,0 +1,40 @@
+---
+description: Testing rules for backend and frontend changes
+globs:
+  - "**/src/test/**/*"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.js"
+  - "**/*.test.js"
+  - "**/*.java"
+alwaysApply: false
+---
+
+# Testing Rules
+
+General:
+
+- Add or update tests when changing business logic.
+- Do not delete failing tests unless the test is wrong and the reason is explained.
+- Prefer meaningful tests over snapshot spam.
+- Test edge cases, not only happy paths.
+
+Backend:
+
+- Service tests should verify business rules.
+- Controller tests should verify status codes, validation, and response format.
+- Repository tests should verify custom queries.
+- Security tests should verify unauthorized and forbidden access.
+
+Frontend:
+
+- Test critical form flows.
+- Test loading, error, and empty states.
+- Test API failure handling.
+- Test important conditional rendering.
+
+Before final response:
+
+- State exactly which tests were run.
+- If tests were not run, explain why.

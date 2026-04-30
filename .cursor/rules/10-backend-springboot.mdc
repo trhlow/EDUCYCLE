@@ -1,0 +1,48 @@
+---
+description: Spring Boot backend rules for Java services, APIs, persistence, and architecture
+globs:
+  - "backend/**/*.java"
+  - "**/src/main/java/**/*.java"
+  - "**/src/test/java/**/*.java"
+alwaysApply: false
+---
+
+# Backend Spring Boot Rules
+
+Architecture:
+
+- Controllers handle HTTP only.
+- Services contain business logic.
+- Repositories handle persistence only.
+- DTOs should be used for API request and response models.
+- Entities should not be exposed directly unless the existing design already requires it.
+- Use constructor injection.
+- Avoid field injection.
+- Keep packages organized by feature or clear layers.
+
+API design:
+
+- Use clear REST naming.
+- Use proper HTTP status codes.
+- Validate request bodies with Bean Validation.
+- Return consistent error responses.
+- Use pagination for collection endpoints.
+- Never trust client-provided ownership fields such as userId when authenticated context exists.
+
+Transactions:
+
+- Use @Transactional on service write operations.
+- Keep transactions short.
+- Do not perform slow external calls inside DB transactions.
+
+Error handling:
+
+- Use centralized exception handling with @ControllerAdvice where appropriate.
+- Do not leak stack traces.
+- Convert domain errors into clear API errors.
+
+Testing:
+
+- Add unit tests for service logic.
+- Add integration or controller tests for important endpoints.
+- Add security tests for protected routes when modifying auth behavior.

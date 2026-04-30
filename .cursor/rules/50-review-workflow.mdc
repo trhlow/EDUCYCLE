@@ -1,0 +1,69 @@
+---
+description: Senior review workflow for reviewing AI-generated or human-written code
+alwaysApply: false
+---
+
+# Senior Review Workflow
+
+When asked to review code, use this structure:
+
+## Summary
+
+Briefly state the overall quality and risk level.
+
+## Critical Issues
+
+Use priority labels:
+
+- P0: security/data loss/build broken
+- P1: serious production risk
+- P2: maintainability or correctness issue
+- P3: cleanup
+
+For each issue include:
+
+- Problem
+- Why it matters
+- File or area
+- Suggested fix
+
+## Architecture Review
+
+Check:
+
+- Separation of concerns
+- Dependency direction
+- DTO/entity boundaries
+- Error handling
+- Auth flow
+- Database consistency
+
+## Security Review
+
+Check:
+
+- Authentication
+- Authorization
+- Secrets
+- Input validation
+- CORS/CSRF
+- Token handling
+- Sensitive logging
+
+## Testing Review
+
+Check:
+
+- Missing tests
+- Weak tests
+- Edge cases
+- Integration coverage
+
+## Final Verdict
+
+Use one of:
+
+- Ready to merge
+- Merge after minor fixes
+- Needs serious fixes
+- Do not merge
