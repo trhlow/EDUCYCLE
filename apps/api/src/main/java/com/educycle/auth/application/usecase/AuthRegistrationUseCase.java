@@ -82,7 +82,7 @@ public class AuthRegistrationUseCase {
     private RegisterPendingResponse reregisterUnverifiedIfNeeded(
             RegisterRequest request, String email, User existing) {
         if (existing.isEmailVerified()) {
-            throw new BadRequestException(MessageConstants.EMAIL_ALREADY_EXISTS);
+            throw new ConflictException(MessageConstants.EMAIL_ALREADY_EXISTS);
         }
         String normalizedUsername = AuthUsernamePolicy.normalize(request.username());
         if (!AuthUsernamePolicy.isValidNormalized(normalizedUsername)) {

@@ -22,6 +22,8 @@
         <java.version>21</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.38</lombok.version>
+        <excludedGroups>integration</excludedGroups>
+        <integrationPostgresMode>auto</integrationPostgresMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -250,6 +252,16 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${excludedGroups}</excludedGroups>
+                    <systemPropertyVariables>
+                        <educycle.integration.postgres>${integrationPostgresMode}</educycle.integration.postgres>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
@@ -304,4 +316,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>integration</id>
+            <properties>
+                <excludedGroups></excludedGroups>
+                <integrationPostgresMode>docker</integrationPostgresMode>
+            </properties>
+        </profile>
+    </profiles>
 </project>

@@ -120,21 +120,14 @@ Click **Authorize** and enter: `Bearer <your-jwt-token>`
 mvn test
 ```
 
-- Integration-heavy tests (`CoreFlowIntegrationTest`, Postgres via Testcontainers hoặc Postgres binary trong `PATH`) được gắn `@Tag("integration")`. Bỏ qua khi không có Docker / không muốn chạy DB tạm:
-  ```bash
-  mvn test -DexcludedGroups=integration
-  ```
-  (GitHub Actions `ubuntu-latest` có Docker — `mvn clean verify` chạy đầy đủ module.)
+`mvn test` mặc định chỉ chạy unit/service tests; các test gắn `@Tag("integration")` được exclude để local build không phụ thuộc Docker/Postgres.
 
-Integration tests chạy cùng `mvn test`:
-- Ưu tiên Postgres Testcontainers để kiểm tra migration từ DB rỗng.
-- Nếu Docker không chạy nhưng máy có `initdb`/`pg_ctl`/`createdb`, test tự tạo Postgres tạm trong `target`.
-- Nếu Postgres binaries không nằm trong `PATH`, đặt `POSTGRES_BIN` trỏ tới thư mục `bin` của PostgreSQL.
-
-Chạy riêng core flow integration test trên máy có Docker:
+Chạy riêng core flow integration test trên máy có Docker daemon:
 ```bash
-mvn -q test -Dtest=CoreFlowIntegrationTest
+mvn -Pintegration verify -Dtest=CoreFlowIntegrationTest
 ```
+
+Profile `integration` chạy Docker-only qua Testcontainers. Nếu Docker chưa bật, test fail nhanh với lỗi Docker thay vì fallback sang Postgres local và làm build timeout.
 
 ---
 

@@ -28,6 +28,7 @@ final class IntegrationPostgres {
     }
 
     static IntegrationPostgres start() {
+        String mode = System.getProperty("educycle.integration.postgres", "auto").trim().toLowerCase(Locale.ROOT);
         PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16-alpine")
                 .withDatabaseName(DATABASE)
                 .withUsername(USERNAME)
@@ -37,6 +38,9 @@ final class IntegrationPostgres {
             return new IntegrationPostgres(container, null);
         } catch (Throwable dockerUnavailable) {
             container.close();
+            if ("docker".equals(mode)) {
+                throw new IllegalStateException("Cannot start integration PostgreSQL via Docker", dockerUnavailable);
+            }
             return new IntegrationPostgres(null, LocalPostgres.start());
         }
     }

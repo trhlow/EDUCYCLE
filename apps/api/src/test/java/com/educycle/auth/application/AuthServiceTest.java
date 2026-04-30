@@ -105,7 +105,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("should throw BadRequestException when email already exists and verified")
+        @DisplayName("should throw ConflictException when email already exists and verified")
         void shouldThrow_whenEmailAlreadyExistsAndVerified() {
             RegisterRequest request = new RegisterRequest("testuser", "existing@student.edu.vn", "Password123");
             User verified = User.builder()
@@ -121,7 +121,7 @@ class AuthServiceTest {
             given(userRepository.findByEmail("existing@student.edu.vn")).willReturn(Optional.of(verified));
 
             assertThatThrownBy(() -> authService.register(request))
-                    .isInstanceOf(BadRequestException.class)
+                    .isInstanceOf(ConflictException.class)
                     .hasMessageContaining("Email đã tồn tại");
 
             verify(userRepository, never()).save(any());

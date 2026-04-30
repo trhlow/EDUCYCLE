@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record AdminUpdateUserRequest(
-        @Size(min = 3, max = 50, message = "Tên người dùng phải từ 3–50 ký tự")
+        @Size(max = 100, message = "Tên người dùng tối đa 100 ký tự trước khi chuẩn hóa")
         String username,
 
         @Email(message = "Email không đúng định dạng")

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 
 public record AdminCreateUserRequest(
         @NotBlank(message = "Tên người dùng là bắt buộc")
-        @Size(min = 3, max = 50, message = "Tên người dùng phải từ 3–50 ký tự")
+        @Size(max = 100, message = "Tên người dùng tối đa 100 ký tự trước khi chuẩn hóa")
         String username,
 
         @NotBlank(message = "Email là bắt buộc")
