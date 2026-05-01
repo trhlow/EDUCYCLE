@@ -39,6 +39,13 @@ public class ReviewQueryUseCase {
                 .toList();
     }
 
+    public List<ReviewResponse> getByTransactionId(UUID transactionId) {
+        return reviewRepository.findByTransactionId(transactionId)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
     public List<ReviewResponse> getByTargetUserId(UUID userId) {
         return reviewRepository.findByTargetUserId(userId)
                 .stream()

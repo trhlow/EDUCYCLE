@@ -55,8 +55,16 @@ public class ProductCatalogUseCase {
         return productPageMapper.list(productRepository.findAllWithUser());
     }
 
+    public PageResponse<ProductResponse> getAllForAdmin(Pageable pageable) {
+        return productPageMapper.page(productRepository.findAll(pageable));
+    }
+
     public List<ProductResponse> getPending() {
         return productPageMapper.list(productRepository.findByStatusWithUser(ProductStatus.PENDING));
+    }
+
+    public PageResponse<ProductResponse> getPending(Pageable pageable) {
+        return productPageMapper.page(productRepository.findByStatus(ProductStatus.PENDING, pageable));
     }
 
     public PageResponse<ProductResponse> getMyProducts(UUID userId, Pageable pageable) {

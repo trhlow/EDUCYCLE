@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
  * IP-based rate limiting (in-memory, no Redis needed for MVP).
  * Quotas are enforced per JVM instance. Multi-instance production deployments need a shared
  * limiter at Redis / API gateway / reverse proxy layer to avoid multiplying effective limits.
+ * TODO(production): replace this filter with Redis-backed Bucket4j or gateway rate limiting
+ * before running more than one API replica.
  *
  * Auth endpoints (login/register/resend-otp): 10 req / minute
  * Transaction OTP (generate/verify): stricter per transaction id + IP (see {@link TransactionOtpProperties})

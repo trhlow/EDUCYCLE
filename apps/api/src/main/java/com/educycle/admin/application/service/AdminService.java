@@ -6,6 +6,7 @@ import com.educycle.admin.api.dto.request.AdminUpdateUserRequest;
 import com.educycle.admin.api.dto.response.AdminUserDetailResponse;
 import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
 import com.educycle.admin.api.dto.response.DashboardStatsResponse;
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public interface AdminService {
     DashboardStatsResponse getStats();
     List<AdminUserSummaryResponse> getAllUsers();
+    PageResponse<AdminUserSummaryResponse> listUsers(int page, int size, String direction);
 
     AdminUserDetailResponse getUserById(UUID id);
 

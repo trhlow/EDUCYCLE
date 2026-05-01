@@ -136,4 +136,11 @@ public final class MessageConstants {
     public static final String ADMIN_CANNOT_DEMOTE_SELF =
             "Không thể tự bỏ quyền quản trị của chính mình.";
     public static final String ADMIN_USERNAME_TAKEN = "Tên người dùng đã được sử dụng.";
+
+    public static final String REVIEW_TRANSACTION_REQUIRED = "Đánh giá phải gắn với một giao dịch.";
+    public static final String REVIEW_TRANSACTION_NOT_COMPLETED = "Chỉ có thể đánh giá giao dịch đã hoàn tất.";
+    public static final String REVIEW_NOT_ALLOWED = "Bạn không có quyền đánh giá giao dịch này.";
+    public static final String REVIEW_TARGET_INVALID = "Người được đánh giá không khớp với giao dịch.";
+    public static final String REVIEW_PRODUCT_INVALID = "Sản phẩm được đánh giá không khớp với giao dịch.";
+    public static final String REVIEW_ALREADY_EXISTS = "Bạn đã đánh giá người dùng này trong giao dịch này.";
 }

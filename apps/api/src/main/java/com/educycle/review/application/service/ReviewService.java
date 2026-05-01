@@ -10,6 +10,7 @@ public interface ReviewService {
     ReviewResponse getById(UUID id);
     List<ReviewResponse> getAll();
     List<ReviewResponse> getByProductId(UUID productId);
+    List<ReviewResponse> getByTransactionId(UUID transactionId);
     List<ReviewResponse> getByTargetUserId(UUID userId);
     void delete(UUID id, UUID userId);
 }

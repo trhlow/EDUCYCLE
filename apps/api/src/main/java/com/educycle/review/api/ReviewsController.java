@@ -53,10 +53,9 @@ public class ReviewsController {
     }
 
     // GET /api/reviews/transaction/{transactionId}  [AllowAnonymous]
-    // In C# this called GetByProductIdAsync — kept same behavior
     @GetMapping("/transaction/{transactionId}")
     public ResponseEntity<List<ReviewResponse>> getByTransaction(@PathVariable UUID transactionId) {
-        return ResponseEntity.ok(reviewService.getByProductId(transactionId));
+        return ResponseEntity.ok(reviewService.getByTransactionId(transactionId));
     }
 
     // GET /api/reviews/user/{userId}  [AllowAnonymous]

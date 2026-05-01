@@ -1,13 +1,18 @@
 package com.educycle.review.application.usecase;
 
-import com.educycle.listing.domain.Product;
-import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.review.api.dto.request.CreateReviewRequest;
 import com.educycle.review.api.dto.response.ReviewResponse;
 import com.educycle.review.application.support.ReviewResponseMapper;
 import com.educycle.review.domain.Review;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
+import com.educycle.shared.exception.BadRequestException;
+import com.educycle.shared.exception.ConflictException;
+import com.educycle.shared.exception.ForbiddenException;
 import com.educycle.shared.exception.NotFoundException;
+import com.educycle.shared.util.MessageConstants;
+import com.educycle.transaction.domain.Transaction;
+import com.educycle.transaction.domain.TransactionStatus;
+import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,30 +28,50 @@ public class CreateReviewUseCase {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+    private final TransactionRepository transactionRepository;
     private final ReviewResponseMapper mapper;
 
     public ReviewResponse create(CreateReviewRequest request, UUID userId) {
         User reviewer = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
 
-        Product product = null;
-        if (request.productId() != null) {
-            product = productRepository.findById(request.productId())
-                    .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
+        if (request.transactionId() == null) {
+            throw new BadRequestException(MessageConstants.REVIEW_TRANSACTION_REQUIRED);
         }
 
-        User targetUser = null;
-        if (request.targetUserId() != null) {
-            targetUser = userRepository.findById(request.targetUserId())
-                    .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng được đánh giá"));
+        Transaction transaction = transactionRepository.findByIdWithDetails(request.transactionId())
+                .orElseThrow(() -> new NotFoundException(
+                        String.format(MessageConstants.TRANSACTION_NOT_FOUND, request.transactionId())));
+
+        if (transaction.getStatus() != TransactionStatus.COMPLETED) {
+            throw new BadRequestException(MessageConstants.REVIEW_TRANSACTION_NOT_COMPLETED);
+        }
+
+        boolean reviewerIsBuyer = transaction.getBuyer().getId().equals(userId);
+        boolean reviewerIsSeller = transaction.getSeller().getId().equals(userId);
+        if (!reviewerIsBuyer && !reviewerIsSeller) {
+            throw new ForbiddenException(MessageConstants.REVIEW_NOT_ALLOWED);
+        }
+
+        User expectedTarget = reviewerIsBuyer ? transaction.getSeller() : transaction.getBuyer();
+        if (request.targetUserId() == null || !expectedTarget.getId().equals(request.targetUserId())) {
+            throw new BadRequestException(MessageConstants.REVIEW_TARGET_INVALID);
+        }
+
+        if (request.productId() == null || !transaction.getProduct().getId().equals(request.productId())) {
+            throw new BadRequestException(MessageConstants.REVIEW_PRODUCT_INVALID);
+        }
+
+        if (reviewRepository.existsByTransactionIdAndUser_IdAndTargetUser_Id(
+                transaction.getId(), userId, expectedTarget.getId())) {
+            throw new ConflictException(MessageConstants.REVIEW_ALREADY_EXISTS);
         }
 
         Review review = Review.builder()
                 .user(reviewer)
-                .product(product)
-                .targetUser(targetUser)
-                .transactionId(request.transactionId())
+                .product(transaction.getProduct())
+                .targetUser(expectedTarget)
+                .transactionId(transaction.getId())
                 .rating(request.rating())
                 .content(request.content())
                 .build();

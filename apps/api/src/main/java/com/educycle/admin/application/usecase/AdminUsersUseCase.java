@@ -9,11 +9,14 @@ import com.educycle.auth.application.support.AuthUsernamePolicy;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.ConflictException;
 import com.educycle.shared.exception.NotFoundException;
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.shared.util.MessageConstants;
 import com.educycle.user.domain.Role;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +44,19 @@ public class AdminUsersUseCase {
                 .stream()
                 .map(mapper::toSummary)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<AdminUserSummaryResponse> listUsers(Pageable pageable) {
+        Page<User> page = userRepository.findAll(pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(mapper::toSummary).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isFirst(),
+                page.isLast());
     }
 
     @Transactional(readOnly = true)

@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -71,15 +70,21 @@ public class ProductsController {
     // GET /api/products/pending  [Authorize(Roles="Admin")]
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ProductResponse>> getPending() {
-        return ResponseEntity.ok(productService.getPending());
+    public ResponseEntity<PageResponse<ProductResponse>> getPending(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+        return ResponseEntity.ok(productService.getPending(page, size, direction));
     }
 
     // GET /api/products/admin/all  [Authorize(Roles="Admin")]
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ProductResponse>> getAllForAdmin() {
-        return ResponseEntity.ok(productService.getAllForAdmin());
+    public ResponseEntity<PageResponse<ProductResponse>> getAllForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+        return ResponseEntity.ok(productService.getAllForAdmin(page, size, direction));
     }
 
     // GET /api/products/{id}  [AllowAnonymous]

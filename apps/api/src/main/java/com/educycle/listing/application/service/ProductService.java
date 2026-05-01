@@ -37,7 +37,11 @@ public interface ProductService {
 
     List<ProductResponse> getAllForAdmin();
 
+    PageResponse<ProductResponse> getAllForAdmin(int page, int size, String direction);
+
     List<ProductResponse> getPending();
+
+    PageResponse<ProductResponse> getPending(int page, int size, String direction);
 
     PageResponse<ProductResponse> getMyProducts(UUID userId, Pageable pageable);
 

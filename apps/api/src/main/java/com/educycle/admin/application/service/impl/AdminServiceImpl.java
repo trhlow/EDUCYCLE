@@ -9,9 +9,12 @@ import com.educycle.admin.api.dto.response.DashboardStatsResponse;
 import com.educycle.admin.application.service.AdminService;
 import com.educycle.admin.application.usecase.AdminStatsUseCase;
 import com.educycle.admin.application.usecase.AdminUsersUseCase;
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.educycle.transaction.application.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +36,14 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminUserSummaryResponse> getAllUsers() {
         return usersUseCase.getAllUsers();
+    }
+
+    @Override
+    public PageResponse<AdminUserSummaryResponse> listUsers(int page, int size, String direction) {
+        Sort sort = "asc".equalsIgnoreCase(direction)
+                ? Sort.by("createdAt").ascending()
+                : Sort.by("createdAt").descending();
+        return usersUseCase.listUsers(PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), sort));
     }
 
     @Override

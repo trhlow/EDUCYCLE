@@ -8,16 +8,16 @@ on:
 
 jobs:
   backend:
-    name: Backend Unit Tests (Java 25)
+    name: Backend Unit Tests (Java 21)
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 25
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
 
@@ -27,7 +27,7 @@ jobs:
         run: mvn -f apps/api/pom.xml clean test
 
   backend-integration:
-    name: Backend Integration Tests (Java 25)
+    name: Backend Integration Tests (Java 21)
     runs-on: ubuntu-latest
 
     steps:
@@ -35,17 +35,17 @@ jobs:
 
       # ubuntu-latest includes Docker; Testcontainers pulls Postgres for CoreFlowIntegrationTest.
 
-      - name: Set up JDK 25
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Core flow integration test
+      - name: Integration tests
         env:
           CI: true
-        run: mvn -f apps/api/pom.xml -Pintegration verify -Dtest=CoreFlowIntegrationTest
+        run: mvn -f apps/api/pom.xml -Pintegration verify
 
   e2e-api:
     name: E2E API (Spring + Postgres)
@@ -67,10 +67,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 25
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
 

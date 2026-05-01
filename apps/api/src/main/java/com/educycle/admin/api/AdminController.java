@@ -6,6 +6,7 @@ import com.educycle.admin.api.dto.request.AdminUpdateUserRequest;
 import com.educycle.admin.api.dto.response.AdminUserDetailResponse;
 import com.educycle.admin.api.dto.response.AdminUserSummaryResponse;
 import com.educycle.admin.api.dto.response.DashboardStatsResponse;
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.educycle.admin.application.service.AdminService;
 import jakarta.validation.Valid;
@@ -36,8 +37,11 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<AdminUserSummaryResponse>> getAllUsers() {
-        return ResponseEntity.ok(adminService.getAllUsers());
+    public ResponseEntity<PageResponse<AdminUserSummaryResponse>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+        return ResponseEntity.ok(adminService.listUsers(page, size, direction));
     }
 
     @GetMapping("/users/{id}")

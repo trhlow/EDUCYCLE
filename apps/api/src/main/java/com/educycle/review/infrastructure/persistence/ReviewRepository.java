@@ -20,6 +20,9 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user WHERE r.targetUser.id = :targetUserId")
     List<Review> findByTargetUserId(UUID targetUserId);
 
+    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user WHERE r.transactionId = :transactionId")
+    List<Review> findByTransactionId(UUID transactionId);
+
     @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user")
     List<Review> findAllWithUser();
 
@@ -37,4 +40,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     @Query("SELECT r FROM Review r JOIN FETCH r.user WHERE r.targetUser.id = :uid ORDER BY r.createdAt DESC")
     List<Review> findByTargetUserIdOrderByCreatedAtDesc(@Param("uid") UUID uid, Pageable pageable);
+
+    boolean existsByTransactionIdAndUser_IdAndTargetUser_Id(UUID transactionId, UUID userId, UUID targetUserId);
 }

@@ -16,11 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -107,5 +112,26 @@ class AdminUsersUseCaseTest {
                 .hasMessage(MessageConstants.ADMIN_USERNAME_TAKEN);
 
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("listUsers returns page response metadata")
+    void listUsersReturnsPageResponse() {
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .username("validuser")
+                .email("valid@student.edu.vn")
+                .role(Role.USER)
+                .createdAt(Instant.now())
+                .build();
+        given(userRepository.findAll(PageRequest.of(0, 20))).willReturn(new PageImpl<>(List.of(user), PageRequest.of(0, 20), 1));
+        given(mapper.toSummary(user)).willCallRealMethod();
+
+        var response = useCase.listUsers(PageRequest.of(0, 20));
+
+        assertThat(response.content()).hasSize(1);
+        assertThat(response.page()).isZero();
+        assertThat(response.size()).isEqualTo(20);
+        assertThat(response.totalElements()).isEqualTo(1);
     }
 }

@@ -185,9 +185,10 @@ export const productsApi = {
   delete: (id: Id): Promise<AxiosResponse<unknown>> => api.delete(`/products/${id}`),
   getMyProducts: (params?: ApiParams): Promise<AxiosResponse<ApiList<ProductDTO>>> =>
     api.get('/products/mine', { params }),
-  getPending: (): Promise<AxiosResponse<ApiList<ProductDTO>>> => api.get('/products/pending'),
-  getAllForAdmin: (): Promise<AxiosResponse<ApiList<ProductDTO>>> =>
-    api.get('/products/admin/all'),
+  getPending: (params?: ApiParams): Promise<AxiosResponse<ApiList<ProductDTO>>> =>
+    api.get('/products/pending', { params }),
+  getAllForAdmin: (params?: ApiParams): Promise<AxiosResponse<ApiList<ProductDTO>>> =>
+    api.get('/products/admin/all', { params }),
   approve: (id: Id): Promise<AxiosResponse<ProductDTO>> => api.patch(`/products/${id}/approve`),
   reject: (id: Id, data?: RejectProductRequest): Promise<AxiosResponse<ProductDTO>> =>
     api.patch(`/products/${id}/reject`, data ?? {}),
@@ -259,7 +260,8 @@ export const notificationsApi = {
 
 export const adminApi = {
   getStats: (): Promise<AxiosResponse<unknown>> => api.get('/admin/stats'),
-  getUsers: (): Promise<AxiosResponse<UserDTO[]>> => api.get('/admin/users'),
+  getUsers: (params?: ApiParams): Promise<AxiosResponse<ApiList<UserDTO>>> =>
+    api.get('/admin/users', { params }),
   getUser: (id: Id): Promise<AxiosResponse<UserDTO>> => api.get(`/admin/users/${id}`),
   createUser: (data: AdminUserWriteRequest): Promise<AxiosResponse<UserDTO>> =>
     api.post('/admin/users', data),

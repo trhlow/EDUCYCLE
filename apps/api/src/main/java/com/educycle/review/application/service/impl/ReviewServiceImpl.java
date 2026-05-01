@@ -41,6 +41,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public List<ReviewResponse> getByTransactionId(UUID transactionId) {
+        return reviewQueryUseCase.getByTransactionId(transactionId);
+    }
+
+    @Override
     public List<ReviewResponse> getByTargetUserId(UUID userId) {
         return reviewQueryUseCase.getByTargetUserId(userId);
     }

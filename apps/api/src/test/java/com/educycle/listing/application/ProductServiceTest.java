@@ -217,6 +217,39 @@ class ProductServiceTest {
             // Assert
             assertThat(result.content()).isEmpty();
         }
+
+        @Test
+        @DisplayName("should page admin all products and clamp large page size")
+        void shouldPageAdminAllProducts() {
+            Product product = buildProduct(UUID.randomUUID(), testUser, "P1", "10.00");
+            given(productRepository.findAll(any(Pageable.class)))
+                    .willAnswer(invocation -> {
+                        Pageable pageable = invocation.getArgument(0);
+                        assertThat(pageable.getPageSize()).isEqualTo(100);
+                        return new PageImpl<>(List.of(product), pageable, 1);
+                    });
+
+            PageResponse<ProductResponse> result = productService.getAllForAdmin(0, 500, "desc");
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.size()).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("should page pending admin products")
+        void shouldPagePendingProducts() {
+            Product product = buildProduct(UUID.randomUUID(), testUser, "P1", "10.00");
+            given(productRepository.findByStatus(eq(ProductStatus.PENDING), any(Pageable.class)))
+                    .willAnswer(invocation -> {
+                        Pageable pageable = invocation.getArgument(1);
+                        return new PageImpl<>(List.of(product), pageable, 1);
+                    });
+
+            PageResponse<ProductResponse> result = productService.getPending(0, 20, "desc");
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.size()).isEqualTo(20);
+        }
     }
 
     // ===================================================================

@@ -70,8 +70,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public PageResponse<ProductResponse> getAllForAdmin(int page, int size, String direction) {
+        return catalogUseCase.getAllForAdmin(ProductPageables.ownerList(page, size, direction));
+    }
+
+    @Override
     public List<ProductResponse> getPending() {
         return catalogUseCase.getPending();
+    }
+
+    @Override
+    public PageResponse<ProductResponse> getPending(int page, int size, String direction) {
+        return catalogUseCase.getPending(ProductPageables.ownerList(page, size, direction));
     }
 
     @Override

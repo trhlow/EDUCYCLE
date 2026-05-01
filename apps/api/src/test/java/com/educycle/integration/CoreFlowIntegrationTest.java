@@ -10,6 +10,7 @@ import com.educycle.listing.api.dto.response.ProductResponse;
 import com.educycle.review.api.dto.request.CreateReviewRequest;
 import com.educycle.review.api.dto.response.ReviewResponse;
 import com.educycle.transaction.api.dto.request.CreateTransactionRequest;
+import com.educycle.transaction.api.dto.request.TransactionVerifyOtpRequest;
 import com.educycle.transaction.api.dto.request.UpdateTransactionStatusRequest;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -132,6 +133,9 @@ class CoreFlowIntegrationTest {
 
         TransactionResponse accepted = updateTransactionStatus(seller, transaction.id(), "ACCEPTED");
         assertThat(accepted.status()).isEqualTo("ACCEPTED");
+
+        String otp = generateTransactionOtp(buyer, accepted.id());
+        verifyTransactionOtp(seller, accepted.id(), otp);
 
         ReviewResponse review = createReview(
                 buyer,
@@ -346,6 +350,24 @@ class CoreFlowIntegrationTest {
                         .getResponse()
                         .getContentAsString(),
                 TransactionResponse.class);
+    }
+
+    private String generateTransactionOtp(UserSession buyer, UUID transactionId) throws Exception {
+        JsonNode response = objectMapper.readTree(
+                mockMvc.perform(post("/api/transactions/{id}/otp", transactionId)
+                                .header(HttpHeaders.AUTHORIZATION, bearer(buyer.token())))
+                        .andExpect(status().isOk())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString());
+        return response.get("otp").asText();
+    }
+
+    private void verifyTransactionOtp(UserSession seller, UUID transactionId, String otp) throws Exception {
+        postJson("/api/transactions/" + transactionId + "/verify-otp",
+                new TransactionVerifyOtpRequest(otp),
+                seller.token())
+                .andExpect(status().isOk());
     }
 
     private ReviewResponse createReview(
