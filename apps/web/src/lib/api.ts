@@ -267,8 +267,8 @@ export const adminApi = {
     api.post('/admin/users', data),
   updateUser: (id: Id, data: AdminUserWriteRequest): Promise<AxiosResponse<UserDTO>> =>
     api.patch(`/admin/users/${id}`, data),
-  getDisputedTransactions: (): Promise<AxiosResponse<TransactionDTO[]>> =>
-    api.get('/admin/transactions/disputed'),
+  getDisputedTransactions: (params?: ApiParams): Promise<AxiosResponse<ApiList<TransactionDTO>>> =>
+    api.get('/admin/transactions/disputed', { params }),
   resolveDisputedTransaction: (
     id: Id,
     data: ResolveDisputeRequest,

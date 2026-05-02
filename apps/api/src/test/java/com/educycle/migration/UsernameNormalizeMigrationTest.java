@@ -79,6 +79,67 @@ class UsernameNormalizeMigrationTest {
         }
     }
 
+    @Test
+    @DisplayName("V5 deduplicates legacy reviews, removes orphan transaction refs, then adds constraints")
+    void v5CleansLegacyReviewsBeforeAddingConstraints() throws Exception {
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+                .withDatabaseName("educycle")
+                .withUsername("educycle")
+                .withPassword("secret")) {
+            postgres.start();
+
+            Flyway.configure()
+                    .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration")
+                    .target("4")
+                    .load()
+                    .migrate();
+
+            UUID buyerId = UUID.fromString("20000000-0000-0000-0000-000000000001");
+            UUID sellerId = UUID.fromString("20000000-0000-0000-0000-000000000002");
+            UUID productId = UUID.fromString("20000000-0000-0000-0000-000000000003");
+            UUID transactionId = UUID.fromString("20000000-0000-0000-0000-000000000004");
+            UUID orphanTransactionId = UUID.fromString("20000000-0000-0000-0000-000000000099");
+
+            try (var connection = DriverManager.getConnection(
+                    postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
+                insertUser(connection, buyerId, "buyer_v5", "buyer-v5@student.edu.vn", 1);
+                insertUser(connection, sellerId, "seller_v5", "seller-v5@student.edu.vn", 2);
+                insertProduct(connection, productId, sellerId);
+                insertTransaction(connection, transactionId, productId, buyerId, sellerId);
+                insertReview(connection, buyerId, sellerId, productId, transactionId, 3);
+                insertReview(connection, buyerId, sellerId, productId, transactionId, 4);
+                insertReview(connection, buyerId, sellerId, productId, orphanTransactionId, 5);
+            }
+
+            Flyway.configure()
+                    .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                    .locations("classpath:db/migration")
+                    .load()
+                    .migrate();
+
+            try (var connection = DriverManager.getConnection(
+                    postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
+                assertThat(countReviewsForTransaction(connection, transactionId)).isEqualTo(1);
+                assertThat(countReviewsForTransaction(connection, orphanTransactionId)).isZero();
+                assertThat(hasConstraint(connection, "uq_reviews_transaction_reviewer_target")).isTrue();
+                assertThat(hasConstraint(connection, "fk_reviews_transaction")).isTrue();
+                assertThat(hasIndex(connection, "idx_transactions_status_disputed_at")).isTrue();
+
+                assertThatThrownBy(() -> insertReview(connection, buyerId, sellerId, productId, transactionId, 5))
+                        .isInstanceOf(SQLException.class);
+                assertThatThrownBy(() -> insertReview(
+                        connection,
+                        buyerId,
+                        sellerId,
+                        productId,
+                        UUID.fromString("20000000-0000-0000-0000-000000000098"),
+                        5))
+                        .isInstanceOf(SQLException.class);
+            }
+        }
+    }
+
     private static void insertUser(
             java.sql.Connection connection,
             UUID id,
@@ -93,6 +154,58 @@ class UsernameNormalizeMigrationTest {
             statement.setString(2, username);
             statement.setString(3, email);
             statement.setObject(4, OffsetDateTime.parse("2026-01-01T00:00:00Z").plusMinutes(minutesOffset));
+            statement.executeUpdate();
+        }
+    }
+
+    private static void insertProduct(
+            java.sql.Connection connection,
+            UUID id,
+            UUID sellerId) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                INSERT INTO products (id, name, price, user_id, status, created_at)
+                VALUES (?, 'Book', 10.00, ?, 'APPROVED', '2026-01-01T00:00:00Z')
+                """)) {
+            statement.setObject(1, id);
+            statement.setObject(2, sellerId);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void insertTransaction(
+            java.sql.Connection connection,
+            UUID id,
+            UUID productId,
+            UUID buyerId,
+            UUID sellerId) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                INSERT INTO transactions (id, product_id, buyer_id, seller_id, amount, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, 10.00, 'COMPLETED', '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')
+                """)) {
+            statement.setObject(1, id);
+            statement.setObject(2, productId);
+            statement.setObject(3, buyerId);
+            statement.setObject(4, sellerId);
+            statement.executeUpdate();
+        }
+    }
+
+    private static void insertReview(
+            java.sql.Connection connection,
+            UUID reviewerId,
+            UUID targetUserId,
+            UUID productId,
+            UUID transactionId,
+            int minuteOffset) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                INSERT INTO reviews (user_id, target_user_id, product_id, transaction_id, rating, content, created_at)
+                VALUES (?, ?, ?, ?, 5, 'legacy review', ?)
+                """)) {
+            statement.setObject(1, reviewerId);
+            statement.setObject(2, targetUserId);
+            statement.setObject(3, productId);
+            statement.setObject(4, transactionId);
+            statement.setObject(5, OffsetDateTime.parse("2026-01-01T00:00:00Z").plusMinutes(minuteOffset));
             statement.executeUpdate();
         }
     }
@@ -132,6 +245,33 @@ class UsernameNormalizeMigrationTest {
             statement.setString(1, name);
             try (var rs = statement.executeQuery()) {
                 return rs.next();
+            }
+        }
+    }
+
+    private static boolean hasIndex(java.sql.Connection connection, String name) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                SELECT 1
+                FROM pg_class
+                WHERE relname = ?
+                """)) {
+            statement.setString(1, name);
+            try (var rs = statement.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private static long countReviewsForTransaction(java.sql.Connection connection, UUID transactionId) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE transaction_id = ?
+                """)) {
+            statement.setObject(1, transactionId);
+            try (var rs = statement.executeQuery()) {
+                assertThat(rs.next()).isTrue();
+                return rs.getLong(1);
             }
         }
     }

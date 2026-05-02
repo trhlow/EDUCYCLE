@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
-    List<MessageResponse> getByTransactionId(UUID transactionId);
+    List<MessageResponse> getByTransactionId(UUID transactionId, UUID actorUserId, boolean admin);
     MessageResponse send(UUID transactionId, SendMessageRequest request, UUID senderId);
 }

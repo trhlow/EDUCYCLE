@@ -20,6 +20,7 @@ import com.educycle.transaction.infrastructure.persistence.TransactionRepository
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.notification.application.service.NotificationService;
 import com.educycle.transaction.application.support.ProductSoldMarker;
+import com.educycle.transaction.application.support.TransactionAccessService;
 import com.educycle.transaction.application.support.TransactionResponseMapper;
 import com.educycle.transaction.application.service.impl.TransactionServiceImpl;
 import com.educycle.transaction.application.usecase.CreateTransactionUseCase;
@@ -77,7 +78,7 @@ class TransactionServiceTest {
         TransactionOtpProperties otpProps = new TransactionOtpProperties();
         transactionService = new TransactionServiceImpl(
                 new CreateTransactionUseCase(transactionRepository, productRepository, userRepository, notificationService, mapper),
-                new TransactionQueryUseCase(transactionRepository, mapper),
+                new TransactionQueryUseCase(transactionRepository, mapper, new TransactionAccessService()),
                 new TransactionStatusUseCase(transactionRepository, notificationService, productSoldMarker, mapper),
                 new TransactionOtpUseCase(transactionRepository, productSoldMarker, otpHasher, otpProps),
                 new TransactionDisputeUseCase(transactionRepository, notificationService, productSoldMarker, mapper));
@@ -135,6 +136,33 @@ class TransactionServiceTest {
             assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("đang có giao dịch");
+        }
+    }
+
+    @Nested
+    @DisplayName("getById()")
+    class GetById {
+
+        @Test
+        @DisplayName("should reject outsider reading transaction detail")
+        void shouldRejectOutsider() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            UUID outsiderId = UUID.randomUUID();
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            assertThatThrownBy(() -> transactionService.getById(t.getId(), outsiderId, false))
+                    .isInstanceOf(ForbiddenException.class);
+        }
+
+        @Test
+        @DisplayName("should allow admin reading transaction detail")
+        void shouldAllowAdmin() {
+            Transaction t = buildTransaction(TransactionStatus.ACCEPTED);
+            given(transactionRepository.findByIdWithDetails(t.getId())).willReturn(Optional.of(t));
+
+            TransactionResponse response = transactionService.getById(t.getId(), UUID.randomUUID(), true);
+
+            assertThat(response.id()).isEqualTo(t.getId());
         }
     }
 

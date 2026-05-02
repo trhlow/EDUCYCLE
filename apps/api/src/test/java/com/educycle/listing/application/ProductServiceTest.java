@@ -5,6 +5,7 @@ import com.educycle.listing.api.dto.request.CreateProductRequest;
 import com.educycle.listing.api.dto.response.ProductResponse;
 import com.educycle.listing.api.dto.request.UpdateProductRequest;
 import com.educycle.listing.domain.ProductStatus;
+import com.educycle.listing.domain.Category;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.exception.UnauthorizedException;
@@ -16,6 +17,7 @@ import com.educycle.listing.application.support.ProductResponseMapper;
 import com.educycle.listing.application.usecase.ProductCatalogUseCase;
 import com.educycle.listing.application.usecase.ProductModerationUseCase;
 import com.educycle.listing.application.usecase.ProductOwnerUseCase;
+import com.educycle.listing.infrastructure.persistence.CategoryRepository;
 import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.notification.application.service.NotificationService;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
@@ -73,6 +75,9 @@ class ProductServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
     private NotificationService notificationService;
 
     @Spy
@@ -101,7 +106,7 @@ class ProductServiceTest {
         ProductResponseMapper responseMapper = new ProductResponseMapper(productImages);
         ProductPageMapper pageMapper = new ProductPageMapper(reviewRepository, responseMapper);
         productService = new ProductServiceImpl(
-                new ProductOwnerUseCase(productRepository, transactionRepository, userRepository, productImages, responseMapper),
+                new ProductOwnerUseCase(productRepository, transactionRepository, userRepository, categoryRepository, productImages, responseMapper),
                 new ProductCatalogUseCase(productRepository, reviewRepository, pageMapper, responseMapper),
                 new ProductModerationUseCase(productRepository, notificationService, responseMapper));
     }
@@ -135,6 +140,24 @@ class ProductServiceTest {
             assertThat(result.price()).isEqualByComparingTo("100.50");
             assertThat(result.userId()).isEqualTo(userId);
             verify(productRepository, times(1)).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("should apply categoryId to categoryRef when creating")
+        void shouldApplyCategoryId_whenCreating() {
+            UUID userId = testUser.getId();
+            Category category = Category.builder().id(7).name("Books").build();
+            CreateProductRequest request = new CreateProductRequest(
+                    "Book", "A course book", new BigDecimal("25.00"),
+                    null, null, "Ignored", null, null, 7);
+
+            given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
+            given(categoryRepository.findById(7)).willReturn(Optional.of(category));
+
+            productService.create(request, userId);
+
+            verify(productRepository).save(argThat(product ->
+                    product.getCategoryRef() == category && "Books".equals(product.getCategory())));
         }
     }
 
@@ -280,6 +303,26 @@ class ProductServiceTest {
             assertThat(result.name()).isEqualTo("New Name");
             assertThat(result.price()).isEqualByComparingTo("99.99");
             verify(productRepository, times(1)).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("should apply categoryId to categoryRef when updating")
+        void shouldApplyCategoryId_whenUpdating() {
+            UUID productId = UUID.randomUUID();
+            Product product = buildProduct(productId, testUser, "Old Name", "10.00");
+            Category category = Category.builder().id(8).name("Devices").build();
+
+            given(productRepository.findByIdWithUser(productId)).willReturn(Optional.of(product));
+            given(categoryRepository.findById(8)).willReturn(Optional.of(category));
+
+            UpdateProductRequest request = new UpdateProductRequest(
+                    "New Name", "Updated desc", new BigDecimal("99.99"),
+                    null, null, "Ignored", null, null, 8);
+
+            productService.update(productId, request, testUser.getId());
+
+            assertThat(product.getCategoryRef()).isSameAs(category);
+            assertThat(product.getCategory()).isEqualTo("Devices");
         }
 
         @Test

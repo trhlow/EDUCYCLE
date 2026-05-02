@@ -2,6 +2,8 @@ package com.educycle.transaction.infrastructure.persistence;
 
 import com.educycle.transaction.domain.TransactionStatus;
 import com.educycle.transaction.domain.Transaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,10 +32,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
            "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product")
     List<Transaction> findAllWithDetails();
 
+    @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product",
+            countQuery = "SELECT COUNT(t) FROM Transaction t")
+    Page<Transaction> findAllWithDetails(Pageable pageable);
+
     @Query("SELECT t FROM Transaction t " +
            "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
            "WHERE t.buyer.id = :userId OR t.seller.id = :userId")
     List<Transaction> findByUserId(UUID userId);
+
+    @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
+            "WHERE t.buyer.id = :userId OR t.seller.id = :userId",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.buyer.id = :userId OR t.seller.id = :userId")
+    Page<Transaction> findByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
            "WHERE t.status = 'COMPLETED' OR t.status = 'AUTO_COMPLETED'")
@@ -43,6 +54,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
            "JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
            "WHERE t.status = :status ORDER BY t.disputedAt DESC NULLS LAST, t.updatedAt DESC")
     List<Transaction> findByStatusWithDetails(@Param("status") TransactionStatus status);
+
+    @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.buyer JOIN FETCH t.seller JOIN FETCH t.product " +
+            "WHERE t.status = :status",
+            countQuery = "SELECT COUNT(t) FROM Transaction t WHERE t.status = :status")
+    Page<Transaction> findByStatusWithDetails(@Param("status") TransactionStatus status, Pageable pageable);
 
     /** Giao dịch PENDING quá hạn (theo thời điểm tạo yêu cầu). */
     List<Transaction> findByStatusAndCreatedAtBefore(TransactionStatus status, Instant before);

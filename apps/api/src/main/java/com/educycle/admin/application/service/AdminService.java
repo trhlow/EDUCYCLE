@@ -27,7 +27,7 @@ public interface AdminService {
 
     AdminUserDetailResponse updateUser(UUID id, AdminUpdateUserRequest request, UUID actingAdminId);
 
-    List<TransactionResponse> listDisputedTransactions();
+    PageResponse<TransactionResponse> listDisputedTransactions(int page, int size, String direction);
 
     TransactionResponse resolveDisputedTransaction(UUID id, AdminResolveTransactionRequest request);
 }

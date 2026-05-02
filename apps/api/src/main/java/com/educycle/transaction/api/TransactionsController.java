@@ -1,5 +1,6 @@
 package com.educycle.transaction.api;
 
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.transaction.api.dto.response.MessageResponse;
 import com.educycle.transaction.api.dto.request.SendMessageRequest;
 import com.educycle.transaction.api.dto.request.*;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,8 +46,11 @@ public class TransactionsController {
 
     // GET /api/transactions/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponse> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(transactionService.getById(id));
+    public ResponseEntity<TransactionResponse> getById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal String userId,
+            Authentication authentication) {
+        return ResponseEntity.ok(transactionService.getById(id, UUID.fromString(userId), isAdmin(authentication)));
     }
 
     /**
@@ -53,16 +58,22 @@ public class TransactionsController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TransactionResponse>> getAll() {
-        return ResponseEntity.ok(transactionService.getAll());
+    public ResponseEntity<PageResponse<TransactionResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+        return ResponseEntity.ok(transactionService.getAll(page, size, direction));
     }
 
     // GET /api/transactions/mine
     @GetMapping("/mine")
-    public ResponseEntity<List<TransactionResponse>> getMyTransactions(
-            @AuthenticationPrincipal String userId) {
+    public ResponseEntity<PageResponse<TransactionResponse>> getMyTransactions(
+            @AuthenticationPrincipal String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
 
-        return ResponseEntity.ok(transactionService.getMyTransactions(UUID.fromString(userId)));
+        return ResponseEntity.ok(transactionService.getMyTransactions(UUID.fromString(userId), page, size, direction));
     }
 
     // PATCH /api/transactions/{id}/status
@@ -132,8 +143,12 @@ public class TransactionsController {
 
     // GET /api/transactions/{transactionId}/messages
     @GetMapping("/{transactionId}/messages")
-    public ResponseEntity<List<MessageResponse>> getMessages(@PathVariable UUID transactionId) {
-        return ResponseEntity.ok(messageService.getByTransactionId(transactionId));
+    public ResponseEntity<List<MessageResponse>> getMessages(
+            @PathVariable UUID transactionId,
+            @AuthenticationPrincipal String userId,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                messageService.getByTransactionId(transactionId, UUID.fromString(userId), isAdmin(authentication)));
     }
 
     // POST /api/transactions/{transactionId}/messages
@@ -145,5 +160,11 @@ public class TransactionsController {
 
         return ResponseEntity.ok(
                 messageService.send(transactionId, request, UUID.fromString(userId)));
+    }
+
+    private static boolean isAdmin(Authentication authentication) {
+        return authentication != null
+                && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }

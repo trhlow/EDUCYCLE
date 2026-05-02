@@ -5,6 +5,7 @@ import com.educycle.transaction.api.dto.request.SendMessageRequest;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.transaction.domain.Message;
 import com.educycle.transaction.domain.Transaction;
+import com.educycle.transaction.application.support.TransactionAccessService;
 import com.educycle.user.domain.User;
 import com.educycle.transaction.infrastructure.persistence.MessageRepository;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
@@ -29,10 +30,15 @@ public class MessageServiceImpl implements MessageService {
     private final TransactionRepository transactionRepository;
     private final UserRepository        userRepository;
     private final NotificationService   notificationService;
+    private final TransactionAccessService transactionAccessService;
 
     @Override
     @Transactional(readOnly = true)
-    public List<MessageResponse> getByTransactionId(UUID transactionId) {
+    public List<MessageResponse> getByTransactionId(UUID transactionId, UUID actorUserId, boolean admin) {
+        Transaction transaction = transactionRepository.findByIdWithDetails(transactionId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+        transactionAccessService.assertCanView(transaction, actorUserId, admin);
+
         return messageRepository.findByTransactionId(transactionId)
                 .stream()
                 .map(this::mapToResponse)
@@ -41,8 +47,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public MessageResponse send(UUID transactionId, SendMessageRequest request, UUID senderId) {
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findByIdWithDetails(transactionId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy giao dịch"));
+        transactionAccessService.assertParticipant(transaction, senderId);
 
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));

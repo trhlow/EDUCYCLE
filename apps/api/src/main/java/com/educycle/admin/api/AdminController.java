@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -63,8 +62,11 @@ public class AdminController {
     }
 
     @GetMapping("/transactions/disputed")
-    public ResponseEntity<List<TransactionResponse>> listDisputedTransactions() {
-        return ResponseEntity.ok(adminService.listDisputedTransactions());
+    public ResponseEntity<PageResponse<TransactionResponse>> listDisputedTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "desc") String direction) {
+        return ResponseEntity.ok(adminService.listDisputedTransactions(page, size, direction));
     }
 
     @PatchMapping("/transactions/{id}/resolve")

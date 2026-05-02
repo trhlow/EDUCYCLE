@@ -5,8 +5,10 @@ import com.educycle.listing.api.dto.request.UpdateProductRequest;
 import com.educycle.listing.api.dto.response.ProductResponse;
 import com.educycle.listing.application.support.ProductImages;
 import com.educycle.listing.application.support.ProductResponseMapper;
+import com.educycle.listing.domain.Category;
 import com.educycle.listing.domain.Product;
 import com.educycle.listing.domain.ProductStatus;
+import com.educycle.listing.infrastructure.persistence.CategoryRepository;
 import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
@@ -31,12 +33,14 @@ public class ProductOwnerUseCase {
     private final ProductRepository productRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final ProductImages productImages;
     private final ProductResponseMapper productResponseMapper;
 
     public ProductResponse create(CreateProductRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+        Category category = resolveCategory(request.categoryId());
 
         Product product = Product.builder()
                 .name(request.name())
@@ -44,7 +48,8 @@ public class ProductOwnerUseCase {
                 .price(request.price())
                 .imageUrl(productImages.primaryImage(request.imageUrl(), request.imageUrls()))
                 .imageUrls(productImages.serialize(request.imageUrls()))
-                .category(request.category())
+                .category(categoryName(category, request.category()))
+                .categoryRef(category)
                 .condition(request.condition())
                 .contactNote(request.contactNote())
                 .user(user)
@@ -66,7 +71,9 @@ public class ProductOwnerUseCase {
         product.setPrice(request.price());
         product.setImageUrl(productImages.primaryImage(request.imageUrl(), request.imageUrls()));
         product.setImageUrls(productImages.serialize(request.imageUrls()));
-        product.setCategory(request.category());
+        Category category = resolveCategory(request.categoryId());
+        product.setCategory(categoryName(category, request.category()));
+        product.setCategoryRef(category);
         product.setCondition(request.condition());
         product.setContactNote(request.contactNote());
         product.setStatus(ProductStatus.PENDING);
@@ -93,5 +100,17 @@ public class ProductOwnerUseCase {
         if (product.getUser() == null || !product.getUser().getId().equals(userId)) {
             throw new UnauthorizedException(message);
         }
+    }
+
+    private Category resolveCategory(Integer categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục"));
+    }
+
+    private static String categoryName(Category category, String fallback) {
+        return category != null ? category.getName() : fallback;
     }
 }

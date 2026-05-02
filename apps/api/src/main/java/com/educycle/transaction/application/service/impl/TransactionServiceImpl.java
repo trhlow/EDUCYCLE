@@ -1,6 +1,7 @@
 package com.educycle.transaction.application.service.impl;
 
 import com.educycle.admin.api.dto.request.AdminResolveTransactionRequest;
+import com.educycle.shared.dto.common.PageResponse;
 import com.educycle.transaction.api.dto.request.CancelTransactionRequest;
 import com.educycle.transaction.api.dto.request.CreateTransactionRequest;
 import com.educycle.transaction.api.dto.request.DisputeTransactionRequest;
@@ -13,6 +14,8 @@ import com.educycle.transaction.application.usecase.TransactionOtpUseCase;
 import com.educycle.transaction.application.usecase.TransactionQueryUseCase;
 import com.educycle.transaction.application.usecase.TransactionStatusUseCase;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,13 +43,28 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public TransactionResponse getById(UUID id, UUID actorUserId, boolean admin) {
+        return queryUseCase.getById(id, actorUserId, admin);
+    }
+
+    @Override
     public List<TransactionResponse> getAll() {
         return queryUseCase.getAll();
     }
 
     @Override
+    public PageResponse<TransactionResponse> getAll(int page, int size, String direction) {
+        return queryUseCase.getAll(pageable(page, size, direction));
+    }
+
+    @Override
     public List<TransactionResponse> getMyTransactions(UUID userId) {
         return queryUseCase.getMyTransactions(userId);
+    }
+
+    @Override
+    public PageResponse<TransactionResponse> getMyTransactions(UUID userId, int page, int size, String direction) {
+        return queryUseCase.getMyTransactions(userId, pageable(page, size, direction));
     }
 
     @Override
@@ -85,7 +103,19 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public PageResponse<TransactionResponse> listDisputedTransactions(int page, int size, String direction) {
+        return queryUseCase.listDisputedTransactions(pageable(page, size, direction));
+    }
+
+    @Override
     public TransactionResponse adminResolveDispute(UUID id, AdminResolveTransactionRequest request) {
         return disputeUseCase.adminResolveDispute(id, request);
+    }
+
+    private static org.springframework.data.domain.Pageable pageable(int page, int size, String direction) {
+        Sort sort = "asc".equalsIgnoreCase(direction)
+                ? Sort.by("createdAt").ascending()
+                : Sort.by("createdAt").descending();
+        return PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), sort);
     }
 }

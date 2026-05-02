@@ -4,6 +4,7 @@ import com.educycle.transaction.api.dto.request.ChatMessage;
 import com.educycle.transaction.api.dto.response.MessageResponse;
 import com.educycle.transaction.api.dto.request.SendMessageRequest;
 import com.educycle.transaction.application.service.MessageService;
+import com.educycle.shared.exception.ForbiddenException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,13 @@ public class ChatController {
         UUID txId = UUID.fromString(message.transactionId());
 
         SendMessageRequest req = new SendMessageRequest(message.content());
-        MessageResponse saved = messageService.send(txId, req, senderId);
+        MessageResponse saved;
+        try {
+            saved = messageService.send(txId, req, senderId);
+        } catch (ForbiddenException ex) {
+            log.warn("Blocked unauthorized WebSocket message for transaction {} from user {}", txId, senderId);
+            return;
+        }
 
         messagingTemplate.convertAndSend(
                 "/topic/transaction." + message.transactionId(),

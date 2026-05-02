@@ -62,8 +62,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<TransactionResponse> listDisputedTransactions() {
-        return transactionService.listDisputedTransactions();
+    public PageResponse<TransactionResponse> listDisputedTransactions(int page, int size, String direction) {
+        return transactionService.listDisputedTransactions(page, size, direction);
     }
 
     @Override
