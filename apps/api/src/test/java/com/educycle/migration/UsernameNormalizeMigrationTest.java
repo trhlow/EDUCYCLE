@@ -80,7 +80,7 @@ class UsernameNormalizeMigrationTest {
     }
 
     @Test
-    @DisplayName("V5 deduplicates legacy reviews, removes orphan transaction refs, then adds constraints")
+    @DisplayName("V5 archives legacy reviews before cleanup, then adds review constraints")
     void v5CleansLegacyReviewsBeforeAddingConstraints() throws Exception {
         try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
                 .withDatabaseName("educycle")
@@ -122,6 +122,12 @@ class UsernameNormalizeMigrationTest {
                     postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
                 assertThat(countReviewsForTransaction(connection, transactionId)).isEqualTo(1);
                 assertThat(countReviewsForTransaction(connection, orphanTransactionId)).isZero();
+                assertThat(hasTable(connection, "review_migration_archive")).isTrue();
+                assertThat(countArchivedReviews(connection)).isEqualTo(2);
+                assertThat(countArchivedReviewsByReason(connection, "orphan_transaction")).isEqualTo(1);
+                assertThat(countArchivedReviewsByReason(
+                        connection,
+                        "duplicate_transaction_reviewer_target")).isEqualTo(1);
                 assertThat(hasConstraint(connection, "uq_reviews_transaction_reviewer_target")).isTrue();
                 assertThat(hasConstraint(connection, "fk_reviews_transaction")).isTrue();
                 assertThat(hasIndex(connection, "idx_transactions_status_disputed_at")).isTrue();
@@ -258,6 +264,42 @@ class UsernameNormalizeMigrationTest {
             statement.setString(1, name);
             try (var rs = statement.executeQuery()) {
                 return rs.next();
+            }
+        }
+    }
+
+    private static boolean hasTable(java.sql.Connection connection, String name) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_name = ?
+                """)) {
+            statement.setString(1, name);
+            try (var rs = statement.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private static long countArchivedReviews(java.sql.Connection connection) throws SQLException {
+        try (var statement = connection.createStatement();
+             var rs = statement.executeQuery("SELECT COUNT(*) FROM review_migration_archive")) {
+            assertThat(rs.next()).isTrue();
+            return rs.getLong(1);
+        }
+    }
+
+    private static long countArchivedReviewsByReason(java.sql.Connection connection, String reason) throws SQLException {
+        try (var statement = connection.prepareStatement("""
+                SELECT COUNT(*)
+                FROM review_migration_archive
+                WHERE archive_reason = ?
+                """)) {
+            statement.setString(1, reason);
+            try (var rs = statement.executeQuery()) {
+                assertThat(rs.next()).isTrue();
+                return rs.getLong(1);
             }
         }
     }

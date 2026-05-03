@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -27,12 +26,6 @@ public class TransactionQueryUseCase {
     private final TransactionResponseMapper mapper;
     private final TransactionAccessService accessService;
 
-    public TransactionResponse getById(UUID id) {
-        return transactionRepository.findByIdWithDetails(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
-    }
-
     public TransactionResponse getById(UUID id, UUID actorUserId, boolean admin) {
         Transaction transaction = transactionRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
@@ -40,33 +33,12 @@ public class TransactionQueryUseCase {
         return mapper.toResponse(transaction);
     }
 
-    public List<TransactionResponse> getAll() {
-        return transactionRepository.findAllWithDetails()
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
     public PageResponse<TransactionResponse> getAll(Pageable pageable) {
         return toPageResponse(transactionRepository.findAllWithDetails(pageable));
     }
 
-    public List<TransactionResponse> getMyTransactions(UUID userId) {
-        return transactionRepository.findByUserId(userId)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
     public PageResponse<TransactionResponse> getMyTransactions(UUID userId, Pageable pageable) {
         return toPageResponse(transactionRepository.findByUserId(userId, pageable));
-    }
-
-    public List<TransactionResponse> listDisputedTransactions() {
-        return transactionRepository.findByStatusWithDetails(TransactionStatus.DISPUTED)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
     }
 
     public PageResponse<TransactionResponse> listDisputedTransactions(Pageable pageable) {

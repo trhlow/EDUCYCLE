@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,28 +37,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse getById(UUID id) {
-        return queryUseCase.getById(id);
-    }
-
-    @Override
     public TransactionResponse getById(UUID id, UUID actorUserId, boolean admin) {
         return queryUseCase.getById(id, actorUserId, admin);
     }
 
     @Override
-    public List<TransactionResponse> getAll() {
-        return queryUseCase.getAll();
-    }
-
-    @Override
     public PageResponse<TransactionResponse> getAll(int page, int size, String direction) {
         return queryUseCase.getAll(pageable(page, size, direction));
-    }
-
-    @Override
-    public List<TransactionResponse> getMyTransactions(UUID userId) {
-        return queryUseCase.getMyTransactions(userId);
     }
 
     @Override
@@ -95,11 +79,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse openDispute(UUID id, UUID buyerId, DisputeTransactionRequest request) {
         return disputeUseCase.openDispute(id, buyerId, request);
-    }
-
-    @Override
-    public List<TransactionResponse> listDisputedTransactions() {
-        return queryUseCase.listDisputedTransactions();
     }
 
     @Override
