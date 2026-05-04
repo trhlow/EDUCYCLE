@@ -16,8 +16,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -103,7 +105,18 @@ public class GlobalExceptionHandler {
 
         String message = MessageConstants.DUPLICATE_DATA;
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        if (detail != null) {
+
+        Optional<String> constraint = extractConstraintName(ex);
+        if (constraint.isPresent()) {
+            String key = normalizeConstraintKey(constraint.get());
+            if (key.contains("uq_users_email")) {
+                message = MessageConstants.EMAIL_ALREADY_EXISTS;
+                status = HttpStatus.CONFLICT;
+            } else if (key.contains("uq_users_username")) {
+                message = MessageConstants.USERNAME_TAKEN;
+                status = HttpStatus.CONFLICT;
+            }
+        } else if (detail != null) {
             if (detail.contains("uq_users_email")) {
                 message = MessageConstants.EMAIL_ALREADY_EXISTS;
                 status = HttpStatus.CONFLICT;
@@ -116,6 +129,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(ApiErrorBody.of(message));
+    }
+
+    private static Optional<String> extractConstraintName(DataIntegrityViolationException ex) {
+        Throwable t = ex;
+        for (int i = 0; i < 8 && t != null; i++) {
+            if (t instanceof ConstraintViolationException cv) {
+                String name = cv.getConstraintName();
+                if (name != null && !name.isBlank()) {
+                    return Optional.of(name);
+                }
+            }
+            t = t.getCause();
+        }
+        return Optional.empty();
+    }
+
+    private static String normalizeConstraintKey(String raw) {
+        return raw.replace("\"", "").toLowerCase();
     }
 
     @ExceptionHandler(Exception.class)
