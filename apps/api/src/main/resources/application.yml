@@ -121,6 +121,8 @@ educycle:
   # Actuator / Prometheus — Sprint C (chỉ bật public khi đặt true + bảo vệ bằng network / reverse proxy)
   security:
     prometheus-endpoint-public: ${EDUCYCLE_PROMETHEUS_PUBLIC:false}
+    # OpenAPI/Swagger: mặc định false — chỉ permitAll khi true (profile local/docker bật).
+    swagger-ui-public: ${EDUCYCLE_SWAGGER_UI_PUBLIC:false}
 
 # ── Sentry (tuỳ chọn) — chỉ gửi khi SENTRY_DSN có giá trị ──
 sentry:
@@ -132,10 +134,13 @@ otel:
   sdk:
     disabled: ${OTEL_SDK_DISABLED:true}
 
+# Mặc định tắt — tránh lộ schema khi chạy jar không có profile production. Bật ở application-local.yml / application-docker.yml.
 springdoc:
   api-docs:
+    enabled: false
     path: /v3/api-docs
   swagger-ui:
+    enabled: false
     path: /swagger-ui.html
 
 management:

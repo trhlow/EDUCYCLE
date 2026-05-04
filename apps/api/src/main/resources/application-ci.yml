@@ -8,6 +8,13 @@ spring:
 jwt:
   secret: ${JWT_SECRET:}
 
+# Bật springdoc để integration test xác nhận /v3/api-docs yêu cầu JWT khi swagger-ui-public=false (mặc định).
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 educycle:
   rate-limit:
     enabled: false

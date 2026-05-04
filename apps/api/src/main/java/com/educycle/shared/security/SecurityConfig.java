@@ -33,6 +33,13 @@ public class SecurityConfig {
     @Value("${educycle.security.prometheus-endpoint-public:false}")
     private boolean prometheusEndpointPublic;
 
+    /**
+     * When false (default), OpenAPI/Swagger paths require authentication — safe for staging if springdoc is left on.
+     * Dev profiles set {@code educycle.security.swagger-ui-public=true} (see application-local.yml / application-docker.yml).
+     */
+    @Value("${educycle.security.swagger-ui-public:false}")
+    private boolean swaggerUiPublic;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -59,7 +66,15 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/media/unsplash/curated").permitAll()
-                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
+                    .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
+                if (swaggerUiPublic) {
+                    auth.requestMatchers(
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs",
+                            "/v3/api-docs/**")
+                        .permitAll();
+                }
                 if (prometheusEndpointPublic) {
                     auth.requestMatchers("/actuator/prometheus").permitAll();
                 }
@@ -80,7 +95,15 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(corsProperties.getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+                "X-API-Version"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 

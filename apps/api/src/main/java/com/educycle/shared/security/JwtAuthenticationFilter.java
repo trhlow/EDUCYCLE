@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
-                log.warn("Failed to set authentication from JWT: {}", e.getMessage());
+                log.warn("Failed to set authentication from JWT", e);
             }
         }
 

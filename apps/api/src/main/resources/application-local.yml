@@ -11,6 +11,17 @@ spring:
 jwt:
   secret: ${JWT_SECRET:}
 
+# Swagger/OpenAPI + cho phép truy cập không JWT (SecurityConfig khi educycle.security.swagger-ui-public=true).
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+educycle:
+  security:
+    swagger-ui-public: true
+
 logging:
   level:
     com.educycle: DEBUG

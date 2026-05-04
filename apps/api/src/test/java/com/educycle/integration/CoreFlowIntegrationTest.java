@@ -78,6 +78,12 @@ class CoreFlowIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
+    void openApiDocs_requiresAuthentication_whenSwaggerUiNotPublic() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void registerVerifyOtpAndLogin() throws Exception {
         String email = uniqueEmail("auth");
         register(email, "Auth User");
