@@ -53,4 +53,17 @@ class GlobalExceptionHandlerDataIntegrityTest {
         assertThat(res.getBody()).isNotNull();
         assertThat(res.getBody().message()).isEqualTo(MessageConstants.EMAIL_ALREADY_EXISTS);
     }
+
+    @Test
+    void unknownConstraint_returnsDuplicateDataBadRequest() {
+        SQLException sql = new SQLException("dup");
+        ConstraintViolationException cause = new ConstraintViolationException("dup", sql, "uq_other_table_column");
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("wrap", cause);
+
+        ResponseEntity<ApiErrorBody> res = handler.handleDataIntegrity(ex);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(res.getBody()).isNotNull();
+        assertThat(res.getBody().message()).isEqualTo(MessageConstants.DUPLICATE_DATA);
+    }
 }

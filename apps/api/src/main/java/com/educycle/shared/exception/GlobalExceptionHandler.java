@@ -3,6 +3,7 @@ package com.educycle.shared.exception;
 import com.educycle.shared.response.ApiErrorBody;
 import com.educycle.shared.util.MessageConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +24,10 @@ import java.util.Optional;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /** Khớp tên constraint Flyway — xem db/migration */
+    private static final String UQ_USERS_EMAIL = "uq_users_email";
+    private static final String UQ_USERS_USERNAME = "uq_users_username";
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorBody> handleNotReadable(HttpMessageNotReadableException ex) {
@@ -101,35 +105,44 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorBody> handleDataIntegrity(DataIntegrityViolationException ex) {
-        String detail = ex.getMostSpecificCause().getMessage();
-        log.warn("Data integrity violation: {}", detail);
+        Optional<String> constraintOpt = extractConstraintName(ex);
+        String detail = constraintOpt.isEmpty() ? ex.getMostSpecificCause().getMessage() : null;
 
-        String message = MessageConstants.DUPLICATE_DATA;
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-
-        Optional<String> constraint = extractConstraintName(ex);
-        if (constraint.isPresent()) {
-            String key = normalizeConstraintKey(constraint.get());
-            if (key.contains("uq_users_email")) {
-                message = MessageConstants.EMAIL_ALREADY_EXISTS;
-                status = HttpStatus.CONFLICT;
-            } else if (key.contains("uq_users_username")) {
-                message = MessageConstants.USERNAME_TAKEN;
-                status = HttpStatus.CONFLICT;
-            }
-        } else if (detail != null) {
-            if (detail.contains("uq_users_email")) {
-                message = MessageConstants.EMAIL_ALREADY_EXISTS;
-                status = HttpStatus.CONFLICT;
-            } else if (detail.contains("uq_users_username")) {
-                message = MessageConstants.USERNAME_TAKEN;
-                status = HttpStatus.CONFLICT;
-            }
-        }
+        DataIntegrityResolution resolution = resolveDataIntegrity(constraintOpt, detail);
+        log.warn("Data integrity violation, constraint={}", resolution.logLabel());
 
         return ResponseEntity
-                .status(status)
-                .body(ApiErrorBody.of(message));
+                .status(resolution.status())
+                .body(ApiErrorBody.of(resolution.message()));
+    }
+
+    private record DataIntegrityResolution(String message, HttpStatus status, String logLabel) {
+    }
+
+    private static DataIntegrityResolution resolveDataIntegrity(Optional<String> constraintOpt, String detail) {
+        if (constraintOpt.isPresent()) {
+            String key = normalizeConstraintKey(constraintOpt.get());
+            if (key.contains(UQ_USERS_EMAIL)) {
+                return new DataIntegrityResolution(
+                        MessageConstants.EMAIL_ALREADY_EXISTS, HttpStatus.CONFLICT, key);
+            }
+            if (key.contains(UQ_USERS_USERNAME)) {
+                return new DataIntegrityResolution(
+                        MessageConstants.USERNAME_TAKEN, HttpStatus.CONFLICT, key);
+            }
+            return new DataIntegrityResolution(MessageConstants.DUPLICATE_DATA, HttpStatus.BAD_REQUEST, key);
+        }
+        if (detail != null) {
+            if (detail.contains(UQ_USERS_EMAIL)) {
+                return new DataIntegrityResolution(
+                        MessageConstants.EMAIL_ALREADY_EXISTS, HttpStatus.CONFLICT, UQ_USERS_EMAIL);
+            }
+            if (detail.contains(UQ_USERS_USERNAME)) {
+                return new DataIntegrityResolution(
+                        MessageConstants.USERNAME_TAKEN, HttpStatus.CONFLICT, UQ_USERS_USERNAME);
+            }
+        }
+        return new DataIntegrityResolution(MessageConstants.DUPLICATE_DATA, HttpStatus.BAD_REQUEST, "unknown");
     }
 
     private static Optional<String> extractConstraintName(DataIntegrityViolationException ex) {
