@@ -20,7 +20,6 @@ import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -28,7 +27,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorBody> handleNotReadable(HttpMessageNotReadableException ex) {
-        log.warn("Malformed or invalid JSON body: {}", ex.getMessage());
+        // Không log ex.getMessage() ở WARN — có thể chứa đoạn payload/field từ parser.
+        log.warn("Malformed or invalid JSON body");
+        log.debug("Malformed or invalid JSON body", ex);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiErrorBody.of(MessageConstants.VALIDATION_FAILED,
@@ -41,7 +42,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(f -> f.getField() + ": " + f.getDefaultMessage())
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
