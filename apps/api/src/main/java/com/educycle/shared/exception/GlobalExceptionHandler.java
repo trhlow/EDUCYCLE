@@ -62,7 +62,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiErrorBody> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
-        log.warn("Optimistic lock conflict: {}", ex.getMessage());
+        // Không log ex.getMessage() ở WARN — có thể chứa chi tiết entity/version từ persistence.
+        log.warn("Optimistic lock conflict");
+        log.debug("Optimistic lock conflict", ex);
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ApiErrorBody.of(MessageConstants.CONCURRENT_UPDATE));
