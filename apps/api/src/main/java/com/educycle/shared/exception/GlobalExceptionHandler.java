@@ -28,6 +28,7 @@ public class GlobalExceptionHandler {
     /** Khớp tên constraint Flyway — xem db/migration */
     private static final String UQ_USERS_EMAIL = "uq_users_email";
     private static final String UQ_USERS_USERNAME = "uq_users_username";
+    private static final int MAX_INTEGRITY_CAUSE_DEPTH = 8;
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorBody> handleNotReadable(HttpMessageNotReadableException ex) {
@@ -149,7 +150,7 @@ public class GlobalExceptionHandler {
 
     private static Optional<String> extractConstraintName(DataIntegrityViolationException ex) {
         Throwable t = ex;
-        for (int i = 0; i < 8 && t != null; i++) {
+        for (int i = 0; i < MAX_INTEGRITY_CAUSE_DEPTH && t != null; i++) {
             if (t instanceof ConstraintViolationException cv) {
                 String name = cv.getConstraintName();
                 if (name != null && !name.isBlank()) {
