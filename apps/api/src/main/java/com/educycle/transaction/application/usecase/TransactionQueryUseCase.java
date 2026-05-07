@@ -28,7 +28,7 @@ public class TransactionQueryUseCase {
 
     public TransactionResponse getById(UUID id, UUID actorUserId, boolean admin) {
         Transaction transaction = transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND));
         accessService.assertCanView(transaction, actorUserId, admin);
         return mapper.toResponse(transaction);
     }

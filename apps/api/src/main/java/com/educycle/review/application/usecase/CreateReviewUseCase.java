@@ -40,8 +40,7 @@ public class CreateReviewUseCase {
         }
 
         Transaction transaction = transactionRepository.findByIdWithDetails(request.transactionId())
-                .orElseThrow(() -> new NotFoundException(
-                        String.format(MessageConstants.TRANSACTION_NOT_FOUND, request.transactionId())));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND));
 
         if (transaction.getStatus() != TransactionStatus.COMPLETED) {
             throw new BadRequestException(MessageConstants.REVIEW_TRANSACTION_NOT_COMPLETED);

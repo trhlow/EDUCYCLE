@@ -37,7 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public CategoryResponse getById(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
         return mapToResponse(category);
     }
 
@@ -53,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse update(Integer id, CreateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
         category.setName(request.name());
         categoryRepository.save(category);
         return mapToResponse(category);
@@ -62,7 +62,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Integer id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND.formatted(id)));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
         categoryRepository.delete(category);
     }
 

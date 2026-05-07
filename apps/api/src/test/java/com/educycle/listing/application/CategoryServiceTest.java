@@ -3,6 +3,7 @@ package com.educycle.listing.application;
 import com.educycle.listing.api.dto.response.CategoryResponse;
 import com.educycle.listing.api.dto.request.CreateCategoryRequest;
 import com.educycle.shared.exception.NotFoundException;
+import com.educycle.shared.util.MessageConstants;
 import com.educycle.listing.domain.Category;
 import com.educycle.listing.infrastructure.persistence.CategoryRepository;
 import com.educycle.listing.application.service.impl.CategoryServiceImpl;
@@ -72,7 +73,7 @@ class CategoryServiceTest {
 
             assertThatThrownBy(() -> categoryService.getById(99))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessage(MessageConstants.CATEGORY_NOT_FOUND);
         }
     }
 

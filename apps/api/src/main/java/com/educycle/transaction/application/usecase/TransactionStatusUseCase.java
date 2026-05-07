@@ -126,7 +126,7 @@ public class TransactionStatusUseCase {
 
     private Transaction load(UUID id) {
         return transactionRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND.formatted(id)));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TRANSACTION_NOT_FOUND));
     }
 
     private static TransactionStatus parseStatus(String rawStatus) {
