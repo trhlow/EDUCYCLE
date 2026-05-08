@@ -12,6 +12,7 @@ import com.educycle.review.infrastructure.persistence.ReviewRepository;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.wishlist.infrastructure.persistence.WishlistItemRepository;
 import com.educycle.wishlist.application.service.WishlistService;
+import com.educycle.shared.util.MessageConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,9 +65,9 @@ public class WishlistServiceImpl implements WishlistService {
             return;
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+                .orElseThrow(() -> new NotFoundException(MessageConstants.PRODUCT_NOT_FOUND));
         if (product.getUser() != null && product.getUser().getId().equals(userId)) {
             throw new BadRequestException("Không thể thêm sản phẩm của chính bạn vào yêu thích");
         }
