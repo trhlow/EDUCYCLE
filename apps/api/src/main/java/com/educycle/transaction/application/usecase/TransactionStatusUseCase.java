@@ -130,10 +130,13 @@ public class TransactionStatusUseCase {
     }
 
     private static TransactionStatus parseStatus(String rawStatus) {
+        if (rawStatus == null || rawStatus.isBlank()) {
+            throw new BadRequestException(MessageConstants.INVALID_TRANSACTION_STATUS);
+        }
         try {
             return TransactionStatus.valueOf(rawStatus.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(MessageConstants.INVALID_TRANSACTION_STATUS_PREFIX + rawStatus);
+            throw new BadRequestException(MessageConstants.INVALID_TRANSACTION_STATUS);
         }
     }
 
