@@ -15,6 +15,8 @@ import com.educycle.transaction.api.dto.request.UpdateTransactionStatusRequest;
 import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,7 +30,10 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.crypto.SecretKey;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -80,6 +85,31 @@ class CoreFlowIntegrationTest {
     @Test
     void openApiDocs_requiresAuthentication_whenSwaggerUiNotPublic() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Trích từ review: integration test HTTP — JWT đúng chữ ký nhưng sai issuer phải bị từ chối (401).
+     */
+    @Test
+    void mineProducts_rejectsJwtWithWrongIssuer() throws Exception {
+        String secret = "integration-test-jwt-secret-at-least-32-chars";
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + 3_600_000L);
+
+        String token = Jwts.builder()
+                .issuer("wrong-issuer-integration-test")
+                .audience().add("EduCycleUsers").and()
+                .subject(UUID.randomUUID().toString())
+                .claim("role", "USER")
+                .issuedAt(now)
+                .expiration(exp)
+                .signWith(key)
+                .compact();
+
+        mockMvc.perform(get("/api/products/mine")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isUnauthorized());
     }
 

@@ -4,11 +4,16 @@ import com.educycle.shared.config.JwtProperties;
 import com.educycle.user.domain.Role;
 import com.educycle.user.domain.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -75,5 +80,57 @@ class JwtTokenProviderTest {
 
         assertThat(provider.validateToken(jwt)).isTrue();
         assertThat(provider.validateToken(jwt + "tampered")).isFalse();
+    }
+
+    @Test
+    @DisplayName("parseValidClaims rejects token with wrong issuer")
+    void parseValidClaims_rejectsWrongIssuer() {
+        JwtProperties props = jwtPropertiesForTest();
+        SecretKey key = Keys.hmacShaKeyFor(props.getSecret().getBytes(StandardCharsets.UTF_8));
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + 3_600_000L);
+        UUID id = UUID.randomUUID();
+
+        String token = Jwts.builder()
+                .issuer("wrong-issuer")
+                .audience().add(props.getAudience()).and()
+                .subject(id.toString())
+                .claim("role", "USER")
+                .issuedAt(now)
+                .expiration(exp)
+                .signWith(key)
+                .compact();
+
+        assertThat(provider.parseValidClaims(token)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("parseValidClaims rejects token with wrong audience")
+    void parseValidClaims_rejectsWrongAudience() {
+        JwtProperties props = jwtPropertiesForTest();
+        SecretKey key = Keys.hmacShaKeyFor(props.getSecret().getBytes(StandardCharsets.UTF_8));
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + 3_600_000L);
+        UUID id = UUID.randomUUID();
+
+        String token = Jwts.builder()
+                .issuer(props.getIssuer())
+                .audience().add("wrong-audience").and()
+                .subject(id.toString())
+                .claim("role", "USER")
+                .issuedAt(now)
+                .expiration(exp)
+                .signWith(key)
+                .compact();
+
+        assertThat(provider.parseValidClaims(token)).isEmpty();
+    }
+
+    private static JwtProperties jwtPropertiesForTest() {
+        JwtProperties props = new JwtProperties();
+        props.setSecret("abcdefghijklmnopqrstuvwxyz012345");
+        props.setIssuer("EduCycle");
+        props.setAudience("EduCycleUsers");
+        return props;
     }
 }

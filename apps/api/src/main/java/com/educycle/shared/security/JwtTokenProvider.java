@@ -76,9 +76,15 @@ public class JwtTokenProvider {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
+        if (!hasIssuerAndAudienceConfigured()) {
+            log.error("JWT issuer/audience must be configured (jwt.issuer, jwt.audience)");
+            return Optional.empty();
+        }
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(getSigningKey())
+                    .requireIssuer(jwtProperties.getIssuer())
+                    .requireAudience(jwtProperties.getAudience())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
@@ -88,6 +94,12 @@ public class JwtTokenProvider {
             log.debug("Invalid JWT token", e);
             return Optional.empty();
         }
+    }
+
+    private boolean hasIssuerAndAudienceConfigured() {
+        String iss = jwtProperties.getIssuer();
+        String aud = jwtProperties.getAudience();
+        return iss != null && !iss.isBlank() && aud != null && !aud.isBlank();
     }
 
     public boolean validateToken(String token) {
