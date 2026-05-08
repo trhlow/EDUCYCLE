@@ -14,6 +14,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import io.jsonwebtoken.Claims;
+
 import java.util.List;
 
 /**
@@ -41,13 +43,20 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             }
 
             String token = authHeader.substring(7);
-            if (!jwtTokenProvider.validateToken(token)) {
+            var claimsOpt = jwtTokenProvider.parseValidClaims(token);
+            if (claimsOpt.isEmpty()) {
                 log.warn("WebSocket CONNECT with invalid JWT");
                 throw new MessageDeliveryException("WebSocket: invalid or expired token");
             }
 
-            String userId = jwtTokenProvider.extractUserId(token);
-            String role = jwtTokenProvider.extractRole(token);
+            Claims claims = claimsOpt.get();
+            String userId = claims.getSubject();
+            String role = claims.get("role", String.class);
+            if (!StringUtils.hasText(userId) || !StringUtils.hasText(role)) {
+                log.warn("WebSocket CONNECT: JWT missing subject or role claim");
+                throw new MessageDeliveryException("WebSocket: invalid token claims");
+            }
+
             var authority = new SimpleGrantedAuthority("ROLE_" + role);
             var auth = new UsernamePasswordAuthenticationToken(userId, null, List.of(authority));
             accessor.setUser(auth);

@@ -16,6 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+
+import io.jsonwebtoken.Claims;
 
 /**
  * Replaces the JWT middleware wired in C# Program.cs (.AddJwtBearer).
@@ -37,22 +40,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            try {
-                String userId = jwtTokenProvider.extractUserId(token);
-                String role = jwtTokenProvider.extractRole(token);
+        Optional<Claims> claimsOpt = jwtTokenProvider.parseValidClaims(token);
+        if (claimsOpt.isPresent()) {
+            Claims claims = claimsOpt.get();
+            String userId = claims.getSubject();
+            String role = claims.get("role", String.class);
 
-                // Spring Security expects "ROLE_" prefix for role-based checks
-                var authority = new SimpleGrantedAuthority("ROLE_" + role);
+            if (!StringUtils.hasText(userId) || !StringUtils.hasText(role)) {
+                SecurityContextHolder.clearContext();
+                log.warn("JWT missing subject or role claim");
+            } else {
+                try {
+                    // Spring Security expects "ROLE_" prefix for role-based checks
+                    var authority = new SimpleGrantedAuthority("ROLE_" + role);
 
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, List.of(authority));
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request));
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            userId, null, List.of(authority));
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception e) {
-                log.warn("Failed to set authentication from JWT", e);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } catch (Exception e) {
+                    SecurityContextHolder.clearContext();
+                    log.warn("Failed to set authentication from JWT");
+                    log.debug("Failed to set authentication from JWT", e);
+                }
             }
         }
 

@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * Replaces C# JwtTokenGenerator / IJwtTokenGenerator.
@@ -67,25 +68,35 @@ public class JwtTokenProvider {
 
     // ===== Validate & Extract =====
 
-    public boolean validateToken(String token) {
+    /**
+     * Parses and verifies JWT once. Empty when missing, blank, expired, or malformed.
+     * Prefer this over {@link #validateToken} + {@link #extractUserId} to avoid double parsing.
+     */
+    public Optional<Claims> parseValidClaims(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
         try {
-            Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token);
-            return true;
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return Optional.of(claims);
         } catch (JwtException | IllegalArgumentException e) {
-            log.warn("Invalid JWT token: {}", e.getMessage());
-            return false;
+            log.warn("Invalid JWT token");
+            log.debug("Invalid JWT token", e);
+            return Optional.empty();
         }
     }
 
+    public boolean validateToken(String token) {
+        return parseValidClaims(token).isPresent();
+    }
+
     public Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return parseValidClaims(token)
+                .orElseThrow(() -> new JwtException("Invalid JWT"));
     }
 
     public String extractUserId(String token) {
