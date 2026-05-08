@@ -25,6 +25,9 @@ import java.util.Optional;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /** Tránh phản chiếu payload dài / ký tự điều khiển trong JSON lỗi (defense-in-depth). */
+    private static final int MAX_APP_EXCEPTION_MESSAGE_LENGTH = 512;
+
     /** Khớp tên constraint Flyway — xem db/migration */
     private static final String UQ_USERS_EMAIL = "uq_users_email";
     private static final String UQ_USERS_USERNAME = "uq_users_username";
@@ -58,7 +61,35 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorBody> handleAppException(AppException ex) {
         return ResponseEntity
                 .status(ex.getStatus())
-                .body(ApiErrorBody.of(ex.getMessage()));
+                .body(ApiErrorBody.of(safeAppExceptionMessage(ex)));
+    }
+
+    /**
+     * Giữ message kinh doanh theo convention MessageConstants; không trả chuỗi quá dài hoặc chứa newline/control.
+     */
+    private static String safeAppExceptionMessage(AppException ex) {
+        String msg = ex.getMessage();
+        if (msg == null || msg.isBlank()) {
+            return MessageConstants.UNEXPECTED_ERROR;
+        }
+        StringBuilder sb = new StringBuilder(msg.length());
+        for (int i = 0; i < msg.length(); i++) {
+            char c = msg.charAt(i);
+            // Trích từ review P3: rõ ràng hơn so với chỉ so sánh code unit < 32 (DEL và một số control khác).
+            if (Character.isISOControl(c)) {
+                sb.append(' ');
+            } else {
+                sb.append(c);
+            }
+        }
+        String cleaned = sb.toString().strip();
+        if (cleaned.isEmpty()) {
+            return MessageConstants.UNEXPECTED_ERROR;
+        }
+        if (cleaned.length() > MAX_APP_EXCEPTION_MESSAGE_LENGTH) {
+            return MessageConstants.UNEXPECTED_ERROR;
+        }
+        return cleaned;
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
