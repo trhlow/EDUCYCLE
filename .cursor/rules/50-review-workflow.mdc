@@ -1,69 +1,117 @@
 ---
-description: Senior review workflow for reviewing AI-generated or human-written code
+description: Strict senior review workflow for AI-generated or human-written code (gates, evidence, verdict rules)
 alwaysApply: false
 ---
 
-# Senior Review Workflow
+# Strict Senior Review Workflow
 
-When asked to review code, use this structure:
+Khi được yêu cầu review code, **bắt buộc** làm theo quy trình dưới đây. Không được rút gọn các mục **Must-pass** trừ khi người dùng nói rõ chỉ review một phần (ví dụ chỉ FE).
 
-## Summary
+## 0. Scope và giả định
 
-Briefly state the overall quality and risk level.
+- **Scope**: xác định PR/commit đang review (BE / FE / DB / infra). Nếu thiếu diff hoặc không có ngữ cảnh → ghi rõ *assumptions* và những gì **không** thể kết luận.
+- **Evidence**: mọi issue **P0–P2** phải có ít nhất một trong: đường dẫn file + ngữ cảnh rõ ràng, hoặc mô tả hành vi sai có thể tái hiện, hoặc trích đoạn logic (không khẳng định chung chung).
+- **Không suy diễn nghiệp vụ**: nếu luật kinh doanh không có trong code/docs → ghi *unknown / needs product confirmation*.
 
-## Critical Issues
+## 1. Summary (nghiêm ngặt)
 
-Use priority labels:
+Viết **≤ 8 câu**, gồm:
 
-- P0: security/data loss/build broken
-- P1: serious production risk
-- P2: maintainability or correctness issue
-- P3: cleanup
+- Chất lượng tổng thể và **mức rủi ro** (Low / Medium / High).
+- **Change blast radius**: ai/flow nào bị ảnh hưởng (auth, thanh toán giao dịch, upload, admin, v.v.).
+- Số lượng finding theo mức: P0 / P1 / P2 / P3 (chỉ số, không chi tiết ở đây).
 
-For each issue include:
+## 2. Critical Issues (bắt buộc có nhãn và hành động)
 
-- Problem
-- Why it matters
-- File or area
-- Suggested fix
+Ưu tiên:
 
-## Architecture Review
+- **P0**: bảo mật nghiêm trọng, mất dữ liệu, lộ secret, bypass authz, build/lint/test CI gãy, corruption DB.
+- **P1**: rủi ro production rõ ràng (race condition giao dịch, sai authz mức user, N+1 gây sập, migration nguy hiểm).
+- **P2**: đúng nhưng dễ gây bug sau này, maintainability kém, API không nhất quán.
+- **P3**: style, đặt tên, comment thừa, refactor nhỏ không chặn merge.
 
-Check:
+**Với mỗi P0–P2**, bắt buộc các trường:
 
-- Separation of concerns
-- Dependency direction
-- DTO/entity boundaries
-- Error handling
-- Auth flow
-- Database consistency
+| Trường | Yêu cầu |
+|--------|---------|
+| Problem | Mô tả ngắn, cụ thể |
+| Impact | Ai bị ảnh hưởng, kịch bản thất bại |
+| Location | File hoặc module (ưu tiên có line nếu có diff) |
+| Fix | Hướng sửa có thể thực hiện (không chỉ “nên fix”) |
+| Test | Cần test gì để không tái phát (nếu không có test → ghi rõ “gap”) |
 
-## Security Review
+Nếu không có P0–P2, ghi rõ: **“No P0–P2 findings in scope.”**
 
-Check:
+## 3. EduCycle / repo Must-pass (không được bỏ qua nếu diff đụng phần đó)
 
-- Authentication
-- Authorization
-- Secrets
-- Input validation
-- CORS/CSRF
-- Token handling
-- Sensitive logging
+Chỉ đánh dấu **Pass / Fail / N/A** cho từng mục liên quan tới thay đổi:
 
-## Testing Review
+- **Status enums (FE)**: so sánh sau `.toUpperCase()`, không so khớp kiểu `Pending` / `Admin`.
+- **Flyway**: không sửa migration đã apply; migration mới tuần tự version (repo quy định V16+).
+- **Refresh token**: không dùng `UUID.randomUUID()` cho refresh token — `SecureRandom` + độ dài đúng chuẩn dự án.
+- **Secrets**: không hardcode secret/env cụ thể; không log JWT/password/OTP.
+- **CSS (FE)**: màu/spacing dùng `var(--token)` từ design tokens, không hex/pixel tùy tiện.
+- **AuthContext**: không mock fallback che lỗi backend.
+- **API boundaries**: ownership dùng principal server-side, không tin `userId` client tùy tiện cho thao tác nhạy cảm.
 
-Check:
+**Nếu bất kỳ mục nào Fail** → verdict **không được** “Ready to merge” (tối thiểu “Merge after fixes”).
 
-- Missing tests
-- Weak tests
-- Edge cases
-- Integration coverage
+## 4. Architecture & correctness
 
-## Final Verdict
+Kiểm tra có **kết luận có điều kiện** (đúng/sai/unclear):
 
-Use one of:
+- Tách lớp: controller mỏng, logic nghiệp vụ ở service, persistence ở repository.
+- DTO ↔ entity: không lộ entity ra API nếu dự án đã chuẩn hóa DTO.
+- Transaction: write có `@Transactional` đúng chỗ; đọc có `readOnly` khi phù hợp.
+- Lỗi: dùng exception chuẩn dự án (`BadRequest`, `NotFound`, `Unauthorized`), response nhất quán.
+- **N+1**: list + quan hệ — có batch/fetch join hay không.
+- **Idempotency / concurrency**: nếu thay đổi flow giao dịch/trạng thái — có race không?
 
-- Ready to merge
-- Merge after minor fixes
-- Needs serious fixes
-- Do not merge
+## 5. Security (bắt buộc quét nhanh)
+
+Theo thứ tự:
+
+1. Authn: endpoint nhạy cảm có bảo vệ đúng không?
+2. Authz: kiểm tra role/ownership so với resource id.
+3. Input: validation Bean Validation / FE validation không thay thế server.
+4. Upload (nếu có): kích thước, MIME, path traversal.
+5. Web / CORS / CSRF: chỉ nhận xét nếu diff đụng config hoặc cookie/session.
+6. Logging: không lộ PII/tokens.
+
+## 6. Testing & verification
+
+- Liệt kê **test hiện có** liên quan (file hoặc loại test).
+- **Gaps**: edge case, regression, security path chưa có test.
+- Ghi rõ lệnh đề xuất: ví dụ `mvn test`, `npm run build` — chỉ những lệnh có trong repo.
+
+## 7. Risk matrix (ngắn)
+
+Bảng 2–4 dòng:
+
+| Rủi ro | Xác suất | Hậu quả | Mitigation đề xuất |
+
+## 8. Final Verdict (quy tắc siết)
+
+Chọn **một** verdict dưới đây — **không** dùng ngôn ngữ mơ hồ kiểu “LGTM có điều kiện” nếu có P0/P1.
+
+| Verdict | Điều kiện |
+|---------|-----------|
+| **Ready to merge** | Không P0/P1; P2 không có hoặc đã chấp nhận rủi ro có ghi nhận; Must-pass liên quan toàn Pass hoặc N/A; có đường verify tối thiểu (build/test hoặc lý do N/A có kiểm soát). |
+| **Merge after minor fixes** | Chỉ P3, hoặc P2 nhỏ có patch rõ ràng trong vài phút; không đụng security/data. |
+| **Needs serious fixes** | Có P1 chưa có hướng xử lý, hoặc nhiều P2 ảnh hưởng hành vi; Must-pass có Fail. |
+| **Do not merge** | Có P0, hoặc P1 nghiêm trọng (authz/secrets/data), hoặc thiếu migration an toàn cho thay đổi schema. |
+
+**Merge blocker list**: nếu verdict không phải “Ready to merge”, liệt kê **≤ 5 bullet** việc phải làm trước khi merge.
+
+---
+
+## Output order (để AI/human review nhất quán)
+
+1. Summary  
+2. Must-pass (Pass/Fail/N/A table)  
+3. Critical Issues (P0 → P3)  
+4. Architecture & correctness  
+5. Security  
+6. Testing & gaps  
+7. Risk matrix  
+8. Verdict + merge blockers  
