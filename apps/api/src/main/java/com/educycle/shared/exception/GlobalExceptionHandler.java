@@ -65,7 +65,9 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Giữ message kinh doanh theo convention MessageConstants; không trả chuỗi quá dài hoặc chứa newline/control.
+     * Chuẩn hóa message trước khi đưa vào JSON lỗi: null/blank hoặc chỉ control → {@link MessageConstants#UNEXPECTED_ERROR};
+     * thay ký tự ISO control bằng space; sau {@link String#strip()} rỗng hoặc dài hơn {@link #MAX_APP_EXCEPTION_MESSAGE_LENGTH}
+     * → {@link MessageConstants#UNEXPECTED_ERROR}.
      */
     private static String safeAppExceptionMessage(AppException ex) {
         String msg = ex.getMessage();
@@ -75,7 +77,7 @@ public class GlobalExceptionHandler {
         StringBuilder sb = new StringBuilder(msg.length());
         for (int i = 0; i < msg.length(); i++) {
             char c = msg.charAt(i);
-            // Trích từ review P3: rõ ràng hơn so với chỉ so sánh code unit < 32 (DEL và một số control khác).
+            // ISO control chars (TAB, CR/LF, DEL, …) → space so error JSON stays readable/safe.
             if (Character.isISOControl(c)) {
                 sb.append(' ');
             } else {
