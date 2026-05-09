@@ -57,6 +57,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CoreFlowIntegrationTest {
 
     private static final String FIXED_OTP = "123456";
+    /** Must match {@link #datasource}'s {@code jwt.secret} — single source of truth for signed JWT tests. */
+    private static final String INTEGRATION_JWT_SECRET = "integration-test-jwt-secret-at-least-32-chars";
     private static final String ADMIN_EMAIL = "admin@educycle.com";
     private static final String ADMIN_PASSWORD = "admin@1";
 
@@ -67,7 +69,7 @@ class CoreFlowIntegrationTest {
         registry.add("spring.datasource.url", postgres::jdbcUrl);
         registry.add("spring.datasource.username", postgres::username);
         registry.add("spring.datasource.password", postgres::password);
-        registry.add("jwt.secret", () -> "integration-test-jwt-secret-at-least-32-chars");
+        registry.add("jwt.secret", () -> INTEGRATION_JWT_SECRET);
         registry.add("educycle.e2e-fixed-otp", () -> FIXED_OTP);
     }
 
@@ -89,12 +91,11 @@ class CoreFlowIntegrationTest {
     }
 
     /**
-     * Trích từ review: integration test HTTP — JWT đúng chữ ký nhưng sai issuer phải bị từ chối (401).
+     * Valid signature (same secret as context) but issuer ≠ configured {@code jwt.issuer} → 401.
      */
     @Test
     void mineProducts_rejectsJwtWithWrongIssuer() throws Exception {
-        String secret = "integration-test-jwt-secret-at-least-32-chars";
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = Keys.hmacShaKeyFor(INTEGRATION_JWT_SECRET.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date exp = new Date(now.getTime() + 3_600_000L);
 
