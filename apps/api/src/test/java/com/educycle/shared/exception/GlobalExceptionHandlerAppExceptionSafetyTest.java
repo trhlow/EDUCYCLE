@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Đối chiếu review: không phản chiếu message quá dài / control chars qua {@link GlobalExceptionHandler}.
+ * Ensures {@link GlobalExceptionHandler} does not echo oversized or ISO-control-heavy
+ * {@link com.educycle.shared.exception.AppException} messages verbatim in {@link com.educycle.shared.response.ApiErrorBody}.
  */
 class GlobalExceptionHandlerAppExceptionSafetyTest {
 
