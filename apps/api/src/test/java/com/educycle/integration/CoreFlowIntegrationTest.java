@@ -9,6 +9,7 @@ import com.educycle.listing.api.dto.request.UpdateProductRequest;
 import com.educycle.listing.api.dto.response.ProductResponse;
 import com.educycle.review.api.dto.request.CreateReviewRequest;
 import com.educycle.review.api.dto.response.ReviewResponse;
+import com.educycle.shared.config.JwtProperties;
 import com.educycle.transaction.api.dto.request.CreateTransactionRequest;
 import com.educycle.transaction.api.dto.request.TransactionVerifyOtpRequest;
 import com.educycle.transaction.api.dto.request.UpdateTransactionStatusRequest;
@@ -84,6 +85,9 @@ class CoreFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private JwtProperties jwtProperties;
+
     @Test
     void openApiDocs_requiresAuthentication_whenSwaggerUiNotPublic() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
@@ -95,13 +99,15 @@ class CoreFlowIntegrationTest {
      */
     @Test
     void mineProducts_rejectsJwtWithWrongIssuer() throws Exception {
+        assertThat(jwtProperties.getAudience()).isNotBlank();
+
         SecretKey key = Keys.hmacShaKeyFor(INTEGRATION_JWT_SECRET.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date exp = new Date(now.getTime() + 3_600_000L);
 
         String token = Jwts.builder()
                 .issuer("wrong-issuer-integration-test")
-                .audience().add("EduCycleUsers").and()
+                .audience().add(jwtProperties.getAudience()).and()
                 .subject(UUID.randomUUID().toString())
                 .claim("role", "USER")
                 .issuedAt(now)
