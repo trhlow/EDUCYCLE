@@ -17,6 +17,9 @@ public class AuthRefreshTokens {
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
+     * Bắt đầu chuỗi refresh mới. {@code refreshTokenFamily} chỉ là ID tương quan phiên; token opaque gửi client
+     * vẫn do {@link JwtTokenProvider#generateRefreshToken()} (SecureRandom).
+     *
      * @return plaintext refresh token (client-only); DB stores {@link RefreshTokenHasher#sha256Hex(String)}.
      */
     public String startNewChain(User user) {
@@ -28,6 +31,8 @@ public class AuthRefreshTokens {
     }
 
     /**
+     * Xoay refresh; nếu chưa có family thì gán UUID làm ID tương quan (không thay cho entropy của opaque refresh).
+     *
      * @return plaintext refresh token (client-only); DB stores hash.
      */
     public String rotate(User user) {
