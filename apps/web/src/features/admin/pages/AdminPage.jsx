@@ -16,7 +16,7 @@ function RejectReasonModal({
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 9999,
+        position: 'fixed', inset: 0, background: 'var(--bg-overlay)', zIndex: 'var(--z-modal)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
       }}
       onClick={onCancel}
@@ -188,16 +188,16 @@ function AdminOverview({ onNavigate }) {
 
   const txBadge = (s) => {
     const cfg = {
-      PENDING:   { bg:'var(--warning-light)',  color:'#e65100', label:'Chờ xác nhận' },
-      ACCEPTED:  { bg:'var(--info-light)',     color:'#1565c0', label:'Đã chấp nhận' },
-      MEETING:   { bg:'#e8eaf6',              color:'#3949ab', label:'Đang gặp mặt' },
-      COMPLETED: { bg:'var(--success-light)', color:'#2e7d32', label:'Hoàn thành'   },
-      REJECTED:  { bg:'var(--error-light)',   color:'#c62828', label:'Từ chối'       },
-      CANCELLED: { bg:'var(--bg-tertiary)',   color:'#616161', label:'Đã hủy'        },
-      DISPUTED:  { bg:'#fbe9e7',             color:'#bf360c', label:'Tranh chấp'    },
+      PENDING:   { bg:'var(--warning-light)',  color:'var(--warning)', label:'Chờ xác nhận' },
+      ACCEPTED:  { bg:'var(--info-light)',     color:'var(--info)', label:'Đã chấp nhận' },
+      MEETING:   { bg:'var(--accent-50)',      color:'var(--accent-800)', label:'Đang gặp mặt' },
+      COMPLETED: { bg:'var(--success-light)', color:'var(--secondary-800)', label:'Hoàn thành'   },
+      REJECTED:  { bg:'var(--error-light)',   color:'var(--error-600)', label:'Từ chối'       },
+      CANCELLED: { bg:'var(--bg-tertiary)',   color:'var(--neutral-600)', label:'Đã hủy'        },
+      DISPUTED:  { bg:'var(--brick-50)',      color:'var(--brick-800)', label:'Tranh chấp'    },
     };
     const c = cfg[s?.toUpperCase()] || cfg.CANCELLED;
-    return <span style={{ background:c.bg, color:c.color, padding:'2px 10px', borderRadius:'var(--radius-full)', fontSize:'var(--text-xs)', fontWeight:500, whiteSpace:'nowrap' }}>{c.label}</span>;
+    return <span style={{ background:c.bg, color:c.color, padding:'var(--space-1) var(--space-2)', borderRadius:'var(--radius-full)', fontSize:'var(--text-xs)', fontWeight:500, whiteSpace:'nowrap' }}>{c.label}</span>;
   };
 
   if (loading) return <LoadingState label="Đang tải dữ liệu quản trị..." />;
@@ -232,13 +232,13 @@ function AdminOverview({ onNavigate }) {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'var(--space-4)', marginBottom:'var(--space-6)' }}>
         {[
           { label:'Người dùng',  value:fmt(stats?.totalUsers),                              bg:'var(--primary-50)',   color:'var(--primary-700)', alert:false },
-          { label:'Sản phẩm',    value:fmt(stats?.totalProducts),                           bg:'var(--secondary-50)', color:'#2e7d32',            alert:false },
-          { label:'Chờ duyệt',   value:fmt(stats?.pendingProducts ?? pending.length),       bg:'var(--warning-light)',color:'#e65100',            alert:(stats?.pendingProducts ?? pending.length) > 0 },
-          { label:'Giao dịch',   value:fmt(stats?.totalTransactions),                       bg:'var(--info-light)',   color:'#1565c0',            alert:false },
-          { label:'Tranh chấp',  value:String(disputedTx.length),                           bg:'var(--error-light)',  color:'#c62828',            alert:disputedTx.length > 0 },
-          { label:'Đang xử lý',  value:String(activeTx.length),                             bg:'#e8eaf6',            color:'#3949ab',            alert:false },
+          { label:'Sản phẩm',    value:fmt(stats?.totalProducts),                           bg:'var(--secondary-50)', color:'var(--secondary-800)', alert:false },
+          { label:'Chờ duyệt',   value:fmt(stats?.pendingProducts ?? pending.length),       bg:'var(--warning-light)',color:'var(--warning)',            alert:(stats?.pendingProducts ?? pending.length) > 0 },
+          { label:'Giao dịch',   value:fmt(stats?.totalTransactions),                       bg:'var(--info-light)',   color:'var(--info)',            alert:false },
+          { label:'Tranh chấp',  value:String(disputedTx.length),                           bg:'var(--error-light)',  color:'var(--error-600)',            alert:disputedTx.length > 0 },
+          { label:'Đang xử lý',  value:String(activeTx.length),                             bg:'var(--accent-50)',            color:'var(--accent-800)',            alert:false },
         ].map((k,i) => (
-          <div key={i} style={{ background:'var(--bg-primary)', border:k.alert?'1.5px solid var(--error)':'1px solid var(--border-light)', borderRadius:'var(--radius-lg)', padding:'var(--space-4)', boxShadow:k.alert?'0 0 0 3px rgba(244,67,54,.08)':'none' }}>
+          <div key={i} style={{ background:'var(--bg-primary)', border:k.alert?'1.5px solid var(--error)':'1px solid var(--border-light)', borderRadius:'var(--radius-lg)', padding:'var(--space-4)', boxShadow:k.alert?'0 0 0 3px color-mix(in srgb, var(--error) 10%, transparent)':'none' }}>
             <div style={{ fontSize:'var(--text-2xl)', fontWeight:700, color:k.color, lineHeight:1 }}>{k.value}</div>
             <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginTop:'var(--space-1)' }}>{k.label}</div>
           </div>
@@ -252,7 +252,7 @@ function AdminOverview({ onNavigate }) {
           <div className="admin-section-header">
             <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
               Chờ duyệt
-              {pending.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{pending.length}</span>}
+              {pending.length > 0 && <span style={{ background:'var(--error)', color:'var(--text-inverse)', borderRadius:'var(--radius-full)', padding:'var(--space-1) var(--space-2)', fontSize:'var(--text-xs)', fontWeight:700 }}>{pending.length}</span>}
             </h2>
             {pending.length > 3 && <button onClick={() => onNavigate('moderation')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả</button>}
           </div>
@@ -293,7 +293,7 @@ function AdminOverview({ onNavigate }) {
           <div className="admin-section-header">
             <h2 className="admin-section-title" style={{ display:'flex', alignItems:'center', gap:'var(--space-2)' }}>
               Tranh chấp
-              {disputedTx.length > 0 && <span style={{ background:'var(--error)', color:'#fff', borderRadius:'var(--radius-full)', padding:'1px 8px', fontSize:'var(--text-xs)', fontWeight:700 }}>{disputedTx.length}</span>}
+              {disputedTx.length > 0 && <span style={{ background:'var(--error)', color:'var(--text-inverse)', borderRadius:'var(--radius-full)', padding:'var(--space-1) var(--space-2)', fontSize:'var(--text-xs)', fontWeight:700 }}>{disputedTx.length}</span>}
             </h2>
             {disputedTx.length > 0 && <button onClick={() => onNavigate('orders')} style={{ fontSize:'var(--text-xs)', color:'var(--primary-600)', background:'none', border:'none', cursor:'pointer' }}>Xem tất cả</button>}
           </div>
@@ -304,16 +304,16 @@ function AdminOverview({ onNavigate }) {
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
               {disputedTx.map(tx => (
-                <div key={tx.id} style={{ padding:'var(--space-3)', background:'#fbe9e7', borderRadius:'var(--radius-md)', border:'1px solid #ffccbc' }}>
+                <div key={tx.id} style={{ padding:'var(--space-3)', background:'var(--brick-50)', borderRadius:'var(--radius-md)', border:'1px solid color-mix(in srgb, var(--error-300) 65%, var(--border-light))' }}>
                   <div style={{ fontWeight:600, fontSize:'var(--text-sm)', color:'var(--text-primary)', marginBottom:4 }}>{tx.product?.name || '—'}</div>
                   <div style={{ fontSize:'var(--text-xs)', color:'var(--text-secondary)', marginBottom:4 }}>
                     Mua: {tx.buyer?.username || '—'} — Bán: {tx.seller?.username || '—'}
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:'var(--text-xs)', color:'#bf360c', fontWeight:600 }}>{formatPrice(tx.amount)}</span>
+                    <span style={{ fontSize:'var(--text-xs)', color:'var(--brick-800)', fontWeight:600 }}>{formatPrice(tx.amount)}</span>
                     <span style={{ fontSize:'var(--text-xs)', color:'var(--text-tertiary)' }}>{formatDate(tx.createdAt)}</span>
                   </div>
-                  <div style={{ marginTop:'var(--space-2)', fontSize:'var(--text-xs)', color:'#bf360c' }}>Cần xem xét chat và bằng chứng</div>
+                  <div style={{ marginTop:'var(--space-2)', fontSize:'var(--text-xs)', color:'var(--brick-800)' }}>Cần xem xét chat và bằng chứng</div>
                 </div>
               ))}
             </div>
@@ -457,7 +457,7 @@ function AdminUserFormModal({ open, mode, userId, onClose, onSaved }) {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 9999,
+        position: 'fixed', inset: 0, background: 'var(--bg-overlay)', zIndex: 'var(--z-modal)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-4)',
       }}
       onClick={onClose}
@@ -757,7 +757,7 @@ function AdminOrders() {
     <>
       <h1 className="admin-page-title">Giao Dịch</h1>
       {disputed.length > 0 && (
-        <div className="admin-section" style={{ marginBottom: 'var(--space-5)', border: '1px solid var(--error-light, #ffcdd2)' }}>
+        <div className="admin-section" style={{ marginBottom: 'var(--space-5)', border: '1px solid var(--error-300)' }}>
           <div className="admin-section-header">
             <h2 className="admin-section-title">Tranh chấp cần xử lý ({disputed.length})</h2>
             <button type="button" className="admin-btn" onClick={fetchAll}>Làm mới</button>
@@ -957,7 +957,7 @@ function AdminReviews() {
                     <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : '—'}</td>
                     <td style={{ fontWeight:500 }}>{r.targetUser?.username || r.targetUsername || r.product?.name || '—'}</td>
                     <td>{r.reviewer?.username || r.reviewerName || '—'}</td>
-                    <td><span style={{ color:'#f59e0b', fontWeight:600 }}>{r.rating}/5</span></td>
+                    <td><span style={{ color:'var(--warning)', fontWeight:600 }}>{r.rating}/5</span></td>
                     <td style={{ maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.content||'—'}</td>
                     <td><button className="admin-btn admin-btn-danger" onClick={()=>handleDelete(r.id)}>Xóa</button></td>
                   </tr>

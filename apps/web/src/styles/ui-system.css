@@ -112,13 +112,13 @@
 
 .edu-badge--warning {
   background: var(--warning-light);
-  color: #9a5800;
+  color: var(--warning);
   border-color: color-mix(in srgb, var(--warning) 28%, transparent);
 }
 
 .edu-badge--error {
   background: var(--error-light);
-  color: #991b1b;
+  color: var(--error-600);
   border-color: color-mix(in srgb, var(--error) 30%, transparent);
 }
 

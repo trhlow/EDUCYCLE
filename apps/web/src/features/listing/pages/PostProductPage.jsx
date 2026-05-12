@@ -218,7 +218,7 @@ export default function PostProductPage() {
 
   if (loadingEdit) {
     return (
-      <div className="post-product-page" style={{ textAlign: 'center', padding: '4rem' }}>
+      <div className="post-product-page" style={{ textAlign: 'center', padding: 'var(--space-16)' }}>
         <LoadingState label="Đang tải sản phẩm..." />
       </div>
     );
@@ -228,7 +228,7 @@ export default function PostProductPage() {
     <div className="post-product-page">
       {/* Modal: yêu cầu xác thực EMAIL (không còn SĐT) */}
       {showEmailModal && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'var(--space-4)' }}
+        <div style={{ position:'fixed', inset:0, background:'var(--bg-overlay)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:'var(--z-modal)', padding:'var(--space-4)' }}
           onClick={() => setShowEmailModal(false)}>
           <div style={{ background:'var(--bg-primary)', borderRadius:'var(--radius-xl)', padding:'var(--space-8)', maxWidth:420, width:'100%', boxShadow:'var(--shadow-xl)' }}
             onClick={e => e.stopPropagation()}>
@@ -239,7 +239,7 @@ export default function PostProductPage() {
               </p>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--space-3)' }}>
-              <button style={{ padding:'var(--space-3) var(--space-4)', background:'var(--primary-500)', color:'#fff', border:'none', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', cursor:'pointer' }}
+              <button style={{ padding:'var(--space-3) var(--space-4)', background:'var(--primary-500)', color:'var(--text-inverse)', border:'none', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', fontWeight:'var(--weight-medium)', cursor:'pointer' }}
                 onClick={() => { setShowEmailModal(false); navigate('/auth'); }}>
                 Xác thực email ngay
               </button>
@@ -267,9 +267,9 @@ export default function PostProductPage() {
 
         {/* Banner xác thực email (thay SĐT) */}
         {!isEmailVerified && (
-          <div style={{ background:'var(--warning-light)', border:'1px solid #fbbf24', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', marginBottom:'var(--space-6)', display:'flex', alignItems:'center', gap:'var(--space-3)', fontSize:'var(--text-sm)', color:'#92400e' }}>
+          <div style={{ background:'var(--warning-light)', border:'1px solid color-mix(in srgb, var(--warning) 40%, var(--border-light))', borderRadius:'var(--radius-md)', padding:'var(--space-3) var(--space-4)', marginBottom:'var(--space-6)', display:'flex', alignItems:'center', gap:'var(--space-3)', fontSize:'var(--text-sm)', color:'var(--brick-800)' }}>
             <span>Bạn chưa xác thực email. Vui lòng{' '}
-              <button onClick={() => navigate('/auth')} style={{ background:'none', border:'none', color:'#92400e', fontWeight:'var(--weight-medium)', textDecoration:'underline', cursor:'pointer', padding:0 }}>
+              <button onClick={() => navigate('/auth')} style={{ background:'none', border:'none', color:'var(--brick-800)', fontWeight:'var(--weight-medium)', textDecoration:'underline', cursor:'pointer', padding:0 }}>
                 xác thực email .edu.vn
               </button>
               {' '}trước khi đăng bán.</span>
@@ -327,7 +327,7 @@ export default function PostProductPage() {
                     {form.price > 0 && <span className="post-hint">= {formatPrice(form.price)}đ</span>}
                   </>
                 ) : (
-                  <div style={{ padding:'var(--space-3)', background:'var(--info-light)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'#1565c0' }}>
+                  <div style={{ padding:'var(--space-3)', background:'var(--info-light)', borderRadius:'var(--radius-md)', fontSize:'var(--text-sm)', color:'var(--accent-700)' }}>
                     Giá sẽ được thương lượng khi gặp mặt. Ghi gợi ý giá trong phần Ghi chú.
                   </div>
                 )}

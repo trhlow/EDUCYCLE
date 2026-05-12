@@ -42,17 +42,17 @@ const RULES = [
     items: ['Người MUA tạo mã, người BÁN nhập', 'Mã có hiệu lực 30 phút', 'Xác nhận tại chỗ — không về nhà mới nhập'],
   },
   {
-    color: '#e8eaf6', border: '#c5cae9',
+    color: 'var(--accent-50)', border: 'var(--accent-200)',
     title: 'Thời gian',
     items: ['Người bán phản hồi trong 48 giờ', 'Hoàn thành trong 7 ngày sau khi chấp nhận', 'Không xác nhận trong 24 giờ thì tự hoàn thành'],
   },
   {
-    color: 'var(--secondary-50)', border: '#c8e6c9',
+    color: 'var(--secondary-50)', border: 'var(--secondary-200)',
     title: 'Bảo vệ',
     items: ['Chưa nhập OTP = giao dịch chưa chốt', 'Tranh chấp được Admin xử lý', 'Chat nội bộ được lưu làm bằng chứng'],
   },
   {
-    color: 'var(--error-light)', border: '#ffcdd2',
+    color: 'var(--error-light)', border: 'var(--error-300)',
     title: 'Vi phạm',
     items: ['Hủy liên tục: cảnh cáo rồi khóa tài khoản', 'Đăng sản phẩm giả: khóa vĩnh viễn', 'Báo tranh chấp ác ý: khóa tài khoản'],
   },
@@ -114,7 +114,7 @@ export default function TransactionGuidePage() {
                 <div style={{
                   minWidth: 36, height: 36,
                   background: step.highlight ? 'var(--primary-500)' : 'var(--bg-tertiary)',
-                  color: step.highlight ? '#fff' : 'var(--text-secondary)',
+                  color: step.highlight ? 'var(--text-inverse)' : 'var(--text-secondary)',
                   borderRadius: '50%', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontWeight: 700, fontSize: 'var(--text-sm)',
                   flexShrink: 0,
