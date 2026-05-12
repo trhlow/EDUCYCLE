@@ -232,3 +232,5 @@ Trả lời thẳng:
 
 - Rule ngắn gọn (Cursor): `.cursor/rules/50-review-workflow.mdc`
 - Quy ước dự án: `.cursor/rules/educycle.mdc`, `AGENTS.md`
+- Review phạm vi **cả repo** (dán kèm prompt này): `[code-review-full-repo-scope-educycle.md](./code-review-full-repo-scope-educycle.md)`
+
