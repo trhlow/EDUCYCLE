@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useToast } from '../../../components/Toast';
-import { transactionsApi, usersApi } from '../api';
+import { transactionsApi, unwrapApiList, usersApi } from '../api';
 import {
   EmptyState,
   PageHeader,
@@ -77,7 +77,7 @@ export default function TransactionsPage() {
     setLoading(true);
     try {
       const res = await transactionsApi.getMyTransactions();
-      setTransactions(Array.isArray(res.data) ? res.data : []);
+      setTransactions(unwrapApiList(res.data));
     } catch {
       setTransactions([]);
     } finally {

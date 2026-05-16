@@ -3,7 +3,7 @@ import { formatPrice, formatDate } from '../../../lib/format';
 import { useState, useEffect, useCallback } from 'react';
 import EduCycleLogo from '../../../components/branding/EduCycleLogo';
 import { useToast } from '../../../components/Toast';
-import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi } from '../api';
+import { adminApi, productsApi, transactionsApi, categoriesApi, reviewsApi, unwrapApiList } from '../api';
 import { getApiErrorMessage } from '../../../lib/api-error';
 import { LoadingState, PermissionGate } from '../../../components/ui';
 import './AdminPage.css';
@@ -150,8 +150,8 @@ function AdminOverview({ onNavigate }) {
         transactionsApi.getAll().catch(() => ({ data: [] })),
       ]);
       setStats(statsRes.data);
-      setPending(Array.isArray(pendingRes.data) ? pendingRes.data : pendingRes.data?.items || []);
-      setAllTx(Array.isArray(txRes.data) ? txRes.data : []);
+      setPending(unwrapApiList(pendingRes.data));
+      setAllTx(unwrapApiList(txRes.data));
       setLastRefresh(new Date());
     } finally {
       setLoading(false);
@@ -558,7 +558,7 @@ function AdminUsers() {
   const fetchUsers = useCallback(() => {
     setLoading(true);
     adminApi.getUsers()
-      .then((res) => setUsers(Array.isArray(res.data) ? res.data : []))
+      .then((res) => setUsers(unwrapApiList(res.data)))
       .catch(() => {
         setUsers([]);
         toast.error('Không tải được danh sách người dùng.');
@@ -651,7 +651,7 @@ function AdminProducts() {
 
   useEffect(() => {
     productsApi.getAllForAdmin()
-      .then(res => setProducts(Array.isArray(res.data) ? res.data : res.data?.items || []))
+      .then(res => setProducts(unwrapApiList(res.data)))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, []);
@@ -709,8 +709,8 @@ function AdminOrders() {
   const fetchAll = () => {
     setLoading(true);
     Promise.all([
-      transactionsApi.getAll().then(res => Array.isArray(res.data) ? res.data : []).catch(() => []),
-      adminApi.getDisputedTransactions().then(res => Array.isArray(res.data) ? res.data : []).catch(() => []),
+      transactionsApi.getAll().then(res => unwrapApiList(res.data)).catch(() => []),
+      adminApi.getDisputedTransactions().then(res => unwrapApiList(res.data)).catch(() => []),
     ])
       .then(([tx, disp]) => {
         setTransactions(tx);
@@ -980,7 +980,7 @@ function AdminModeration() {
   const [rejectBusy, setRejectBusy] = useState(false);
 
   const fetch = () => {
-    productsApi.getPending().then(res=>setPending(Array.isArray(res.data)?res.data:res.data?.items||[])).catch(()=>setPending([])).finally(()=>setLoading(false));
+    productsApi.getPending().then(res=>setPending(unwrapApiList(res.data))).catch(()=>setPending([])).finally(()=>setLoading(false));
   };
   useEffect(() => { fetch(); }, []);
 

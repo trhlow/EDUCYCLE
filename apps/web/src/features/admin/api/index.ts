@@ -1,4 +1,4 @@
-export { adminApi, categoriesApi, productsApi, reviewsApi, transactionsApi } from '../../../lib/api';
+export { adminApi, categoriesApi, productsApi, reviewsApi, transactionsApi, unwrapApiList } from '../../../lib/api';
 export type {
   AdminUserWriteRequest,
   CategoryWriteRequest,

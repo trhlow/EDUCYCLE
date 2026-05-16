@@ -1,4 +1,4 @@
-export { messagesApi, reviewsApi, transactionsApi, usersApi } from '../../../lib/api';
+export { messagesApi, reviewsApi, transactionsApi, unwrapApiList, usersApi } from '../../../lib/api';
 export type {
   CancelTransactionRequest,
   CreateReviewRequest,

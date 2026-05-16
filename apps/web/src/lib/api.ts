@@ -17,7 +17,24 @@ import type { AuthResponseDTO } from './api-schemas';
 
 export type Id = string | number;
 export type ApiParams = Record<string, string | number | boolean | null | undefined>;
-export type ApiList<T> = T[] | { items?: T[]; content?: T[] };
+export type ApiPage<T> = {
+  content?: T[];
+  items?: T[];
+  page?: number;
+  size?: number;
+  totalElements?: number;
+  totalPages?: number;
+  first?: boolean;
+  last?: boolean;
+};
+export type ApiList<T> = T[] | ApiPage<T>;
+
+export const unwrapApiList = <T>(data: ApiList<T> | null | undefined): T[] => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.items)) return data.items;
+  return [];
+};
 
 export type LoginRequest = {
   email: string;
@@ -205,9 +222,10 @@ export const categoriesApi = {
 };
 
 export const transactionsApi = {
-  getAll: (): Promise<AxiosResponse<TransactionDTO[]>> => api.get('/transactions'),
-  getMyTransactions: (): Promise<AxiosResponse<TransactionDTO[]>> =>
-    api.get('/transactions/mine'),
+  getAll: (params?: ApiParams): Promise<AxiosResponse<ApiList<TransactionDTO>>> =>
+    api.get('/transactions', { params }),
+  getMyTransactions: (params?: ApiParams): Promise<AxiosResponse<ApiList<TransactionDTO>>> =>
+    api.get('/transactions/mine', { params }),
   getById: (id: Id): Promise<AxiosResponse<TransactionDTO>> => api.get(`/transactions/${id}`),
   create: (data: CreateTransactionRequest): Promise<AxiosResponse<TransactionDTO>> =>
     api.post('/transactions', data),
