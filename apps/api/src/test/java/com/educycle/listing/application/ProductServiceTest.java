@@ -9,6 +9,7 @@ import com.educycle.listing.domain.Category;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.exception.UnauthorizedException;
+import com.educycle.shared.util.MessageConstants;
 import com.educycle.listing.domain.Product;
 import com.educycle.user.domain.User;
 import com.educycle.listing.application.support.ProductImages;
@@ -158,6 +159,24 @@ class ProductServiceTest {
 
             verify(productRepository).save(argThat(product ->
                     product.getCategoryRef() == category && "Books".equals(product.getCategory())));
+        }
+
+        @Test
+        @DisplayName("should reject create when trading is disabled")
+        void shouldRejectCreate_whenTradingDisabled() {
+            UUID userId = testUser.getId();
+            testUser.setTradingAllowed(false);
+            CreateProductRequest request = new CreateProductRequest(
+                    "Test Product", "A test product", new BigDecimal("100.50"),
+                    null, null, null, null, null, null);
+
+            given(userRepository.findById(userId)).willReturn(Optional.of(testUser));
+
+            assertThatThrownBy(() -> productService.create(request, userId))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.TRADING_NOT_ALLOWED);
+
+            verify(productRepository, never()).save(any(Product.class));
         }
     }
 

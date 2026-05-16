@@ -21,6 +21,7 @@ public class UserProfileMapper {
                 user.isNotifyProductModeration(),
                 user.isNotifyTransactions(),
                 user.isNotifyMessages(),
+                user.isTradingAllowed(),
                 user.getTransactionRulesAcceptedAt()
         );
     }

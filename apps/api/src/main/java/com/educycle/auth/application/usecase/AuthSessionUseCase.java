@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
-import static com.educycle.auth.application.support.AuthEmailPolicy.isTradingAllowedFor;
 import static com.educycle.auth.application.support.AuthEmailPolicy.normalize;
 
 @Service
@@ -42,7 +41,6 @@ public class AuthSessionUseCase {
             throw new UnauthorizedException(MessageConstants.EMAIL_NOT_VERIFIED_LOGIN);
         }
 
-        user.setTradingAllowed(isTradingAllowedFor(user));
         String plainRt = refreshTokens.startNewChain(user);
         userRepository.save(user);
         return authResponses.auth(user, null, plainRt);
@@ -71,7 +69,6 @@ public class AuthSessionUseCase {
         }
 
         String plainRt = refreshTokens.rotate(user);
-        user.setTradingAllowed(isTradingAllowedFor(user));
         userRepository.save(user);
         return authResponses.auth(user, null, plainRt);
     }

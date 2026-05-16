@@ -244,7 +244,27 @@ class AuthServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.token()).isEqualTo("fake-jwt-token");
             assertThat(result.userId()).isEqualTo(existingUser.getId());
+            assertThat(result.tradingAllowed()).isTrue();
             assertThat(result.refreshToken()).isEqualTo("fake-refresh-token");
+            verify(userRepository, times(1)).save(existingUser);
+        }
+
+        @Test
+        @DisplayName("should preserve admin-disabled trading flag on login")
+        void shouldPreserveTradingDisabled_whenLogin() {
+            existingUser.setTradingAllowed(false);
+            LoginRequest request = new LoginRequest("test@student.edu.vn", "Password123");
+
+            given(userRepository.findByEmail("test@student.edu.vn"))
+                    .willReturn(Optional.of(existingUser));
+            given(passwordEncoder.matches("Password123", "hashed_password")).willReturn(true);
+            given(jwtTokenProvider.generateToken(existingUser)).willReturn("fake-jwt-token");
+            given(jwtTokenProvider.generateRefreshToken()).willReturn("fake-refresh-token");
+
+            AuthResponse result = authService.login(request);
+
+            assertThat(result.tradingAllowed()).isFalse();
+            assertThat(existingUser.isTradingAllowed()).isFalse();
             verify(userRepository, times(1)).save(existingUser);
         }
 
@@ -340,6 +360,64 @@ class AuthServiceTest {
                     .hasMessage(MessageConstants.INVALID_REFRESH_TOKEN);
 
             verify(jwtTokenProvider, never()).generateRefreshToken();
+        }
+    }
+
+    @Nested
+    @DisplayName("password recovery")
+    class PasswordRecovery {
+
+        @Test
+        @DisplayName("forgotPassword should store only a reset token hash")
+        void forgotPassword_shouldStoreOnlyHash() {
+            User user = User.builder()
+                    .id(UUID.randomUUID())
+                    .username("resetuser")
+                    .email("reset@student.edu.vn")
+                    .passwordHash("old-hash")
+                    .role(Role.USER)
+                    .emailVerified(true)
+                    .phoneVerified(false)
+                    .createdAt(Instant.now())
+                    .build();
+            given(userRepository.findByEmail("reset@student.edu.vn")).willReturn(Optional.of(user));
+
+            authService.forgotPassword(new ForgotPasswordRequest("reset@student.edu.vn"));
+
+            assertThat(user.getPasswordResetToken()).isNotBlank();
+            assertThat(user.getPasswordResetToken()).hasSize(64);
+            assertThat(user.getPasswordResetToken()).matches("[0-9a-f]{64}");
+            verify(userRepository).save(user);
+            verify(mailService).sendPlain(eq("reset@student.edu.vn"), anyString(), contains("/auth?resetToken="));
+        }
+
+        @Test
+        @DisplayName("resetPassword should look up by hashed raw token")
+        void resetPassword_shouldLookupByHashedRawToken() {
+            String rawToken = "plain-reset-token-from-email";
+            String tokenHash = RefreshTokenHasher.sha256Hex(rawToken);
+            User user = User.builder()
+                    .id(UUID.randomUUID())
+                    .username("resetuser")
+                    .email("reset@student.edu.vn")
+                    .passwordHash("old-hash")
+                    .role(Role.USER)
+                    .emailVerified(true)
+                    .phoneVerified(false)
+                    .passwordResetToken(tokenHash)
+                    .passwordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS))
+                    .createdAt(Instant.now())
+                    .build();
+
+            given(userRepository.findByPasswordResetToken(tokenHash)).willReturn(Optional.of(user));
+            given(passwordEncoder.encode("NewPassword123")).willReturn("new-hash");
+
+            authService.resetPassword(new ResetPasswordRequest(rawToken, "NewPassword123"));
+
+            assertThat(user.getPasswordHash()).isEqualTo("new-hash");
+            assertThat(user.getPasswordResetToken()).isNull();
+            verify(userRepository).findByPasswordResetToken(tokenHash);
+            verify(userRepository).save(user);
         }
     }
 }

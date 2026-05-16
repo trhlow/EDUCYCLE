@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TransactionService Tests")
@@ -95,7 +96,6 @@ class TransactionServiceTest {
                     product.getId(), seller.getId(), new BigDecimal("50.00"));
 
             given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
-            given(userRepository.findById(seller.getId())).willReturn(Optional.of(seller));
             given(productRepository.findByIdWithUserForUpdate(product.getId())).willReturn(Optional.of(product));
             given(transactionRepository.existsByProduct_IdAndStatusIn(eq(product.getId()), any()))
                     .willReturn(false);
@@ -128,7 +128,6 @@ class TransactionServiceTest {
                     product.getId(), seller.getId(), new BigDecimal("50.00"));
 
             given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
-            given(userRepository.findById(seller.getId())).willReturn(Optional.of(seller));
             given(productRepository.findByIdWithUserForUpdate(product.getId())).willReturn(Optional.of(product));
             given(transactionRepository.existsByProduct_IdAndStatusIn(eq(product.getId()), any()))
                     .willReturn(true);
@@ -136,6 +135,40 @@ class TransactionServiceTest {
             assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
                     .isInstanceOf(BadRequestException.class)
                     .hasMessageContaining("đang có giao dịch");
+        }
+
+        @Test
+        @DisplayName("should reject sellerId that does not match product owner")
+        void shouldThrow_whenSellerDoesNotOwnProduct() {
+            User otherSeller = buildUser(UUID.randomUUID(), "other@student.edu.vn");
+            CreateTransactionRequest req = new CreateTransactionRequest(
+                    product.getId(), otherSeller.getId(), new BigDecimal("50.00"));
+
+            given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
+            given(productRepository.findByIdWithUserForUpdate(product.getId())).willReturn(Optional.of(product));
+
+            assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.TRANSACTION_SELLER_MISMATCH);
+
+            verify(transactionRepository, never()).save(any(Transaction.class));
+        }
+
+        @Test
+        @DisplayName("should reject buyer when trading is disabled")
+        void shouldThrow_whenBuyerTradingDisabled() {
+            buyer.setTradingAllowed(false);
+            CreateTransactionRequest req = new CreateTransactionRequest(
+                    product.getId(), seller.getId(), new BigDecimal("50.00"));
+
+            given(userRepository.findById(buyer.getId())).willReturn(Optional.of(buyer));
+
+            assertThatThrownBy(() -> transactionService.create(req, buyer.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage(MessageConstants.TRADING_NOT_ALLOWED);
+
+            verify(productRepository, never()).findByIdWithUserForUpdate(any());
+            verify(transactionRepository, never()).save(any(Transaction.class));
         }
     }
 

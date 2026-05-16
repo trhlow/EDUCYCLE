@@ -55,6 +55,8 @@ public final class MessageConstants {
     /** Đã có giao dịch PENDING/ACCEPTED/MEETING/DISPUTED — chống double booking */
     public static final String PRODUCT_HAS_ACTIVE_TRANSACTION =
             "Sản phẩm đang có giao dịch đang xử lý. Vui lòng chọn sản phẩm khác hoặc thử lại sau.";
+    public static final String TRANSACTION_SELLER_MISMATCH =
+            "Người bán không khớp với chủ sở hữu sản phẩm.";
     /** Không ghép giá trị client vào message — tránh reflected input trong response lỗi. */
     public static final String INVALID_TRANSACTION_STATUS = "Trạng thái giao dịch không hợp lệ.";
 

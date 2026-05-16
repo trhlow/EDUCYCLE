@@ -5,6 +5,7 @@ import com.educycle.auth.api.dto.request.ResetPasswordRequest;
 import com.educycle.auth.application.support.AuthRefreshTokens;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.mail.MailService;
+import com.educycle.shared.security.RefreshTokenHasher;
 import com.educycle.shared.util.MessageConstants;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -15,11 +16,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.educycle.auth.application.support.AuthEmailPolicy.normalize;
 
@@ -28,6 +30,9 @@ import static com.educycle.auth.application.support.AuthEmailPolicy.normalize;
 @RequiredArgsConstructor
 @Transactional
 public class PasswordRecoveryUseCase {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int RESET_TOKEN_BYTES = 32;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -43,8 +48,8 @@ public class PasswordRecoveryUseCase {
             Optional<User> found = userRepository.findByEmail(email);
             if (found.isPresent()) {
                 User user = found.get();
-                String token = UUID.randomUUID().toString().replace("-", "");
-                user.setPasswordResetToken(token);
+                String token = generateResetToken();
+                user.setPasswordResetToken(RefreshTokenHasher.sha256Hex(token));
                 user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
                 userRepository.save(user);
                 sendResetLink(user, token);
@@ -57,7 +62,11 @@ public class PasswordRecoveryUseCase {
 
     public Map<String, String> resetPassword(ResetPasswordRequest request) {
         String rawToken = request.token() == null ? "" : request.token().trim();
-        User user = userRepository.findByPasswordResetToken(rawToken)
+        String tokenHash = RefreshTokenHasher.sha256Hex(rawToken);
+        if (tokenHash == null) {
+            throw new BadRequestException(MessageConstants.RESET_TOKEN_INVALID_OR_EXPIRED);
+        }
+        User user = userRepository.findByPasswordResetToken(tokenHash)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.RESET_TOKEN_INVALID_OR_EXPIRED));
 
         if (user.getPasswordResetTokenExpiry() == null
@@ -73,6 +82,12 @@ public class PasswordRecoveryUseCase {
         return Map.of("message", MessageConstants.RESET_PASSWORD_SUCCESS);
     }
 
+    private static String generateResetToken() {
+        byte[] bytes = new byte[RESET_TOKEN_BYTES];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
     private void sendResetLink(User user, String token) {
         String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
         String link = base + "/auth?resetToken=" + token;
@@ -82,7 +97,7 @@ public class PasswordRecoveryUseCase {
                         + "Neu khong phai ban, hay bo qua email nay.",
                 user.getUsername(), link);
         if (!mailService.sendPlain(user.getEmail(), "EduCycle - dat lai mat khau", body)) {
-            log.warn("Quen mat khau - lien ket dat lai (dev fallback): {}", link);
+            log.warn("Quen mat khau - khong gui duoc email reset: userId={}", user.getId());
         }
     }
 }

@@ -10,6 +10,7 @@ public record AuthResponse(
         String token,
         String role,
         boolean emailVerified,
+        boolean tradingAllowed,
         String message,
         String refreshToken,
         Instant refreshTokenExpiry

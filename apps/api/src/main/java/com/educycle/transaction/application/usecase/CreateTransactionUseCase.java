@@ -24,6 +24,8 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.educycle.shared.util.TradingAccess.mayTrade;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,16 +45,23 @@ public class CreateTransactionUseCase {
     private final TransactionResponseMapper mapper;
 
     public TransactionResponse create(CreateTransactionRequest request, UUID buyerId) {
-        if (buyerId.equals(request.sellerId())) {
-            throw new BadRequestException(MessageConstants.BUYER_SAME_AS_SELLER);
-        }
-
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.BUYER_NOT_FOUND));
-        User seller = userRepository.findById(request.sellerId())
-                .orElseThrow(() -> new NotFoundException(MessageConstants.SELLER_NOT_FOUND));
+        if (!mayTrade(buyer)) {
+            throw new BadRequestException(MessageConstants.TRADING_NOT_ALLOWED);
+        }
         Product product = productRepository.findByIdWithUserForUpdate(request.productId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.PRODUCT_NOT_FOUND));
+        User seller = product.getUser();
+        if (seller == null) {
+            throw new NotFoundException(MessageConstants.SELLER_NOT_FOUND);
+        }
+        if (buyerId.equals(seller.getId())) {
+            throw new BadRequestException(MessageConstants.BUYER_SAME_AS_SELLER);
+        }
+        if (request.sellerId() != null && !request.sellerId().equals(seller.getId())) {
+            throw new BadRequestException(MessageConstants.TRANSACTION_SELLER_MISMATCH);
+        }
 
         if (product.getStatus() != ProductStatus.APPROVED) {
             throw new BadRequestException(
@@ -73,10 +82,10 @@ public class CreateTransactionUseCase {
                 .build();
 
         transactionRepository.save(transaction);
-        log.info("Transaction created: {} buyer={} seller={}", transaction.getId(), buyerId, request.sellerId());
+        log.info("Transaction created: {} buyer={} seller={}", transaction.getId(), buyerId, seller.getId());
 
         notificationService.create(
-                request.sellerId(),
+                seller.getId(),
                 "NEW_TRANSACTION_REQUEST",
                 "Yêu cầu mua mới",
                 "Bạn có yêu cầu mua mới cho sản phẩm '" + product.getName() + "'.",

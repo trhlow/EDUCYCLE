@@ -23,6 +23,7 @@ public class AuthResponses {
                 jwtTokenProvider.generateToken(user),
                 user.getRole().name(),
                 user.isEmailVerified(),
+                user.isTradingAllowed(),
                 message,
                 plainRefreshToken,
                 user.getRefreshTokenExpiry()

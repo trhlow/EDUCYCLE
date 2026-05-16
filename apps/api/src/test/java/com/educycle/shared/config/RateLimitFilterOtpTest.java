@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,5 +92,39 @@ class RateLimitFilterOtpTest {
         assertThat(resThird.getStatus()).isEqualTo(429);
         assertThat(resThird.getHeader("Retry-After")).isEqualTo("300");
         verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void sensitiveAuthPostPaths_return429WithRetryAfterWhenOverLimit() throws ServletException, IOException {
+        List<String> paths = List.of(
+                "/api/auth/verify-otp",
+                "/api/auth/resend-otp",
+                "/api/auth/forgot-password",
+                "/api/auth/reset-password");
+
+        for (int pathIndex = 0; pathIndex < paths.size(); pathIndex++) {
+            String path = paths.get(pathIndex);
+            String ip = "203.0.113." + (10 + pathIndex);
+            doAnswer(inv -> null).when(chain).doFilter(any(), any());
+
+            for (int i = 0; i < 10; i++) {
+                MockHttpServletResponse res = new MockHttpServletResponse();
+                MockHttpServletRequest req = new MockHttpServletRequest("POST", path);
+                req.setRemoteAddr(ip);
+                filter.doFilterInternal(req, res, chain);
+                assertThat(res.getStatus()).isNotEqualTo(429);
+            }
+
+            reset(chain);
+            MockHttpServletResponse resOverLimit = new MockHttpServletResponse();
+            MockHttpServletRequest reqOverLimit = new MockHttpServletRequest("POST", path);
+            reqOverLimit.setRemoteAddr(ip);
+            filter.doFilterInternal(reqOverLimit, resOverLimit, chain);
+
+            assertThat(resOverLimit.getStatus()).isEqualTo(429);
+            assertThat(resOverLimit.getHeader("Retry-After")).isEqualTo("60");
+            verify(chain, never()).doFilter(any(), any());
+            reset(chain);
+        }
     }
 }

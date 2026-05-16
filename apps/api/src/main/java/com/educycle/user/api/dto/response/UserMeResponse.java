@@ -16,5 +16,6 @@ public record UserMeResponse(
         boolean notifyProductModeration,
         boolean notifyTransactions,
         boolean notifyMessages,
+        boolean tradingAllowed,
         Instant transactionRulesAcceptedAt
 ) {}

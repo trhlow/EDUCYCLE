@@ -13,6 +13,7 @@ import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.exception.UnauthorizedException;
+import com.educycle.shared.util.MessageConstants;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+
+import static com.educycle.shared.util.TradingAccess.mayTrade;
 
 @Slf4j
 @Service
@@ -40,6 +43,9 @@ public class ProductOwnerUseCase {
     public ProductResponse create(CreateProductRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng"));
+        if (!mayTrade(user)) {
+            throw new BadRequestException(MessageConstants.TRADING_NOT_ALLOWED);
+        }
         Category category = resolveCategory(request.categoryId());
 
         Product product = Product.builder()
