@@ -25,7 +25,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
                 "com.educycle.review",
                 "com.educycle.admin",
                 "com.educycle.media",
-                "com.educycle.notification.application"
+                "com.educycle.notification.application",
+                "com.educycle.wishlist"
         },
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.REGEX,
@@ -41,14 +42,16 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "com.educycle.listing.domain",
         "com.educycle.transaction.domain",
         "com.educycle.review.domain",
-        "com.educycle.notification.domain"
+        "com.educycle.notification.domain",
+        "com.educycle.wishlist.domain"
 })
 @EnableJpaRepositories(basePackages = {
         "com.educycle.user.infrastructure.persistence",
         "com.educycle.listing.infrastructure.persistence",
         "com.educycle.transaction.infrastructure.persistence",
         "com.educycle.review.infrastructure.persistence",
-        "com.educycle.notification.infrastructure.persistence"
+        "com.educycle.notification.infrastructure.persistence",
+        "com.educycle.wishlist.infrastructure.persistence"
 })
 @EnableScheduling
 @EnableConfigurationProperties({

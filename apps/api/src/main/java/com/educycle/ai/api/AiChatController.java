@@ -3,6 +3,7 @@ package com.educycle.ai.api;
 import com.educycle.shared.config.AiChatRateLimiter;
 import com.educycle.ai.application.service.AiChatService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class AiChatController {
     ) {}
 
     public record ChatRequest(
-            @Valid List<MessageDto> messages
+            @NotEmpty @Size(max = 20) List<@Valid MessageDto> messages
     ) {}
 
     public record ChatResponse(String reply) {}

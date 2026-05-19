@@ -14,6 +14,7 @@ import com.educycle.shared.exception.BadRequestException;
 import com.educycle.shared.exception.NotFoundException;
 import com.educycle.shared.exception.UnauthorizedException;
 import com.educycle.shared.util.MessageConstants;
+import com.educycle.transaction.domain.TransactionStatus;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.educycle.shared.util.TradingAccess.mayTrade;
@@ -32,6 +35,12 @@ import static com.educycle.shared.util.TradingAccess.mayTrade;
 @RequiredArgsConstructor
 @Transactional
 public class ProductOwnerUseCase {
+
+    private static final Set<TransactionStatus> ACTIVE_TRANSACTION_STATUSES = EnumSet.of(
+            TransactionStatus.PENDING,
+            TransactionStatus.ACCEPTED,
+            TransactionStatus.MEETING,
+            TransactionStatus.DISPUTED);
 
     private final ProductRepository productRepository;
     private final TransactionRepository transactionRepository;
@@ -71,6 +80,9 @@ public class ProductOwnerUseCase {
         Product product = productRepository.findByIdWithUser(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm"));
         assertOwner(product, userId, "Bạn chỉ có thể chỉnh sửa sản phẩm của mình");
+        if (transactionRepository.existsByProduct_IdAndStatusIn(id, ACTIVE_TRANSACTION_STATUSES)) {
+            throw new BadRequestException("Không thể chỉnh sửa sản phẩm đang có giao dịch liên quan.");
+        }
 
         product.setName(request.name());
         product.setDescription(request.description());

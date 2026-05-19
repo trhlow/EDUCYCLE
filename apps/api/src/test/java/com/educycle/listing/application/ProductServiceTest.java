@@ -23,6 +23,7 @@ import com.educycle.listing.infrastructure.persistence.ProductRepository;
 import com.educycle.notification.application.service.NotificationService;
 import com.educycle.review.infrastructure.persistence.ReviewRepository;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
+import com.educycle.transaction.domain.TransactionStatus;
 import com.educycle.user.infrastructure.persistence.UserRepository;
 import com.educycle.listing.application.service.impl.ProductServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -377,6 +378,32 @@ class ProductServiceTest {
             // Act + Assert
             assertThatThrownBy(() -> productService.update(productId, request, UUID.randomUUID()))
                     .isInstanceOf(NotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("should reject update when product has active transaction")
+        void shouldRejectUpdate_whenHasActiveTransaction() {
+            UUID productId = UUID.randomUUID();
+            Product product = buildProduct(productId, testUser, "Product", "10.00");
+
+            given(productRepository.findByIdWithUser(productId)).willReturn(Optional.of(product));
+            given(transactionRepository.existsByProduct_IdAndStatusIn(
+                    eq(productId),
+                    argThat(statuses -> statuses.contains(TransactionStatus.PENDING)
+                            && statuses.contains(TransactionStatus.ACCEPTED)
+                            && statuses.contains(TransactionStatus.MEETING)
+                            && statuses.contains(TransactionStatus.DISPUTED))))
+                    .willReturn(true);
+
+            UpdateProductRequest request = new UpdateProductRequest(
+                    "Changed", "Changed desc", new BigDecimal("12.00"),
+                    null, null, null, null, null, null);
+
+            assertThatThrownBy(() -> productService.update(productId, request, testUser.getId()))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("Không thể chỉnh sửa sản phẩm đang có giao dịch liên quan.");
+
+            verify(productRepository, never()).save(any(Product.class));
         }
     }
 
