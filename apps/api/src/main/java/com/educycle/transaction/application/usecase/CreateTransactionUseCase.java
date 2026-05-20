@@ -12,6 +12,7 @@ import com.educycle.transaction.api.dto.response.TransactionResponse;
 import com.educycle.transaction.application.support.TransactionResponseMapper;
 import com.educycle.transaction.domain.Transaction;
 import com.educycle.transaction.domain.TransactionStatus;
+import com.educycle.transaction.domain.TransactionStatuses;
 import com.educycle.transaction.infrastructure.persistence.TransactionRepository;
 import com.educycle.user.domain.User;
 import com.educycle.user.infrastructure.persistence.UserRepository;
@@ -20,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.UUID;
 
 import static com.educycle.shared.util.TradingAccess.mayTrade;
@@ -31,12 +30,6 @@ import static com.educycle.shared.util.TradingAccess.mayTrade;
 @RequiredArgsConstructor
 @Transactional
 public class CreateTransactionUseCase {
-
-    private static final Set<TransactionStatus> ACTIVE_TRANSACTION_STATUSES = EnumSet.of(
-            TransactionStatus.PENDING,
-            TransactionStatus.ACCEPTED,
-            TransactionStatus.MEETING,
-            TransactionStatus.DISPUTED);
 
     private final TransactionRepository transactionRepository;
     private final ProductRepository productRepository;
@@ -67,7 +60,9 @@ public class CreateTransactionUseCase {
             throw new BadRequestException(
                     MessageConstants.PRODUCT_NOT_AVAILABLE_PREFIX + product.getStatus() + ")");
         }
-        if (transactionRepository.existsByProduct_IdAndStatusIn(product.getId(), ACTIVE_TRANSACTION_STATUSES)) {
+        if (transactionRepository.existsByProduct_IdAndStatusIn(
+                product.getId(),
+                TransactionStatuses.activeForProductAvailability())) {
             throw new BadRequestException(MessageConstants.PRODUCT_HAS_ACTIVE_TRANSACTION);
         }
 

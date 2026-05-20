@@ -5,6 +5,7 @@ import com.educycle.ai.application.service.AiChatService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,7 +54,7 @@ public class AiChatController {
     ) {}
 
     public record ChatRequest(
-            @NotEmpty @Size(max = 20) List<@Valid MessageDto> messages
+            @NotEmpty @Size(max = 20) List<@NotNull @Valid MessageDto> messages
     ) {}
 
     public record ChatResponse(String reply) {}
